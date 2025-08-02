@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useRoutes, Route, Navigate } from 'react-router';
+import { BrowserRouter, useRoutes, Route, Navigate } from 'react-router';
 import type { Device } from '@zen-send/shared';
 import { ThemeProvider, useTheme } from './theme/theme-provider';
 
@@ -129,9 +129,11 @@ function AppRoutes() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppRoutes />
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <AppRoutes />
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 
