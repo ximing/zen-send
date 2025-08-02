@@ -1,51 +1,44 @@
-// Stub service - will be replaced in Task 3
+// ThemeService delegates to ThemeProvider as the source of truth.
+// ThemeProvider manages the actual theme state and class toggling via React context.
+// ThemeService is a thin wrapper that syncs via localStorage and custom events.
+
 import { Service } from '@rabjs/react';
+import { storageKey, getResolvedTheme, type ThemeMode } from '../theme/tokens';
 
-export type ThemeMode = 'light' | 'dark' | 'system';
-
-const STORAGE_KEY = 'zen-send-theme';
+const THEME_CHANGE_EVENT = 'zen-send:themechange';
 
 export class ThemeService extends Service {
-  mode: ThemeMode = 'system';
-  resolvedTheme: 'light' | 'dark' = 'light';
+  private _mode: ThemeMode = 'system';
 
   constructor() {
     super();
-    this.loadMode();
-    this.updateResolvedTheme();
+    this._loadMode();
   }
 
-  private loadMode() {
-    const stored = localStorage.getItem(STORAGE_KEY);
+  private _loadMode() {
+    const stored = localStorage.getItem(storageKey);
     if (stored === 'light' || stored === 'dark' || stored === 'system') {
-      this.mode = stored;
+      this._mode = stored;
     }
+  }
+
+  get mode(): ThemeMode {
+    const stored = localStorage.getItem(storageKey);
+    if (stored === 'light' || stored === 'dark' || stored === 'system') {
+      return stored;
+    }
+    return 'system';
+  }
+
+  get resolvedTheme(): 'light' | 'dark' {
+    return getResolvedTheme(this.mode);
   }
 
   setMode(mode: ThemeMode) {
-    this.mode = mode;
-    localStorage.setItem(STORAGE_KEY, mode);
-    this.updateResolvedTheme();
-  }
-
-  private updateResolvedTheme() {
-    if (this.mode === 'system') {
-      this.resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-    } else {
-      this.resolvedTheme = this.mode;
-    }
-    this.applyTheme();
-  }
-
-  private applyTheme() {
-    const root = document.documentElement;
-    if (this.resolvedTheme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    this._mode = mode;
+    localStorage.setItem(storageKey, mode);
+    // Notify ThemeProvider to sync via custom event
+    window.dispatchEvent(new CustomEvent(THEME_CHANGE_EVENT, { detail: { mode } }));
   }
 
   toggleTheme() {

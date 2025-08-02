@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // Detect if running in Electron
 export const isElectron =
   typeof window !== 'undefined' &&

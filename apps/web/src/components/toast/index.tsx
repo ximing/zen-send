@@ -1,3 +1,4 @@
+import React from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { ToastService } from './toast.service';
 
@@ -31,4 +32,4 @@ const ToastContent = observer(() => {
   );
 });
 
-export default bindServices(ToastContent, [ToastService]);
+export default bindServices(ToastContent, [ToastService]) as React.ComponentType; 

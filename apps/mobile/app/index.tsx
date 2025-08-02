@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, Button, FlatList } from 'react-native';
 import { io, Socket } from 'socket.io-client';
 import type { Device } from '@zen-send/shared';
 
-const socket: Socket = io('http://localhost:3001');
+const socket: Socket = io('http://localhost:3110');
 
 export default function App() {
   const [devices, setDevices] = useState<Device[]>([]);

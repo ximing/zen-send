@@ -1,3 +1,4 @@
+import React from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
 import { HeaderService } from './header.service';
@@ -39,4 +40,4 @@ const HeaderContent = observer(() => {
   );
 });
 
-export default bindServices(HeaderContent, [HeaderService]);
+export default bindServices(HeaderContent, [HeaderService]); 

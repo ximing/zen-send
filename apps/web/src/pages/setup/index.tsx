@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
 import { SetupService } from './setup.service';
@@ -72,4 +72,4 @@ const SetupContent = observer(() => {
   );
 });
 
-export default bindServices(SetupContent, [SetupService]);
+export default bindServices(SetupContent, [SetupService]); 

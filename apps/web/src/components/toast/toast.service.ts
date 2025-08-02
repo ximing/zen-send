@@ -29,12 +29,11 @@ export class ToastService extends Service {
     this.toasts = this.toasts.filter((t) => t.id !== id);
   }
 
-  override dispose() {
+  dispose() {
     // Clear all pending timeouts on dispose
     for (const timeoutId of this.timeoutIds.values()) {
       clearTimeout(timeoutId);
     }
     this.timeoutIds.clear();
-    super.dispose();
   }
 }

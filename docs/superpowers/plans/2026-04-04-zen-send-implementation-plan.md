@@ -1498,7 +1498,7 @@ app.use('/api/transfers', transferRouter);
 // Setup Socket.io
 setupSocket(io);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3110;
 httpServer.listen(PORT, () => {
   logger.info({ port: PORT }, 'Server started');
 });
@@ -2032,7 +2032,7 @@ const io = new Server(httpServer, {
 // Setup Socket.io
 setupSocket(io);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3110;
 httpServer.listen(PORT, () => {
   logger.info({ port: PORT }, 'Server started');
 });

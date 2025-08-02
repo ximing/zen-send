@@ -27,7 +27,7 @@ Zen Send is a monorepo containing a server, web frontend, and React Native mobil
 pnpm install          # Install all dependencies
 pnpm dev              # Run all apps in dev mode
 pnpm dev:web          # Run web frontend (port 5274)
-pnpm dev:server       # Run backend server (port 3001)
+pnpm dev:server       # Run backend server (port 3110)
 pnpm dev:mobile       # Run Expo mobile app
 pnpm build            # Build all packages
 pnpm clean            # Clean all dist outputs
@@ -133,14 +133,14 @@ components/
 
 1. Copy `.env.example` to `.env` in `apps/server`
 2. Run `pnpm install`
-3. Run `pnpm dev:server` to start the backend on port 3001
+3. Run `pnpm dev:server` to start the backend on port 3110
 4. Run `pnpm dev:web` for frontend (runs on port 5274, proxies API to 3100)
 
 ### Environment Variables
 
 **Server (`apps/server/.env`):**
 ```
-PORT=3001
+PORT=3110
 NODE_ENV=development
 
 # JWT (required in production)

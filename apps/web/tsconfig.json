@@ -1,8 +1,7 @@
 {
   "extends": "@zen-send/typescript-config/react.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "types": ["node", "vite/client"]
+    "outDir": "./dist"
   },
   "include": ["src"]
 }
