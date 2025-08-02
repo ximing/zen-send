@@ -1,0 +1,44 @@
+{
+  "name": "@zen-send/electron",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main/index.js",
+  "homepage": "https://github.com/ximing/zen-send",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ximing/zen-send.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && tsc -b",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix --fix-type problem",
+    "dist": "electron-builder",
+    "dist:all": "electron-builder -mwl",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "@zen-send/logger": "workspace:*",
+    "@zen-send/shared": "workspace:*",
+    "electron-store": "^10.0.0"
+  },
+  "devDependencies": {
+    "@fiahfy/icns": "^0.0.7",
+    "@types/node": "^22.0.0",
+    "@zen-send/eslint-config": "workspace:*",
+    "@zen-send/typescript-config": "workspace:*",
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.12",
+    "icns-lib": "^1.0.1",
+    "png-to-ico": "^3.0.1",
+    "typescript": "^5.7.3",
+    "vite": "^7.3.1",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6"
+  }
+}
