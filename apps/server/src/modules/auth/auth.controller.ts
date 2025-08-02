@@ -17,6 +17,10 @@ const refreshSchema = z.object({
   refreshToken: z.string(),
 });
 
+const logoutSchema = z.object({
+  refreshToken: z.string(),
+});
+
 export const authController = {
   async register(req: Request, res: Response): Promise<void> {
     try {
@@ -69,6 +73,23 @@ export const authController = {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Refresh failed';
       unauthorized(res, message);
+    }
+  },
+
+  async logout(req: Request, res: Response): Promise<void> {
+    try {
+      const parseResult = logoutSchema.safeParse(req.body);
+
+      if (!parseResult.success) {
+        badRequest(res, 'Invalid request body');
+        return;
+      }
+
+      authService.logout(parseResult.data.refreshToken);
+      success(res, { message: 'Logged out successfully' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Logout failed';
+      error(res, message, 'InternalServerError', 500);
     }
   },
 };

@@ -44,6 +44,9 @@ function generateTokens(payload: TokenPayload): AuthTokens {
   };
 }
 
+// In-memory set to store invalidated refresh tokens
+const invalidatedTokens = new Set<string>();
+
 export const authService = {
   async register(input: RegisterInput): Promise<AuthTokens> {
     const existingUser = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
@@ -85,6 +88,10 @@ export const authService = {
   },
 
   async refresh(refreshToken: string): Promise<AuthTokens> {
+    if (invalidatedTokens.has(refreshToken)) {
+      throw new Error('Token has been invalidated');
+    }
+
     const payload = verifyRefreshToken(refreshToken);
 
     if (!payload.userId) {
@@ -92,5 +99,9 @@ export const authService = {
     }
 
     return generateTokens({ userId: payload.userId });
+  },
+
+  logout(refreshToken: string): void {
+    invalidatedTokens.add(refreshToken);
   },
 };
