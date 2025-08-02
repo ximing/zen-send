@@ -3,6 +3,7 @@ import cors from 'cors';
 import { authRouter } from './modules/auth/index.js';
 import { deviceRouter } from './modules/device/index.js';
 import { transferRouter } from './modules/transfer/index.js';
+import { errorHandler, notFoundHandler } from './middleware/error.js';
 
 export function createApp(): express.Application {
   const app = express();
@@ -24,5 +25,11 @@ export function createApp(): express.Application {
   // Transfer routes
   app.use('/api/transfers', transferRouter);
 
+  // Error handling
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+
   return app;
 }
+
+export const app = createApp();
