@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
-import { authService } from './auth.service.js';
-import { created, success, badRequest, unauthorized } from '../../utils/response.js';
+import { authService, AuthError } from './auth.service.js';
+import { created, success, badRequest, unauthorized, error } from '../../utils/response.js';
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -30,8 +30,11 @@ export const authController = {
       const tokens = await authService.register(parseResult.data);
       created(res, tokens);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Registration failed';
-      badRequest(res, message);
+      if (err instanceof AuthError && err.code === 'DUPLICATE_USER') {
+        error(res, 'Registration failed', 'CONFLICT', 409);
+      } else {
+        badRequest(res, 'Registration failed');
+      }
     }
   },
 

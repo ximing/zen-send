@@ -19,6 +19,16 @@ export interface LoginInput {
   password: string;
 }
 
+export class AuthError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string
+  ) {
+    super(message);
+    this.name = 'AuthError';
+  }
+}
+
 async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
@@ -39,7 +49,7 @@ export const authService = {
     const existingUser = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
     if (existingUser.length > 0) {
-      throw new Error('User already exists');
+      throw new AuthError('User already exists', 'DUPLICATE_USER');
     }
 
     const passwordHash = await hashPassword(input.password);
