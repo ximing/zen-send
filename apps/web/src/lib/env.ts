@@ -24,5 +24,5 @@ export const getApiBaseUrl = () => {
 // Socket.io URL
 export const getSocketUrl = () => {
   const base = getApiBaseUrl();
-  return base.replace(/^http/, 'ws');
+  return base.replace(/^http(s)?/, 'ws$1');
 };
