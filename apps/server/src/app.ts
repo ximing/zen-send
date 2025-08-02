@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { authRouter } from './modules/auth/index.js';
+import { deviceRouter } from './modules/device/index.js';
 
 export function createApp(): express.Application {
   const app = express();
@@ -15,6 +16,9 @@ export function createApp(): express.Application {
 
   // Auth routes
   app.use('/api/auth', authRouter);
+
+  // Device routes
+  app.use('/api/devices', deviceRouter);
 
   return app;
 }
