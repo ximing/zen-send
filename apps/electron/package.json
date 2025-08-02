@@ -32,7 +32,7 @@
     "@types/node": "^22.0.0",
     "@zen-send/eslint-config": "workspace:*",
     "@zen-send/typescript-config": "workspace:*",
-    "electron": "^35.0.0",
+    "electron": "^40.0.0",
     "electron-builder": "^26.0.12",
     "icns-lib": "^1.0.1",
     "png-to-ico": "^3.0.1",

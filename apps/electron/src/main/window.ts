@@ -20,8 +20,8 @@ interface WindowState {
 const DEFAULT_STATE: WindowState = {
   x: 0,
   y: 0,
-  width: 1000,
-  height: 700,
+  width: 1200,
+  height: 800,
   isMaximized: false,
 };
 
@@ -89,8 +89,8 @@ export class WindowManager {
     this.window = new BrowserWindow({
       x: bounds.x,
       y: bounds.y,
-      width: bounds.width ?? 1000,
-      height: bounds.height ?? 700,
+      width: bounds.width ?? 1200,
+      height: bounds.height ?? 800,
       minWidth: 800,
       minHeight: 600,
       show: false,

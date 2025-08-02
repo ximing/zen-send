@@ -10,13 +10,13 @@ export class MenuManager {
 
   private createEditMenu(): MenuItemConstructorOptions[] {
     return [
-      { label: '撤销', role: 'undo', accelerator: 'CmdOrCtrl+Z' },
-      { label: '重做', role: 'redo', accelerator: 'Shift+CmdOrCtrl+Z' },
+      { label: 'Undo', role: 'undo', accelerator: 'CmdOrCtrl+Z' },
+      { label: 'Redo', role: 'redo', accelerator: 'Shift+CmdOrCtrl+Z' },
       { type: 'separator' },
-      { label: '剪切', role: 'cut', accelerator: 'CmdOrCtrl+X' },
-      { label: '复制', role: 'copy', accelerator: 'CmdOrCtrl+C' },
-      { label: '粘贴', role: 'paste', accelerator: 'CmdOrCtrl+V' },
-      { label: '全选', role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
+      { label: 'Cut', role: 'cut', accelerator: 'CmdOrCtrl+X' },
+      { label: 'Copy', role: 'copy', accelerator: 'CmdOrCtrl+C' },
+      { label: 'Paste', role: 'paste', accelerator: 'CmdOrCtrl+V' },
+      { label: 'Select All', role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
     ];
   }
 
@@ -24,32 +24,32 @@ export class MenuManager {
     const isMac = process.platform === 'darwin';
     return [
       {
-        label: '重新加载',
+        label: 'Reload',
         role: 'reload',
         accelerator: 'CmdOrCtrl+R',
       },
       {
-        label: '切换开发者工具',
+        label: 'Toggle Developer Tools',
         role: 'toggleDevTools',
         accelerator: isMac ? 'Alt+Cmd+I' : 'Ctrl+Shift+I',
       },
       { type: 'separator' },
-      { label: '重置缩放', role: 'resetZoom', accelerator: 'CmdOrCtrl+0' },
-      { label: '放大', role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
-      { label: '缩小', role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
+      { label: 'Reset Zoom', role: 'resetZoom', accelerator: 'CmdOrCtrl+0' },
+      { label: 'Zoom In', role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
+      { label: 'Zoom Out', role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
       { type: 'separator' },
-      { label: '全屏', role: 'togglefullscreen', accelerator: isMac ? 'Ctrl+Cmd+F' : 'F11' },
+      { label: 'Toggle Full Screen', role: 'togglefullscreen', accelerator: isMac ? 'Ctrl+Cmd+F' : 'F11' },
     ];
   }
 
   private createWindowMenu(): MenuItemConstructorOptions[] {
     const isMac = process.platform === 'darwin';
     const items: MenuItemConstructorOptions[] = [
-      { label: '最小化', role: 'minimize', accelerator: 'CmdOrCtrl+M' },
-      { label: '关闭', role: 'close', accelerator: 'CmdOrCtrl+W' },
+      { label: 'Minimize', role: 'minimize', accelerator: 'CmdOrCtrl+M' },
+      { label: 'Close', role: 'close', accelerator: 'CmdOrCtrl+W' },
       { type: 'separator' },
       {
-        label: '显示主窗口',
+        label: 'Show Main Window',
         click: () => this.windowManager.show(),
       },
     ];
@@ -57,8 +57,8 @@ export class MenuManager {
     if (isMac) {
       items.push(
         { type: 'separator' },
-        { label: '前置全部窗口', role: 'front' },
-        { label: '进入全屏', role: 'togglefullscreen' }
+        { label: 'Bring All to Front', role: 'front' },
+        { label: 'Enter Full Screen', role: 'togglefullscreen' }
       );
     }
 
@@ -68,19 +68,19 @@ export class MenuManager {
   private createHelpMenu(): MenuItemConstructorOptions[] {
     return [
       {
-        label: '访问 GitHub',
+        label: 'Visit GitHub',
         click: () => {
           shell.openExternal('https://github.com/ximing/zen-send');
         },
       },
       {
-        label: '关于 Zen Send',
+        label: 'About Zen Send',
         click: () => {
           dialog.showMessageBox({
             type: 'info',
-            title: '关于 Zen Send',
+            title: 'About Zen Send',
             message: 'Zen Send',
-            detail: `版本: ${app.getVersion()}\n跨平台剪贴板、文本和文件传输工具`,
+            detail: `Version: ${app.getVersion()}\nCross-platform clipboard, text, and file transfer tool`,
           });
         },
       },
@@ -95,14 +95,14 @@ export class MenuManager {
       template.push({
         label: app.getName(),
         submenu: [
-          { label: `关于 ${app.getName()}`, role: 'about' },
+          { label: `About ${app.getName()}`, role: 'about' },
           { type: 'separator' },
-          { label: '隐藏', role: 'hide', accelerator: 'Command+H' },
-          { label: '隐藏其他', role: 'hideOthers', accelerator: 'Command+Alt+H' },
-          { label: '显示全部', role: 'unhide' },
+          { label: 'Hide', role: 'hide', accelerator: 'Command+H' },
+          { label: 'Hide Others', role: 'hideOthers', accelerator: 'Command+Alt+H' },
+          { label: 'Show All', role: 'unhide' },
           { type: 'separator' },
           {
-            label: `退出 ${app.getName()}`,
+            label: `Quit ${app.getName()}`,
             accelerator: 'Command+Q',
             click: () => app.quit(),
           },
@@ -112,20 +112,20 @@ export class MenuManager {
 
     template.push(
       {
-        label: '编辑',
+        label: 'Edit',
         submenu: this.createEditMenu(),
       },
       {
-        label: '视图',
+        label: 'View',
         submenu: this.createViewMenu(),
       },
       {
-        label: '窗口',
+        label: 'Window',
         role: 'window',
         submenu: this.createWindowMenu(),
       },
       {
-        label: '帮助',
+        label: 'Help',
         role: 'help',
         submenu: this.createHelpMenu(),
       }
@@ -134,10 +134,10 @@ export class MenuManager {
     // Windows/Linux: Add File menu
     if (!isMac) {
       template.unshift({
-        label: '文件',
+        label: 'File',
         submenu: [
           {
-            label: '退出',
+            label: 'Quit',
             accelerator: 'Ctrl+Q',
             click: () => app.quit(),
           },
