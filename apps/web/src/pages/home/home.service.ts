@@ -62,8 +62,4 @@ export class HomeService extends Service {
   clearFiles() {
     this.selectedFiles = [];
   }
-
-  async logout() {
-    await this.authService.logout();
-  }
 }
