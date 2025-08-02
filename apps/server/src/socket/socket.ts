@@ -79,6 +79,21 @@ export function setupSocket(io: Server): void {
       }
     });
 
+    // Handle explicit device registration
+    socket.on('device:register', async (data: { deviceId: string; deviceName: string; deviceType: string }) => {
+      const { deviceId, deviceName, deviceType } = data;
+
+      if (socket.user?.userId) {
+        // Update device as online
+        await deviceService.updateDeviceHeartbeat(deviceId);
+
+        // Store deviceId on socket for later use
+        socket.deviceId = deviceId;
+
+        logger.info({ socketId: socket.id, deviceId, deviceName }, 'Device registered via socket event');
+      }
+    });
+
     // Handle transfer notification
     socket.on('transfer:notify', async (data: { targetDeviceId: string; sessionId: string }) => {
       const { targetDeviceId, sessionId } = data;
