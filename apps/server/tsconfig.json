@@ -2,7 +2,9 @@
   "extends": "@zen-send/typescript-config/node.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   },
   "include": ["src"]
 }
