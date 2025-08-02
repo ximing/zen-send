@@ -1,7 +1,7 @@
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '../../config/database.js';
 import { transferSessions, transferItems, chunkUploads } from '../../db/schema.js';
-import { generateTransferSessionId, generateTransferItemId, generateChunkId } from '../../utils/id.js';
+import { generateSessionId, generateItemId, generateChunkId } from '../../utils/id.js';
 import { getPresignedUploadUrl, getPresignedDownloadUrl, S3_BUCKET, TRANSFER_TTL_DAYS } from '../../config/s3.js';
 
 const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB
@@ -58,7 +58,7 @@ export interface TransferItemInfo {
 
 export const transferService = {
   async initTransfer(input: InitTransferInput): Promise<InitTransferOutput> {
-    const sessionId = generateTransferSessionId();
+    const sessionId = generateSessionId();
     const now = Math.floor(Date.now() / 1000);
     const ttlExpiresAt = now + TRANSFER_TTL_DAYS * 24 * 60 * 60;
     const s3Key = `transfers/${sessionId}/`;
@@ -220,7 +220,7 @@ export const transferService = {
     content: string | null,
     thumbnailKey: string | null
   ): Promise<TransferItemInfo> {
-    const itemId = generateTransferItemId();
+    const itemId = generateItemId();
     const now = Math.floor(Date.now() / 1000);
 
     await db.insert(transferItems).values({
@@ -246,5 +246,20 @@ export const transferService = {
       thumbnailKey,
       createdAt: now,
     };
+  },
+
+  async deleteTransfer(sessionId: string, userId: string): Promise<boolean> {
+    const existing = await db
+      .select()
+      .from(transferSessions)
+      .where(and(eq(transferSessions.id, sessionId), eq(transferSessions.userId, userId)))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return false;
+    }
+
+    await db.delete(transferSessions).where(and(eq(transferSessions.id, sessionId), eq(transferSessions.userId, userId)));
+    return true;
   },
 };
