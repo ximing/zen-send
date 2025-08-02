@@ -1,0 +1,20 @@
+{
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'notify --title \"Claude\" --message \"zen-send 执行完毕\"' | nc -U /tmp/console.sock 2 > /dev/null"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -39,12 +39,26 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [colors]);
 
   useEffect(() => {
+    const root = document.documentElement;
+    if (resolvedTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [resolvedTheme]);
+
+  useEffect(() => {
     if (mode !== 'system') return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
       const newResolved = getResolvedTheme('system');
       applyCssVariables(theme[newResolved]);
+      if (newResolved === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     };
 
     mediaQuery.addEventListener('change', handleChange);
