@@ -10,7 +10,7 @@ const LoginContent = observer(() => {
     e.preventDefault();
     const success = await service.login();
     if (success) {
-      navigate('/');
+      navigate('/', { replace: true });
     }
   };
 
@@ -29,6 +29,7 @@ const LoginContent = observer(() => {
               value={service.email}
               onChange={(e) => { service.email = e.target.value; }}
               placeholder="Email"
+              autoComplete="email"
               className="w-full px-4 py-3 bg-surface border border-border-default rounded-lg
                          text-text-primary placeholder-text-muted
                          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -42,6 +43,7 @@ const LoginContent = observer(() => {
               value={service.password}
               onChange={(e) => { service.password = e.target.value; }}
               placeholder="Password"
+              autoComplete="current-password"
               className="w-full px-4 py-3 bg-surface border border-border-default rounded-lg
                          text-text-primary placeholder-text-muted
                          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
