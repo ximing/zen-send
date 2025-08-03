@@ -7,7 +7,7 @@ import { logger } from '@zen-send/logger';
 
 async function bootstrap() {
   try {
-    const { io } = await createApp();
+    await createApp();
     logger.info('Server bootstrapped successfully');
   } catch (error) {
     logger.error('Failed to bootstrap server', error);
