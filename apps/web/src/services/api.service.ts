@@ -62,4 +62,13 @@ export class ApiService extends Service {
       body: body ? JSON.stringify(body) : undefined,
     });
   }
+
+  async cancelUpload(sessionId: string): Promise<void> {
+    // 取消上传通过删除 session 实现
+    await this.delete(`/api/transfers/${sessionId}`);
+  }
+
+  async deleteTransfer(sessionId: string): Promise<void> {
+    await this.delete(`/api/transfers/${sessionId}`);
+  }
 }
