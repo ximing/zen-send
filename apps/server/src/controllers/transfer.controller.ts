@@ -27,6 +27,11 @@ export class TransferController {
   @Post('/init')
   async init(@CurrentUser() user: TokenPayload, @Body() dto: InitTransferDto) {
     try {
+      const TEXT_INLINE_MAX_SIZE = 10 * 1024;
+      const isInlineText = dto.type === 'text' &&
+                            dto.totalSize <= TEXT_INLINE_MAX_SIZE &&
+                            dto.content !== undefined;
+
       const result = await this.transferService.initTransfer({
         userId: user.userId,
         sourceDeviceId: dto.sourceDeviceId,
@@ -35,9 +40,26 @@ export class TransferController {
         fileName: dto.fileName,
         contentType: dto.contentType,
         totalSize: dto.totalSize,
-        chunkCount: dto.chunkCount,
+        chunkCount: dto.chunkCount || 0,
+        content: dto.content,
       });
-      return ResponseUtil.created(result);
+
+      // 根据是否内联文本返回不同响应
+      if (isInlineText) {
+        return ResponseUtil.created({
+          sessionId: result.sessionId,
+          storageType: 'db',
+        });
+      }
+
+      return ResponseUtil.created({
+        sessionId: result.sessionId,
+        s3Bucket: result.s3Bucket,
+        s3Key: result.s3Key,
+        chunkCount: result.chunkCount,
+        chunkSize: result.chunkSize,
+        presignedUrls: result.presignedUrls?.map(u => u.url),
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to initialize transfer';
       throw new HttpError(400, message);
@@ -103,7 +125,26 @@ export class TransferController {
     if (!transfer) {
       throw new HttpError(404, 'Transfer not found');
     }
-    return ResponseUtil.success({ transfer });
+
+    // 获取 items 并构建响应
+    const items = (transfer as any).items || [];
+    const formattedItems = items.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      mimeType: item.mimeType,
+      size: item.size,
+      storageType: item.storageType,
+      content: item.storageType === 'db' ? item.content : undefined,
+      downloadUrl: item.storageType === 's3'
+        ? this.transferService.getDownloadUrl(id, user.userId)
+        : undefined,
+    }));
+
+    return ResponseUtil.success({
+      id: transfer.id,
+      status: transfer.status,
+      items: formattedItems,
+    });
   }
 
   @Get('/:id/download')
