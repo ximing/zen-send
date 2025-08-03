@@ -6,6 +6,7 @@ import {
   UploadPartCommand,
   CompleteMultipartUploadCommand,
   AbortMultipartUploadCommand,
+  DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Service } from 'typedi';
@@ -141,6 +142,14 @@ export class S3Service {
       UploadId: uploadId,
     });
 
+    await this.getClient().send(command);
+  }
+
+  async deleteObject(key: string): Promise<void> {
+    const command = new DeleteObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
     await this.getClient().send(command);
   }
 }
