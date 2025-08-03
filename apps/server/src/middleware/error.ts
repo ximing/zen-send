@@ -1,26 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
+import { HttpError } from 'routing-controllers';
 import { logger } from '@zen-send/logger';
 
-export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction): void {
-  req._error = err.message;
-  logger.error({ err, path: req.path, method: req.method }, 'Unhandled error');
-  res.status(500).json({ success: false, error: 'Internal server error', code: 'INTERNAL_ERROR' });
-}
+export function errorHandler(
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  logger.error({ err: error, path: req.path, method: req.method }, 'Request error');
 
-export function notFoundHandler(req: Request, res: Response): void {
-  req._error = 'Not found';
-  res.status(404).json({
-    success: false,
-    error: 'Not found',
-    code: 'NOT_FOUND',
-  });
-}
-
-// Extend Express Request to include error message
-declare global {
-  namespace Express {
-    interface Request {
-      _error?: string;
-    }
+  if (error instanceof HttpError) {
+    res.status(error.httpCode).json({
+      success: false,
+      error: error.message,
+      code: 'HTTP_ERROR',
+    });
+    return;
   }
+
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error',
+    code: 'INTERNAL_ERROR',
+  });
 }
