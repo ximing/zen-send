@@ -1,6 +1,6 @@
 import React from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
-import { Paperclip, Pencil, Clipboard, FileText, X } from 'lucide-react';
+import { Paperclip, Pencil, FileText, X } from 'lucide-react';
 import { SendToolbarService } from './send-toolbar.service';
 import { getZenBridge, browserOpenFileDialog } from '../../lib/zen-bridge';
 
@@ -36,7 +36,7 @@ const SendToolbarContent = observer(() => {
       <div className="bg-[var(--bg-surface)] border border-[var(--border-default)]
                       rounded-xl p-6 mb-8">
         {/* Action buttons grid */}
-        <div className="grid grid-cols-3 gap-3 mb-5">
+        <div className="grid grid-cols-2 gap-3 mb-5">
           {/* Select File */}
           <button
             onClick={handleSelectFile}
@@ -57,17 +57,6 @@ const SendToolbarContent = observer(() => {
           >
             <Pencil size={20} className="text-[var(--text-secondary)]" />
             <span className="label text-[var(--text-secondary)]">ENTER_TEXT</span>
-          </button>
-
-          {/* Clipboard */}
-          <button
-            onClick={() => service.openModal('clipboard')}
-            className="flex flex-col items-center gap-2 p-4
-                       bg-[var(--bg-elevated)] hover:bg-[var(--border-default)]
-                       border border-[var(--border-default)] rounded-lg transition-colors"
-          >
-            <Clipboard size={20} className="text-[var(--text-secondary)]" />
-            <span className="label text-[var(--text-secondary)]">CLIPBOARD</span>
           </button>
         </div>
 
@@ -162,65 +151,6 @@ const SendToolbarContent = observer(() => {
                            disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 ADD_TEXT
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Clipboard Modal */}
-      {service.modalType === 'clipboard' && (
-        <div
-          className="fixed inset-0 bg-[var(--bg-overlay)] flex items-center justify-center z-50 p-4 cursor-pointer"
-          onClick={() => service.closeModal()}
-        >
-          <div
-            className="bg-[var(--bg-surface)] border border-[var(--border-default)]
-                          rounded-xl shadow-xl w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
-              <h3 className="text-sm font-medium tracking-wider text-[var(--text-primary)]">
-                CLIPBOARD_CONTENT
-              </h3>
-              <button
-                onClick={() => service.closeModal()}
-                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="p-5">
-              {service.clipboardContent ? (
-                <textarea
-                  value={service.clipboardContent}
-                  readOnly
-                  className="w-full h-40 px-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-default)]
-                             rounded-lg text-[var(--text-primary)] resize-none"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-40 text-[var(--text-muted)]">
-                  CLIPBOARD_IS_EMPTY_OR_ACCESS_DENIED
-                </div>
-              )}
-            </div>
-            <div className="flex justify-end gap-3 px-5 py-4 border-t border-[var(--border-default)]">
-              <button
-                onClick={() => service.closeModal()}
-                className="px-4 py-2 text-xs tracking-wider uppercase
-                           text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-              >
-                CANCEL
-              </button>
-              <button
-                onClick={() => service.submitClipboard()}
-                disabled={!service.clipboardContent?.trim()}
-                className="px-4 py-2 text-xs tracking-wider uppercase
-                           bg-[var(--primary)] text-[var(--on-primary)] rounded-md
-                           hover:bg-[var(--primary-hover)] transition-colors
-                           disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                ADD_CLIPBOARD
               </button>
             </div>
           </div>
