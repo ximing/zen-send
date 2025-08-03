@@ -52,18 +52,23 @@ export function setupSocket(io: Server): void {
     socket.deviceId = deviceId;
 
     // Update device heartbeat and mark online
-    Container.get(DeviceService).updateDeviceHeartbeat(deviceId).catch((err) => {
-      logger.error({ error: err, deviceId }, 'Failed to update device heartbeat on connect');
-    });
+    Container.get(DeviceService)
+      .updateDeviceHeartbeat(deviceId)
+      .catch((err) => {
+        logger.error({ error: err, deviceId }, 'Failed to update device heartbeat on connect');
+      });
 
     // Get device info and store socket
-    Container.get(DeviceService).getDeviceById(deviceId).then((device) => {
-      if (device) {
-        deviceSockets.set(deviceId, { socketId: socket.id, device });
-      }
-    }).catch((err) => {
-      logger.error({ error: err, deviceId }, 'Failed to get device info on connect');
-    });
+    Container.get(DeviceService)
+      .getDeviceById(deviceId)
+      .then((device) => {
+        if (device) {
+          deviceSockets.set(deviceId, { socketId: socket.id, device });
+        }
+      })
+      .catch((err) => {
+        logger.error({ error: err, deviceId }, 'Failed to get device info on connect');
+      });
 
     // Emit device list to the connected user
     emitDeviceList(io, userId, socket.id);
@@ -81,19 +86,25 @@ export function setupSocket(io: Server): void {
     });
 
     // Handle explicit device registration
-    socket.on('device:register', async (data: { deviceId: string; deviceName: string; deviceType: string }) => {
-      const { deviceId, deviceName, deviceType } = data;
+    socket.on(
+      'device:register',
+      async (data: { deviceId: string; deviceName: string; deviceType: string }) => {
+        const { deviceId, deviceName, deviceType } = data;
 
-      if (socket.user?.userId) {
-        // Update device as online
-        await Container.get(DeviceService).updateDeviceHeartbeat(deviceId);
+        if (socket.user?.userId) {
+          // Update device as online
+          await Container.get(DeviceService).updateDeviceHeartbeat(deviceId);
 
-        // Store deviceId on socket for later use
-        socket.deviceId = deviceId;
+          // Store deviceId on socket for later use
+          socket.deviceId = deviceId;
 
-        logger.info({ socketId: socket.id, deviceId, deviceName }, 'Device registered via socket event');
+          logger.info(
+            { socketId: socket.id, deviceId, deviceName },
+            'Device registered via socket event'
+          );
+        }
       }
-    });
+    );
 
     // Handle transfer notification
     socket.on('transfer:notify', async (data: { targetDeviceId: string; sessionId: string }) => {

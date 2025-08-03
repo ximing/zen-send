@@ -9,11 +9,21 @@ import { setupSocket } from './socket/socket.js';
 import { initIOC } from './ioc.js';
 import { controllers } from './controllers/index.js';
 import { currentUserChecker } from './middlewares/auth.middleware.js';
+import { DbService } from './services/db.service.js';
+import { S3Service } from './services/s3.service.js';
 
 useContainer(Container);
 
 export async function createApp(): Promise<{ app: express.Application; io: SocketIOServer }> {
   await initIOC();
+
+  // Initialize database
+  const dbService = Container.get(DbService);
+  await dbService.init();
+
+  // Initialize S3
+  const s3Service = Container.get(S3Service);
+  await s3Service.init();
 
   const app = express();
 

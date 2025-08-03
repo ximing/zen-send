@@ -15,7 +15,7 @@ import { Service } from 'typedi';
 import { TransferService } from '../services/transfer.service.js';
 import { InitTransferDto, UploadChunkDto } from '../dto/transfer.dto.js';
 import { ResponseUtil } from '../utils/response.js';
-import type { TokenPayload } from '../config/jwt.js';
+import type { TokenPayload } from '../utils/jwt.js';
 
 @JsonController('/api/transfers')
 @Service()
@@ -87,7 +87,11 @@ export class TransferController {
       throw new HttpError(400, 'Invalid limit or offset parameter');
     }
 
-    const transfers = await this.transferService.getTransferList(user.userId, parsedLimit, parsedOffset);
+    const transfers = await this.transferService.getTransferList(
+      user.userId,
+      parsedLimit,
+      parsedOffset
+    );
     return ResponseUtil.success({ transfers });
   }
 
