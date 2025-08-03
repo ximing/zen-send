@@ -133,8 +133,8 @@ components/
 
 1. Copy `.env.example` to `.env` in `apps/server`
 2. Run `pnpm install`
-3. Run `pnpm dev:server` to start the backend on port 3110
-4. Run `pnpm dev:web` for frontend (runs on port 5274, proxies API to 3100)
+3. Run `pnpm dev:server` to start the backend (auto-reload on file changes)
+4. Run `pnpm dev:web` for frontend (runs on port 5274, proxies API to server port)
 
 ### Environment Variables
 
