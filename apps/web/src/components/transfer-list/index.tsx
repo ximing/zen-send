@@ -1,6 +1,6 @@
 import React from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
-import { FileText, Pencil, Clipboard, MailOpen } from 'lucide-react';
+import { FileText, Pencil, MailOpen } from 'lucide-react';
 import { TransferListService, type TransferFilter } from './transfer-list.service';
 import type { TransferSession, TransferItemType } from '@zen-send/shared';
 
@@ -8,13 +8,11 @@ const FILTERS: { label: string; value: TransferFilter }[] = [
   { label: 'ALL', value: 'all' },
   { label: 'FILES', value: 'file' },
   { label: 'TEXT', value: 'text' },
-  { label: 'CLIPBOARD', value: 'clipboard' },
 ];
 
 const TYPE_ICONS: Record<TransferItemType, React.ReactNode> = {
   file: <FileText size={18} className="text-[var(--text-secondary)]" />,
   text: <Pencil size={18} className="text-[var(--text-secondary)]" />,
-  clipboard: <Clipboard size={18} className="text-[var(--text-secondary)]" />,
 };
 
 function formatSize(bytes: number): string {
@@ -43,7 +41,7 @@ function getTransferIcon(transfer: TransferSession): React.ReactNode {
   if (transfer.contentType.startsWith('text/') || transfer.originalFileName) {
     return TYPE_ICONS.file;
   }
-  return TYPE_ICONS.clipboard;
+  return TYPE_ICONS.file;
 }
 
 function getTransferName(transfer: TransferSession): string {
