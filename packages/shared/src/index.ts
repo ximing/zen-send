@@ -26,7 +26,7 @@ export interface TransferItem {
   size: number;
   content?: string;
   thumbnailKey?: string;
-  storageType?: 'db' | 's3';
+  storageType: 'db' | 's3';
   createdAt: number;
 }
 
