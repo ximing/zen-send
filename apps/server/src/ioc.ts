@@ -1,0 +1,32 @@
+import { parse } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import glob from 'glob';
+import { logger } from '@zen-send/logger';
+
+const __dirname = parse(fileURLToPath(import.meta.url)).dir;
+const isProduction = process.env.NODE_ENV === 'production';
+
+function findFileNamesFromGlob(globString: string) {
+  return glob.sync(globString);
+}
+
+export async function initIOC() {
+  const patterns = [
+    `${__dirname}/services/**/*.${isProduction ? 'js' : 'ts'}`,
+    `${__dirname}/controllers/**/*.${isProduction ? 'js' : 'ts'}`,
+  ];
+
+  for (const globString of patterns) {
+    const filePaths = findFileNamesFromGlob(globString);
+    logger.info('IOC: Loading files', { pattern: globString, count: filePaths.length });
+
+    for (const fileName of filePaths) {
+      try {
+        const module = await import(fileName);
+        logger.debug('Loaded module', { module: module.default?.name || module.name });
+      } catch (error: any) {
+        logger.error(`Failed to import ${fileName}: ${error.message}`);
+      }
+    }
+  }
+}
