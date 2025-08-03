@@ -2,7 +2,8 @@
   "extends": "@zen-send/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "noEmit": false
   },
   "include": ["src"]
 }

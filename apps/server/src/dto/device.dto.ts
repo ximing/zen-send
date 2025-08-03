@@ -1,6 +1,7 @@
 import { IsString, IsEnum, MinLength, MaxLength } from 'class-validator';
+import type { RegisterDeviceRequest } from '@zen-send/dto';
 
-export class RegisterDeviceDto {
+export class RegisterDeviceDto implements RegisterDeviceRequest {
   @IsString()
   @MinLength(1)
   @MaxLength(100)

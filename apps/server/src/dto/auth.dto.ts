@@ -1,6 +1,7 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
+import type { RegisterRequest, LoginRequest, RefreshTokenRequest } from '@zen-send/dto';
 
-export class RegisterDto {
+export class RegisterDto implements RegisterRequest {
   @IsEmail()
   email!: string;
 
@@ -9,7 +10,7 @@ export class RegisterDto {
   password!: string;
 }
 
-export class LoginDto {
+export class LoginDto implements LoginRequest {
   @IsEmail()
   email!: string;
 
@@ -17,7 +18,7 @@ export class LoginDto {
   password!: string;
 }
 
-export class RefreshTokenDto {
+export class RefreshTokenDto implements RefreshTokenRequest {
   @IsString()
   refreshToken!: string;
 }

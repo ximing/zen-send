@@ -8,8 +8,9 @@ import {
   IsInt,
   IsPositive,
 } from 'class-validator';
+import type { InitTransferRequest, UploadChunkRequest } from '@zen-send/dto';
 
-export class InitTransferDto {
+export class InitTransferDto implements InitTransferRequest {
   @IsString()
   sourceDeviceId!: string;
 
@@ -39,7 +40,7 @@ export class InitTransferDto {
   chunkCount!: number;
 }
 
-export class UploadChunkDto {
+export class UploadChunkDto implements UploadChunkRequest {
   @IsNumber()
   @IsInt()
   @Min(0)
