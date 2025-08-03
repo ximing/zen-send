@@ -10,7 +10,7 @@ async function bootstrap() {
     await createApp();
     logger.info('Server bootstrapped successfully');
   } catch (error) {
-    logger.error('Failed to bootstrap server', error);
+    logger.error({ err: error }, 'Failed to bootstrap server');
     process.exit(1);
   }
 }

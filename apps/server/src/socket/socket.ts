@@ -1,6 +1,7 @@
 import type { Server, Socket } from 'socket.io';
+import { Container } from 'typedi';
 import { verifyAccessToken, type TokenPayload } from '../config/jwt.js';
-import { deviceService, type DeviceInfo } from '../modules/device/device.service.js';
+import { DeviceService, type DeviceInfo } from '../services/device.service.js';
 import { logger } from '@zen-send/logger';
 
 interface AuthenticatedSocket extends Socket {
@@ -51,12 +52,12 @@ export function setupSocket(io: Server): void {
     socket.deviceId = deviceId;
 
     // Update device heartbeat and mark online
-    deviceService.updateDeviceHeartbeat(deviceId).catch((err) => {
+    Container.get(DeviceService).updateDeviceHeartbeat(deviceId).catch((err) => {
       logger.error({ error: err, deviceId }, 'Failed to update device heartbeat on connect');
     });
 
     // Get device info and store socket
-    deviceService.getDeviceById(deviceId).then((device) => {
+    Container.get(DeviceService).getDeviceById(deviceId).then((device) => {
       if (device) {
         deviceSockets.set(deviceId, { socketId: socket.id, device });
       }
@@ -72,7 +73,7 @@ export function setupSocket(io: Server): void {
       if (!deviceId) return;
 
       try {
-        await deviceService.updateDeviceHeartbeat(deviceId);
+        await Container.get(DeviceService).updateDeviceHeartbeat(deviceId);
         logger.debug({ deviceId }, 'Device heartbeat updated');
       } catch (error) {
         logger.error({ error, deviceId }, 'Failed to update device heartbeat');
@@ -85,7 +86,7 @@ export function setupSocket(io: Server): void {
 
       if (socket.user?.userId) {
         // Update device as online
-        await deviceService.updateDeviceHeartbeat(deviceId);
+        await Container.get(DeviceService).updateDeviceHeartbeat(deviceId);
 
         // Store deviceId on socket for later use
         socket.deviceId = deviceId;
@@ -129,7 +130,7 @@ export function setupSocket(io: Server): void {
         deviceSockets.delete(deviceId);
 
         try {
-          await deviceService.setDeviceOffline(deviceId);
+          await Container.get(DeviceService).setDeviceOffline(deviceId);
           logger.info({ deviceId }, 'Device marked offline');
 
           // Emit updated device list to user
@@ -146,7 +147,7 @@ export function setupSocket(io: Server): void {
 
 async function emitDeviceList(io: Server, userId: string, currentSocketId: string): Promise<void> {
   try {
-    const devices = await deviceService.getUserDevices(userId);
+    const devices = await Container.get(DeviceService).getUserDevices(userId);
     const deviceList = devices.map((d) => ({
       id: d.id,
       name: d.name,
@@ -164,7 +165,7 @@ async function emitDeviceList(io: Server, userId: string, currentSocketId: strin
 
 async function emitDeviceListToUser(io: Server, userId: string): Promise<void> {
   try {
-    const devices = await deviceService.getUserDevices(userId);
+    const devices = await Container.get(DeviceService).getUserDevices(userId);
     const deviceList = devices.map((d) => ({
       id: d.id,
       name: d.name,
@@ -175,7 +176,7 @@ async function emitDeviceListToUser(io: Server, userId: string): Promise<void> {
 
     // Find all sockets belonging to this user and emit to them
     for (const [deviceId, socketInfo] of deviceSockets) {
-      const device = await deviceService.getDeviceById(deviceId);
+      const device = await Container.get(DeviceService).getDeviceById(deviceId);
       if (device && device.userId === userId) {
         io.to(socketInfo.socketId).emit('device:list', { devices: deviceList });
       }
