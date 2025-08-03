@@ -10,15 +10,17 @@ import {
   HttpCode,
   HttpError,
   CurrentUser,
+  Authorized,
 } from 'routing-controllers';
 import { Service } from 'typedi';
 import { DeviceService } from '../services/device.service.js';
-import { RegisterDeviceDto } from '../dto/device.dto.js';
+import { RegisterDeviceDto } from '../validators/device.validator.js';
 import { ResponseUtil } from '../utils/response.js';
-import type { TokenPayload } from '../config/jwt.js';
+import type { TokenPayload } from '../utils/jwt.js';
 
 @JsonController('/api/devices')
 @Service()
+@Authorized()
 export class DeviceController {
   constructor(private deviceService: DeviceService) {}
 

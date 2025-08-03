@@ -17,9 +17,9 @@ export const PRELOAD_PATH = path.join(__dirname, '../preload/index.cjs');
 let isQuitting = false;
 
 // Server URL store
-const serverUrlStore = new Store<string>({
+const serverUrlStore = new Store<{ serverUrl: string }>({
   name: 'server-url',
-  defaults: '',
+  defaults: { serverUrl: '' },
 });
 
 export function getIsQuitting(): boolean {
@@ -64,10 +64,9 @@ export async function initializeApp(): Promise<void> {
   app.on('will-quit', () => {
     // Cleanup
     trayManager.destroy();
-    logger.close();
   });
 
-  logger.info('Zen Send Electron app initialized', { version: app.getVersion() });
+  logger.info({ version: app.getVersion() }, 'Zen Send Electron app initialized');
 }
 
 function registerIpcHandlers(_windowManager: WindowManager): void {
@@ -112,13 +111,13 @@ function registerIpcHandlers(_windowManager: WindowManager): void {
 
   // Server URL: get
   ipcMain.handle('server-url:get', () => {
-    return serverUrlStore.store || '';
+    return serverUrlStore.store.serverUrl || '';
   });
 
   // Server URL: changed notification
   ipcMain.on('server-url:changed', (_event, url: string) => {
-    serverUrlStore.set(url);
-    logger.info('[Server URL] Updated:', url);
+    serverUrlStore.set('serverUrl', url);
+    logger.info('[Server URL] Updated: %s', url);
   });
 }
 

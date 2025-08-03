@@ -1,4 +1,5 @@
 import { Service } from '@rabjs/react';
+import { Sun, Moon } from 'lucide-react';
 import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -16,7 +17,8 @@ export class HeaderService extends Service {
   }
 
   get themeIcon() {
-    return this.themeService.resolvedTheme === 'dark' ? '☀️' : '🌙';
+    const Icon = this.themeService.resolvedTheme === 'dark' ? Sun : Moon;
+    return <Icon size={20} className="text-[var(--text-secondary)]" />;
   }
 
   get userEmail() {

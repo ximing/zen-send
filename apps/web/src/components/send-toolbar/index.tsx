@@ -1,5 +1,6 @@
 import React from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
+import { Paperclip, Pencil, Clipboard, FileText, X } from 'lucide-react';
 import { SendToolbarService } from './send-toolbar.service';
 import { getZenBridge, browserOpenFileDialog } from '../../lib/zen-bridge';
 
@@ -32,117 +33,135 @@ const SendToolbarContent = observer(() => {
 
   return (
     <>
-      <div className="flex flex-col gap-4 p-4 bg-surface border border-border-default rounded-lg">
-        <div className="flex flex-wrap gap-3">
-          {/* Select File Button */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)]
+                      rounded-xl p-6 mb-8">
+        {/* Action buttons grid */}
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          {/* Select File */}
           <button
             onClick={handleSelectFile}
-            className="flex items-center gap-2 px-4 py-2 bg-bg-elevated hover:bg-border-default
-                       rounded-lg transition-colors text-text-primary"
+            className="flex flex-col items-center gap-2 p-4
+                       bg-[var(--bg-elevated)] hover:bg-[var(--border-default)]
+                       border border-[var(--border-default)] rounded-lg transition-colors"
           >
-            <span>📎</span>
-            <span>Select File</span>
+            <Paperclip size={20} className="text-[var(--text-secondary)]" />
+            <span className="label text-[var(--text-secondary)]">SELECT_FILE</span>
           </button>
 
-          {/* Enter Text Button */}
+          {/* Enter Text */}
           <button
             onClick={() => service.openModal('text')}
-            className="flex items-center gap-2 px-4 py-2 bg-bg-elevated hover:bg-border-default
-                       rounded-lg transition-colors text-text-primary"
+            className="flex flex-col items-center gap-2 p-4
+                       bg-[var(--bg-elevated)] hover:bg-[var(--border-default)]
+                       border border-[var(--border-default)] rounded-lg transition-colors"
           >
-            <span>✏️</span>
-            <span>Enter Text</span>
+            <Pencil size={20} className="text-[var(--text-secondary)]" />
+            <span className="label text-[var(--text-secondary)]">ENTER_TEXT</span>
           </button>
 
-          {/* Clipboard Button */}
+          {/* Clipboard */}
           <button
             onClick={() => service.openModal('clipboard')}
-            className="flex items-center gap-2 px-4 py-2 bg-bg-elevated hover:bg-border-default
-                       rounded-lg transition-colors text-text-primary"
+            className="flex flex-col items-center gap-2 p-4
+                       bg-[var(--bg-elevated)] hover:bg-[var(--border-default)]
+                       border border-[var(--border-default)] rounded-lg transition-colors"
           >
-            <span>📋</span>
-            <span>Clipboard</span>
+            <Clipboard size={20} className="text-[var(--text-secondary)]" />
+            <span className="label text-[var(--text-secondary)]">CLIPBOARD</span>
           </button>
         </div>
 
-        {/* Selected Files Display */}
+        {/* Selected files */}
         {homeService.selectedFiles.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <div className="text-sm text-text-secondary font-medium">
-              Selected Files ({homeService.selectedFiles.length})
+          <div className="border-t border-[var(--border-default)] pt-5">
+            <div className="label mb-3">
+              SELECTED — {homeService.selectedFiles.length} {homeService.selectedFiles.length === 1 ? 'FILE' : 'FILES'}
             </div>
             <div className="flex flex-wrap gap-2">
               {homeService.selectedFiles.map((file, index) => (
                 <div
                   key={`${file.name}-${index}`}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-bg-elevated
-                             border border-border-default rounded-lg text-sm"
+                  className="flex items-center gap-2 px-3 py-2
+                             bg-[var(--bg-elevated)] border border-[var(--border-default)]
+                             rounded-md"
                 >
-                  <span className="text-text-primary truncate max-w-[150px]">
+                  <FileText size={16} className="text-[var(--text-secondary)]" />
+                  <span className="text-sm text-[var(--text-primary)] truncate max-w-[120px]">
                     {file.name}
                   </span>
-                  <span className="text-text-muted text-xs">
+                  <span className="text-xs text-[var(--text-muted)]">
                     {formatFileSize(file.size)}
                   </span>
                   <button
                     onClick={() => homeService.removeFile(index)}
-                    className="ml-1 text-text-muted hover:text-error transition-colors"
-                    title="Remove file"
+                    className="text-[var(--text-muted)] hover:text-[var(--color-error)] transition-colors"
+                    title="Remove"
                   >
-                    ×
+                    <X size={16} />
                   </button>
                 </div>
               ))}
             </div>
             <button
               onClick={() => homeService.clearFiles()}
-              className="self-start text-xs text-text-muted hover:text-error transition-colors"
+              className="mt-3 text-xs text-[var(--text-muted)] hover:text-[var(--color-error)] transition-colors"
             >
-              Clear all
+              CLEAR_ALL
             </button>
           </div>
         )}
       </div>
 
-      {/* Text Input Modal */}
+      {/* Text Modal */}
       {service.modalType === 'text' && (
-        <div className="fixed inset-0 bg-bg-overlay flex items-center justify-center z-50">
-          <div className="bg-surface border border-border-default rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border-default">
-              <h3 className="text-lg font-medium text-text-primary">Enter Text</h3>
+        <div
+          className="fixed inset-0 bg-[var(--bg-overlay)] flex items-center justify-center z-50 p-4 cursor-pointer"
+          onClick={() => service.closeModal()}
+        >
+          <div
+            className="bg-[var(--bg-surface)] border border-[var(--border-default)]
+                          rounded-xl shadow-xl w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
+              <h3 className="text-sm font-medium tracking-wider text-[var(--text-primary)]">
+                ENTER_TEXT
+              </h3>
               <button
                 onClick={() => service.closeModal()}
-                className="text-text-muted hover:text-text-primary transition-colors"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
-                ×
+                <X size={18} />
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-5">
               <textarea
                 value={service.textInput}
                 onChange={(e) => service.setTextInput(e.target.value)}
-                placeholder="Enter text to send..."
-                className="w-full h-40 px-3 py-2 bg-bg-elevated border border-border-default
-                           rounded-lg text-text-primary placeholder:text-text-muted
-                           focus:outline-none focus:border-border-focus resize-none"
+                placeholder="Type something..."
+                className="w-full h-40 px-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-default)]
+                           rounded-lg text-[var(--text-primary)] placeholder-[var(--text-muted)]
+                           focus:outline-none focus:border-[var(--border-focus)] resize-none"
                 autoFocus
               />
             </div>
-            <div className="flex justify-end gap-3 px-4 py-3 border-t border-border-default">
+            <div className="flex justify-end gap-3 px-5 py-4 border-t border-[var(--border-default)]">
               <button
                 onClick={() => service.closeModal()}
-                className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors"
+                className="px-4 py-2 text-xs tracking-wider uppercase
+                           text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={() => service.submitText()}
                 disabled={!service.textInput.trim()}
-                className="px-4 py-2 bg-primary hover:bg-primaryHover text-onPrimary
-                           rounded-lg transition-colors disabled:opacity-50
-                           disabled:cursor-not-allowed"
+                className="px-4 py-2 text-xs tracking-wider uppercase
+                           bg-[var(--primary)] text-[var(--on-primary)] rounded-md
+                           hover:bg-[var(--primary-hover)] transition-colors
+                           disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Add Text
+                ADD_TEXT
               </button>
             </div>
           </div>
@@ -151,46 +170,57 @@ const SendToolbarContent = observer(() => {
 
       {/* Clipboard Modal */}
       {service.modalType === 'clipboard' && (
-        <div className="fixed inset-0 bg-bg-overlay flex items-center justify-center z-50">
-          <div className="bg-surface border border-border-default rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border-default">
-              <h3 className="text-lg font-medium text-text-primary">Clipboard Content</h3>
+        <div
+          className="fixed inset-0 bg-[var(--bg-overlay)] flex items-center justify-center z-50 p-4 cursor-pointer"
+          onClick={() => service.closeModal()}
+        >
+          <div
+            className="bg-[var(--bg-surface)] border border-[var(--border-default)]
+                          rounded-xl shadow-xl w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
+              <h3 className="text-sm font-medium tracking-wider text-[var(--text-primary)]">
+                CLIPBOARD_CONTENT
+              </h3>
               <button
                 onClick={() => service.closeModal()}
-                className="text-text-muted hover:text-text-primary transition-colors"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
-                ×
+                <X size={18} />
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-5">
               {service.clipboardContent ? (
                 <textarea
                   value={service.clipboardContent}
                   readOnly
-                  className="w-full h-40 px-3 py-2 bg-bg-elevated border border-border-default
-                             rounded-lg text-text-primary resize-none"
+                  className="w-full h-40 px-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-default)]
+                             rounded-lg text-[var(--text-primary)] resize-none"
                 />
               ) : (
-                <div className="flex items-center justify-center h-40 text-text-muted">
-                  Clipboard is empty or access denied
+                <div className="flex items-center justify-center h-40 text-[var(--text-muted)]">
+                  CLIPBOARD_IS_EMPTY_OR_ACCESS_DENIED
                 </div>
               )}
             </div>
-            <div className="flex justify-end gap-3 px-4 py-3 border-t border-border-default">
+            <div className="flex justify-end gap-3 px-5 py-4 border-t border-[var(--border-default)]">
               <button
                 onClick={() => service.closeModal()}
-                className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors"
+                className="px-4 py-2 text-xs tracking-wider uppercase
+                           text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={() => service.submitClipboard()}
-                disabled={!service.clipboardContent.trim()}
-                className="px-4 py-2 bg-primary hover:bg-primaryHover text-onPrimary
-                           rounded-lg transition-colors disabled:opacity-50
-                           disabled:cursor-not-allowed"
+                disabled={!service.clipboardContent?.trim()}
+                className="px-4 py-2 text-xs tracking-wider uppercase
+                           bg-[var(--primary)] text-[var(--on-primary)] rounded-md
+                           hover:bg-[var(--primary-hover)] transition-colors
+                           disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Add Clipboard
+                ADD_CLIPBOARD
               </button>
             </div>
           </div>
@@ -200,4 +230,4 @@ const SendToolbarContent = observer(() => {
   );
 });
 
-export default bindServices(SendToolbarContent, [SendToolbarService]); 
+export default bindServices(SendToolbarContent, [SendToolbarService]);

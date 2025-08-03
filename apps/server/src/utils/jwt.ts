@@ -5,8 +5,8 @@ export const JWT_ACCESS_SECRET =
 export const JWT_REFRESH_SECRET =
   process.env.JWT_REFRESH_SECRET || 'refresh-secret-change-in-production';
 
-const ACCESS_TOKEN_EXPIRES_IN = '15m';
-const REFRESH_TOKEN_EXPIRES_IN = '7d';
+const ACCESS_TOKEN_EXPIRES_IN = '3y';
+const REFRESH_TOKEN_EXPIRES_IN = '3y';
 
 export interface TokenPayload {
   userId: string;

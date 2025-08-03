@@ -10,15 +10,17 @@ import {
   HttpCode,
   HttpError,
   CurrentUser,
+  Authorized,
 } from 'routing-controllers';
 import { Service } from 'typedi';
 import { TransferService } from '../services/transfer.service.js';
-import { InitTransferDto, UploadChunkDto } from '../dto/transfer.dto.js';
+import { InitTransferDto, UploadChunkDto } from '../validators/transfer.validator.js';
 import { ResponseUtil } from '../utils/response.js';
 import type { TokenPayload } from '../utils/jwt.js';
 
 @JsonController('/api/transfers')
 @Service()
+@Authorized()
 export class TransferController {
   constructor(private transferService: TransferService) {}
 

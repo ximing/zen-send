@@ -41,16 +41,6 @@ export function getZenBridge(): ZenBridge {
   };
 }
 
-// Check if native (Electron) file dialog is supported
-// Returns true only for Electron with native dialog, false for browser fallback
-export function hasNativeFileDialogSupport(): boolean {
-  const bridge = getZenBridge();
-  return bridge.isElectron && typeof bridge.openFileDialog === 'function';
-}
-
-// Backward compatibility alias
-export const hasFileDialogSupport = hasNativeFileDialogSupport;
-
 // Browser fallback: open file picker using <input type="file">
 export async function browserOpenFileDialog(options?: {
   filters?: { name: string; extensions: string[] }[];

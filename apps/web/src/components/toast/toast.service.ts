@@ -2,7 +2,7 @@ import { Service } from '@rabjs/react';
 
 export interface ToastMessage {
   id: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'warning' | 'info';
   message: string;
 }
 

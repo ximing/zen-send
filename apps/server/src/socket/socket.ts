@@ -1,6 +1,6 @@
 import type { Server, Socket } from 'socket.io';
 import { Container } from 'typedi';
-import { verifyAccessToken, type TokenPayload } from '../config/jwt.js';
+import { verifyAccessToken, type TokenPayload } from '../utils/jwt.js';
 import { DeviceService, type DeviceInfo } from '../services/device.service.js';
 import { logger } from '@zen-send/logger';
 
@@ -89,7 +89,7 @@ export function setupSocket(io: Server): void {
     socket.on(
       'device:register',
       async (data: { deviceId: string; deviceName: string; deviceType: string }) => {
-        const { deviceId, deviceName, deviceType } = data;
+        const { deviceId, deviceName } = data;
 
         if (socket.user?.userId) {
           // Update device as online

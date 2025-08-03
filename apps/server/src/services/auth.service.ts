@@ -11,6 +11,7 @@ import {
   type TokenPayload,
 } from '../utils/jwt.js';
 import { logger } from '@zen-send/logger';
+import { generateUserId } from '../utils/id.js';
 
 export interface AuthTokens {
   accessToken: string;
@@ -77,7 +78,7 @@ export class AuthService {
 
     logger.info('Hashing password');
     const passwordHash = await this.hashPassword(input.password);
-    const id = crypto.randomUUID();
+    const id = generateUserId();
     const now = Math.floor(Date.now() / 1000);
     logger.info({ id, now }, 'Inserting user');
 

@@ -11,9 +11,9 @@ const fileDropCallbackMap = new Map<
 >();
 
 // Server URL store (shared with main process via IPC)
-const serverUrlStore = new Store<string>({
+const serverUrlStore = new Store<{ serverUrl: string }>({
   name: 'server-url',
-  defaults: '',
+  defaults: { serverUrl: '' },
 });
 
 // Log platform info for debugging
@@ -77,11 +77,11 @@ contextBridge.exposeInMainWorld('zenBridge', {
 
   // Server URL management
   getServerUrl: () => {
-    return serverUrlStore.store || '';
+    return serverUrlStore.store.serverUrl || '';
   },
 
   setServerUrl: (url: string) => {
-    serverUrlStore.set(url);
+    serverUrlStore.set('serverUrl', url);
     ipcRenderer.invoke('server-url:changed', url);
   },
 });

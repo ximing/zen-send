@@ -15,7 +15,7 @@
     "@rabjs/react": "^9.0.5",
     "@zen-send/dto": "workspace:*",
     "@zen-send/shared": "workspace:*",
-    "lucide-react": "0.577.0",
+    "lucide-react": "^1.7.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router": "^7.14.0",
