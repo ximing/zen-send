@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@rabjs/react": "^9.0.5",
+    "@zen-send/dto": "workspace:*",
     "@zen-send/shared": "workspace:*",
     "lucide-react": "0.577.0",
     "react": "^19.2.4",
