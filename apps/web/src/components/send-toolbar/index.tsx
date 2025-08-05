@@ -33,8 +33,7 @@ const SendToolbarContent = observer(() => {
 
   return (
     <>
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)]
-                      rounded-xl p-6 mb-8">
+      <div className="bg-[var(--bg-surface)] rounded-xl p-6 mb-8">
         {/* Action buttons grid */}
         <div className="grid grid-cols-2 gap-3 mb-5">
           {/* Select File */}
@@ -42,7 +41,7 @@ const SendToolbarContent = observer(() => {
             onClick={handleSelectFile}
             className="flex flex-col items-center gap-2 p-4
                        bg-[var(--bg-elevated)] hover:bg-[var(--border-default)]
-                       border border-[var(--border-default)] rounded-lg transition-colors"
+                       rounded-lg transition-colors"
           >
             <Paperclip size={20} className="text-[var(--text-secondary)]" />
             <span className="label text-[var(--text-secondary)]">SELECT_FILE</span>
@@ -53,7 +52,7 @@ const SendToolbarContent = observer(() => {
             onClick={() => service.openModal('text')}
             className="flex flex-col items-center gap-2 p-4
                        bg-[var(--bg-elevated)] hover:bg-[var(--border-default)]
-                       border border-[var(--border-default)] rounded-lg transition-colors"
+                       rounded-lg transition-colors"
           >
             <Pencil size={20} className="text-[var(--text-secondary)]" />
             <span className="label text-[var(--text-secondary)]">ENTER_TEXT</span>
@@ -62,7 +61,7 @@ const SendToolbarContent = observer(() => {
 
         {/* Selected files */}
         {homeService.selectedFiles.length > 0 && (
-          <div className="border-t border-[var(--border-default)] pt-5">
+          <div className="pt-5">
             <div className="label mb-3">
               SELECTED — {homeService.selectedFiles.length} {homeService.selectedFiles.length === 1 ? 'FILE' : 'FILES'}
             </div>
@@ -71,8 +70,7 @@ const SendToolbarContent = observer(() => {
                 <div
                   key={`${file.name}-${index}`}
                   className="flex items-center gap-2 px-3 py-2
-                             bg-[var(--bg-elevated)] border border-[var(--border-default)]
-                             rounded-md"
+                             bg-[var(--bg-elevated)] rounded-md"
                 >
                   <FileText size={16} className="text-[var(--text-secondary)]" />
                   <span className="text-sm text-[var(--text-primary)] truncate max-w-[120px]">
@@ -108,11 +106,10 @@ const SendToolbarContent = observer(() => {
           onClick={() => service.closeModal()}
         >
           <div
-            className="bg-[var(--bg-surface)] border border-[var(--border-default)]
-                          rounded-xl shadow-xl w-full max-w-md"
+            className="bg-[var(--bg-surface)] rounded-xl shadow-xl w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
+            <div className="flex items-center justify-between px-5 py-4">
               <h3 className="text-sm font-medium tracking-wider text-[var(--text-primary)]">
                 ENTER_TEXT
               </h3>
@@ -128,13 +125,12 @@ const SendToolbarContent = observer(() => {
                 value={service.textInput}
                 onChange={(e) => service.setTextInput(e.target.value)}
                 placeholder="Type something..."
-                className="w-full h-40 px-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-default)]
-                           rounded-lg text-[var(--text-primary)] placeholder-[var(--text-muted)]
-                           focus:outline-none focus:border-[var(--accent)] resize-none"
+                className="w-full h-40 px-4 py-3 bg-[var(--bg-elevated)] rounded-lg text-[var(--text-primary)] placeholder-[var(--text-muted)]
+                           focus:outline-none resize-none"
                 autoFocus
               />
             </div>
-            <div className="flex justify-end gap-3 px-5 py-4 border-t border-[var(--border-default)]">
+            <div className="flex justify-end gap-3 px-5 py-4">
               <button
                 onClick={() => service.closeModal()}
                 className="px-4 py-2 text-xs tracking-wider uppercase
