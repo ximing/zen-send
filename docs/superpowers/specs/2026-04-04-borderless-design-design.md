@@ -34,6 +34,7 @@
 | 主按钮 | `#8B9A7D` | accent 色填充，深色文字 |
 | 次按钮 | `#262628` | 浅色文字 |
 | 输入框 | `#1C1C1E` | 与卡片同色 |
+| Focus 色 | `#8B9A7D` | outline 焦点环，accent 同色 |
 
 ## 组件规范
 
@@ -79,7 +80,9 @@ border-radius: 12px;
 border: none;
 ```
 
-**hover 状态**: 轻微下沉效果 (`transform: translateY(1px)`) + 阴影加深
+**hover 状态**: 轻微下沉效果 (`transform: translateY(1px)`)，不使用阴影
+
+> **说明**: 设计原则是无边框无阴影，交互反馈主要通过：背景色变化、下沉效果、颜色高亮来表达
 
 ### 列表项
 
@@ -132,6 +135,7 @@ border: none;
 
 - `apps/web/src/components/sidebar/index.tsx`
 - `apps/web/src/components/send-toolbar/index.tsx`
+- `apps/web/src/components/send-toolbar/send-toolbar.service.ts`
 - `apps/web/src/components/transfer-list/index.tsx`
 - `apps/web/src/components/search-bar/index.tsx`
 - `apps/web/src/components/toast/index.tsx`
