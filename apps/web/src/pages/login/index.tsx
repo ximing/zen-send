@@ -37,7 +37,7 @@ const LoginContent = observer(() => {
               onChange={(e) => { service.email = e.target.value; }}
               placeholder="email@example.com"
               autoComplete="email"
-              className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
+              className="w-full h-12 px-4 bg-[var(--bg-surface)]
                          rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
                          focus:outline-none focus:border-[var(--border-focus)]"
               required
@@ -53,7 +53,7 @@ const LoginContent = observer(() => {
               onChange={(e) => { service.password = e.target.value; }}
               placeholder="••••••••"
               autoComplete="current-password"
-              className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
+              className="w-full h-12 px-4 bg-[var(--bg-surface)]
                          rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
                          focus:outline-none focus:border-[var(--border-focus)]"
               required
