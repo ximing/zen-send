@@ -43,6 +43,7 @@ export const theme = {
     textSecondary: '#8A8880',
     textMuted: '#6B6860',
     textFaint: '#4A4A4C',
+    textDisabled: '#5A5A5C',
     onSurface: '#E5E2DC',
     borderDefault: '#3A3A3C',
     borderSubtle: '#2E2E30',
