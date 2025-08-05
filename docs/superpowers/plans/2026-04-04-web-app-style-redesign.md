@@ -475,7 +475,7 @@ cd apps/web && pnpm add qrcode && cd ../..
 ```typescript
 import { Service } from '@rabjs/react';
 import { ApiService } from './api.service';
-import type { Device } from '@zen-send/dto';
+import type { Device, DeviceListResponse } from '@zen-send/shared';
 
 export class DeviceService extends Service {
   private apiService = this.resolve(ApiService);
@@ -512,8 +512,9 @@ export class DeviceService extends Service {
   async loadDevices() {
     this._loading = true;
     try {
-      const response = await this.apiService.get<{ devices: Device[] }>('/devices');
-      this._devices = response.devices;
+      // Server returns { success: true, data: { devices: [...] } }
+      const response = await this.apiService.get<DeviceListResponse>('/api/devices');
+      this._devices = response.devices || [];
     } catch (error) {
       console.error('Failed to load devices:', error);
     } finally {
@@ -523,7 +524,8 @@ export class DeviceService extends Service {
 
   async generatePairToken(deviceName: string) {
     try {
-      const response = await this.apiService.post<{ token: string; expiresAt: string }>('/devices/pair-token', {
+      // Server returns { success: true, data: { token, expiresAt } }
+      const response = await this.apiService.post<{ token: string; expiresAt: string }>('/api/devices/pair-token', {
         deviceName,
       });
       this._pairToken = response.token;
@@ -535,7 +537,7 @@ export class DeviceService extends Service {
 
   async removeDevice(deviceId: string) {
     try {
-      await this.apiService.delete(`/devices/${deviceId}`);
+      await this.apiService.delete(`/api/devices/${deviceId}`);
       this._devices = this._devices.filter((d) => d.id !== deviceId);
     } catch (error) {
       console.error('Failed to remove device:', error);
@@ -548,8 +550,8 @@ export class DeviceService extends Service {
     const deviceName = navigator.userAgent.includes('Mobile') ? 'Web Mobile' : 'Web Browser';
 
     try {
-      await this.apiService.post('/devices', {
-        id: deviceId,
+      // Server generates ID internally, don't send it from client
+      await this.apiService.post('/api/devices', {
         name: deviceName,
         type: 'web',
       });
@@ -618,8 +620,9 @@ const DevicesContent = observer(() => {
     return type === 'mobile' ? Smartphone : Monitor;
   };
 
-  const formatTimeAgo = (date: Date) => {
-    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  // Device.lastSeenAt is a number timestamp, isOnline is 0 or 1 (not boolean)
+  const formatTimeAgo = (timestamp: number) => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
     if (seconds < 60) return 'Just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -706,6 +709,7 @@ const DevicesContent = observer(() => {
               {deviceService.devices.map((device) => {
                 const Icon = getDeviceIcon(device.type);
                 const isCurrent = deviceService.isCurrentDevice(device.id);
+                const isOnline = device.isOnline === 1; // isOnline is 0 or 1
                 return (
                   <div
                     key={device.id}
@@ -723,7 +727,7 @@ const DevicesContent = observer(() => {
                           )}
                         </div>
                         <span className="text-xs text-[var(--text-muted)]">
-                          {device.isOnline ? 'Online' : `Last seen ${formatTimeAgo(device.updatedAt)}`}
+                          {isOnline ? 'Online' : `Last seen ${formatTimeAgo(device.lastSeenAt)}`}
                         </span>
                       </div>
                     </div>
@@ -919,18 +923,29 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 **Files:**
 - Modify: `apps/web/src/services/api.service.ts`
 
+The server's download endpoint returns a presigned URL, not a direct blob. The client must:
+1. Call `GET /api/transfers/:id/download` to get the presigned URL
+2. Fetch that URL to download the file
+
 Add methods:
 ```typescript
+async getTransferDownloadUrl(transferId: string): Promise<string> {
+  // Server returns { success: true, data: { downloadUrl: "..." } }
+  const response = await this.get<{ downloadUrl: string }>(`/api/transfers/${transferId}/download`);
+  return response.downloadUrl;
+}
+
 async getTransferFile(transferId: string): Promise<Blob> {
-  const response = await fetch(`${this.baseUrl}/transfers/${transferId}/file`, {
-    headers: this.getHeaders(),
-  });
+  // First get the presigned URL
+  const downloadUrl = await this.getTransferDownloadUrl(transferId);
+  // Then fetch the actual file using the presigned URL (no auth needed)
+  const response = await fetch(downloadUrl);
   if (!response.ok) throw new Error('Failed to download file');
   return response.blob();
 }
 
 async deleteTransfer(transferId: string): Promise<void> {
-  await this.delete(`/transfers/${transferId}`);
+  await this.delete(`/api/transfers/${transferId}`);
 }
 ```
 
@@ -1332,6 +1347,7 @@ git commit -m "feat(web): add file management features
 - Add download and delete actions to transfer items
 - Update HomeService with search/filter state and methods
 - Support zoom/pan for image preview
+- Note: TransferSession uses originalFileName/totalSize, not name/size
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```
