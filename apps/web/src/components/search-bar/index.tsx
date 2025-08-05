@@ -31,9 +31,9 @@ const SearchBarComponent = observer(() => {
           placeholder="Search transfers..."
           value={service.searchQuery}
           onChange={(e) => service.setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-default)]
-                     rounded-lg text-[var(--text-primary)] placeholder-[var(--text-muted)]
-                     focus:outline-none focus:border-[var(--primary)] transition-colors"
+          className="w-full pl-10 pr-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-default)]
+                     rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-[var(--text-muted)]
+                     focus:outline-none focus:border-[var(--accent)] transition-colors"
         />
       </div>
 
@@ -48,9 +48,9 @@ const SearchBarComponent = observer(() => {
           <select
             value={service.filter}
             onChange={(e) => service.setTypeFilter(e.target.value as TransferFilter)}
-            className="w-full pl-9 pr-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-default)]
-                       rounded-lg text-[var(--text-primary)] appearance-none cursor-pointer
-                       focus:outline-none focus:border-[var(--primary)] transition-colors"
+            className="w-full pl-9 pr-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-default)]
+                       rounded-[var(--radius-lg)] text-[var(--text-primary)] appearance-none cursor-pointer
+                       focus:outline-none focus:border-[var(--accent)] transition-colors"
           >
             {TYPE_FILTERS.map((f) => (
               <option key={f.value} value={f.value}>
@@ -65,9 +65,9 @@ const SearchBarComponent = observer(() => {
           <select
             value={service.timeFilter}
             onChange={(e) => service.setTimeFilter(e.target.value as TimeFilter)}
-            className="w-full px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-default)]
-                       rounded-lg text-[var(--text-primary)] appearance-none cursor-pointer
-                       focus:outline-none focus:border-[var(--primary)] transition-colors"
+            className="w-full px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-default)]
+                       rounded-[var(--radius-lg)] text-[var(--text-primary)] appearance-none cursor-pointer
+                       focus:outline-none focus:border-[var(--accent)] transition-colors"
           >
             {TIME_FILTERS.map((f) => (
               <option key={f.value} value={f.value}>

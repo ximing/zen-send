@@ -63,7 +63,7 @@ const FilterTabsComponent = observer(() => {
           onClick={() => service.setTypeFilter(f.value)}
           className={`px-4 py-2 rounded-md text-xs tracking-wider transition-colors
             ${service.filter === f.value
-              ? 'bg-[var(--primary)] text-[var(--on-primary)]'
+              ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
               : 'bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
             }`}
         >
@@ -144,7 +144,7 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
 
   return (
     <div
-      className={`p-4 bg-[var(--bg-surface)] border rounded-lg transition-colors
+      className={`p-4 bg-[var(--bg-surface)] border rounded-xl transition-colors
         ${isDeleteConfirm ? 'border-[var(--danger)] bg-[var(--danger)]/10' : 'border-[var(--border-default)] hover:border-[var(--border-subtle)]'}`}
     >
       <div className="flex items-center justify-between">
@@ -232,9 +232,23 @@ const TransferListContent = observer(() => {
       {service.filteredTransfers.length === 0 ? (
         <EmptyStateComponent />
       ) : (
-        service.filteredTransfers.map((transfer) => (
-          <TransferItem key={transfer.id} transfer={transfer} />
-        ))
+        <>
+          {service.filteredTransfers.map((transfer) => (
+            <TransferItem key={transfer.id} transfer={transfer} />
+          ))}
+
+          {service.hasMore && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => service.loadMoreTransfers()}
+                disabled={service.isLoading}
+                className="px-6 py-2 text-sm bg-[var(--bg-elevated)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--border-default)] disabled:opacity-50"
+              >
+                {service.isLoading ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <PreviewModalComponent />

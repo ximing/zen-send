@@ -130,7 +130,7 @@ const SendToolbarContent = observer(() => {
                 placeholder="Type something..."
                 className="w-full h-40 px-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-default)]
                            rounded-lg text-[var(--text-primary)] placeholder-[var(--text-muted)]
-                           focus:outline-none focus:border-[var(--border-focus)] resize-none"
+                           focus:outline-none focus:border-[var(--accent)] resize-none"
                 autoFocus
               />
             </div>
@@ -145,9 +145,9 @@ const SendToolbarContent = observer(() => {
               <button
                 onClick={() => service.submitText()}
                 disabled={!service.textInput.trim()}
-                className="px-4 py-2 text-xs tracking-wider uppercase
-                           bg-[var(--primary)] text-[var(--on-primary)] rounded-md
-                           hover:bg-[var(--primary-hover)] transition-colors
+                className="h-[46px] px-5 text-[13px] font-medium tracking-wide
+                           bg-[var(--bg-elevated)] text-[var(--text-primary)]
+                           rounded-lg hover:bg-[var(--border-default)] transition-colors
                            disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 ADD_TEXT

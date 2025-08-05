@@ -64,10 +64,10 @@ const NavButton: React.FC<NavButtonProps> = ({ item, isActive, onClick }) => {
     <Tooltip label={item.label} position="right">
       <button
         onClick={onClick}
-        className={`w-10 h-10 flex items-center justify-center rounded-md transition-colors
+        className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors
           ${
             isActive
-              ? 'bg-[var(--primary)] text-[var(--on-primary)]'
+              ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
               : 'hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
       >
