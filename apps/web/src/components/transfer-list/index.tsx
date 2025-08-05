@@ -61,7 +61,7 @@ const FilterTabsComponent = observer(() => {
         <button
           key={f.value}
           onClick={() => service.setTypeFilter(f.value)}
-          className={`px-4 py-2 rounded-md text-xs tracking-wider transition-colors
+          className={`py-2 px-4 rounded-lg text-xs tracking-wider transition-colors
             ${service.filter === f.value
               ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
               : 'bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
@@ -144,8 +144,8 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
 
   return (
     <div
-      className={`p-4 bg-[var(--bg-surface)] border rounded-xl transition-colors
-        ${isDeleteConfirm ? 'border-[var(--danger)] bg-[var(--danger)]/10' : 'border-[var(--border-default)] hover:border-[var(--border-subtle)]'}`}
+      className={`py-[14px] px-4 bg-[var(--bg-surface)] border rounded-xl transition-colors
+        ${isDeleteConfirm ? 'border-[var(--danger)] bg-[var(--danger)]/10' : 'border-[var(--border-subtle)] hover:border-[var(--border-default)]'}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
