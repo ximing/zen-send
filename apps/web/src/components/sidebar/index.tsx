@@ -41,8 +41,7 @@ const Tooltip: React.FC<TooltipProps> = ({ label, children }) => {
         <div
           className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50
                      px-2 py-1 text-xs text-[var(--text-primary)] whitespace-nowrap
-                     bg-[var(--bg-elevated)] border border-[var(--border-default)]
-                     rounded-md shadow-md pointer-events-none"
+                     bg-[var(--bg-elevated)] rounded-md shadow-md pointer-events-none"
           style={{ minWidth: 'max-content' }}
         >
           {label}
@@ -94,12 +93,12 @@ const SidebarContent = observer(() => {
   return (
     <aside
       className="fixed left-0 top-0 h-full w-16 flex flex-col
-                 bg-[var(--bg-surface)] border-r border-[var(--border-default)]
+                 bg-[var(--bg-surface)]
                  z-40"
     >
       {/* Top: Logo */}
-      <div className="h-16 flex items-center justify-center border-b border-[var(--border-default)]">
-        <span className="text-sm font-bold tracking-wider text-[var(--text-primary)]">
+      <div className="h-16 flex items-center justify-center mb-4">
+        <span className="text-sm font-bold tracking-wider text-[var(--accent)]">
           ZS
         </span>
       </div>
@@ -117,7 +116,7 @@ const SidebarContent = observer(() => {
       </div>
 
       {/* Bottom: Settings, Theme, User, Logout */}
-      <div className="flex flex-col items-center gap-2 py-4 border-t border-[var(--border-default)]">
+      <div className="flex flex-col items-center gap-2 py-4 mt-auto">
         {/* Settings (placeholder, disabled) */}
         <Tooltip label="Settings (coming soon)" position="right">
           <button
