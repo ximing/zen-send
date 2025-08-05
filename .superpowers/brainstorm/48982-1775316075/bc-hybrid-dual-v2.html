@@ -1,0 +1,91 @@
+<h2>优化深色模式 — 降低对比度</h2>
+<p class="subtitle">深色模式下浅色对比过于强烈，优化配色使其更柔和</p>
+
+<div class="split">
+  <!-- 浅色模式 -->
+  <div class="mockup">
+    <div class="mockup-header" style="background: #F7F5F2; color: #2C2C2C;">浅色模式</div>
+    <div class="mockup-body" style="background: #F7F5F2; padding: 20px; font-size: 12px;">
+      <div style="background: #FFFFFF; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+        <div style="font-weight: 600; margin-bottom: 12px; color: #2C2C2C;">设备列表</div>
+        <div style="padding: 10px 12px; border-radius: 10px; background: #F5F5F5; margin-bottom: 6px; color: #2C2C2C;">MacBook Pro</div>
+        <div style="padding: 10px 12px; border-radius: 10px; background: #F5F5F5; color: #2C2C2C;">iPhone 15</div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button style="flex: 1; padding: 12px 16px; border-radius: 12px; background: #FFFFFF; color: #2C2C2C; font-weight: 500; border: none;">发送</button>
+        <button style="flex: 1; padding: 12px 16px; border-radius: 12px; background: #2C2C2C; color: white; font-weight: 500; border: none;">接收</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 深色模式 (优化版) -->
+  <div class="mockup">
+    <div class="mockup-header" style="background: #121214; color: #E5E2DC;">深色模式 (柔和版)</div>
+    <div class="mockup-body" style="background: #121214; padding: 20px; font-size: 12px;">
+      <div style="background: #1C1C1E; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+        <div style="font-weight: 600; margin-bottom: 12px; color: #E5E2DC;">设备列表</div>
+        <div style="padding: 10px 12px; border-radius: 10px; background: #262628; margin-bottom: 6px; color: #C5C2BD;">MacBook Pro</div>
+        <div style="padding: 10px 12px; border-radius: 10px; background: #262628; color: #C5C2BD;">iPhone 15</div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button style="flex: 1; padding: 12px 16px; border-radius: 12px; background: #262628; color: #C5C2BD; font-weight: 500; border: none;">发送</button>
+        <button style="flex: 1; padding: 12px 16px; border-radius: 12px; background: #8B9A7D; color: #1C1C1E; font-weight: 500; border: none;">接收</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section"></div>
+
+<h3>深色模式优化点</h3>
+<div class="pros-cons">
+  <div class="pros">
+    <h4>调整前</h4>
+    <ul>
+      <li>页面背景: #1C1C1E</li>
+      <li>卡片背景: #242426 (对比度 12%)</li>
+      <li>主按钮: #E5E2DC (对比度 89%)</li>
+      <li>→ 卡片和页面反差大，按钮过于刺眼</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>调整后</h4>
+    <ul>
+      <li>页面背景: #121214 (更深)</li>
+      <li>卡片背景: #1C1C1E (更贴近页面)</li>
+      <li>列表项: #262628</li>
+      <li>主按钮: #8B9A7D (accent色，柔和)</li>
+      <li>→ 层级更平缓，accent色替代纯白</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section"></div>
+
+<h3>另一方案 — 保持深灰基底</h3>
+<div class="mockup">
+  <div class="mockup-body" style="background: #121214; padding: 20px; font-size: 12px;">
+    <div style="display: flex; gap: 12px;">
+      <div style="flex: 1;">
+        <div style="font-size: 10px; color: #6B6860; margin-bottom: 6px;">方案 A: accent 色按钮</div>
+        <div style="background: #1C1C1E; border-radius: 12px; padding: 12px;">
+          <div style="display: flex; gap: 8px;">
+            <button style="flex: 1; padding: 10px; border-radius: 8px; background: #262628; color: #C5C2BD; border: none; font-size: 11px;">发送</button>
+            <button style="flex: 1; padding: 10px; border-radius: 8px; background: #8B9A7D; color: #1C1C1E; border: none; font-size: 11px; font-weight: 500;">接收</button>
+          </div>
+        </div>
+      </div>
+      <div style="flex: 1;">
+        <div style="font-size: 10px; color: #6B6860; margin-bottom: 6px;">方案 B: 纯白按钮</div>
+        <div style="background: #1C1C1E; border-radius: 12px; padding: 12px;">
+          <div style="display: flex; gap: 8px;">
+            <button style="flex: 1; padding: 10px; border-radius: 8px; background: #2C2C2E; color: #8A8880; border: none; font-size: 11px;">发送</button>
+            <button style="flex: 1; padding: 10px; border-radius: 8px; background: #E5E2DC; color: #1C1C1E; border: none; font-size: 11px; font-weight: 500;">接收</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="label" style="margin-top: 16px; text-align: center; color: #6B6860;">左侧更柔和，右侧对比更强 — 你倾向哪种？</p>

@@ -1,0 +1,1 @@
+ALTER TABLE `transferItems` ADD `storageType` varchar(10) NOT NULL;

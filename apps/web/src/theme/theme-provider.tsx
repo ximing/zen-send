@@ -13,7 +13,9 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 function applyCssVariables(colors: Theme) {
   const root = document.documentElement;
   (Object.keys(colors) as Array<keyof Theme>).forEach((key) => {
-    root.style.setProperty(`--color-${key}`, colors[key]!);
+    // Convert camelCase to kebab-case and prefix with --
+    const cssKey = '--' + key.replace(/([A-Z])/g, '-$1').toLowerCase();
+    root.style.setProperty(cssKey, colors[key]!);
   });
 }
 

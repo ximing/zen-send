@@ -33,6 +33,8 @@ export class HomeService extends Service {
   uploadingFiles: UploadingFile[] = [];
   previewTransfer: TransferSession | null = null;
   deleteConfirmId: string | null = null;
+  private _hasMore = true;
+  private _fileData = new Map<string, { name: string; size: number; data?: ArrayBuffer }>();
 
   get authService() {
     return this.resolve(AuthService);
@@ -85,6 +87,10 @@ export class HomeService extends Service {
     return [...filtered].sort((a, b) => b.createdAt - a.createdAt);
   }
 
+  get hasMore() {
+    return this._hasMore;
+  }
+
   setSearchQuery(query: string) {
     this.searchQuery = query;
   }
@@ -105,16 +111,36 @@ export class HomeService extends Service {
     this.deleteConfirmId = id;
   }
 
-  async loadTransfers() {
+  async loadTransfers(offset = 0, limit = 50) {
     this.isLoading = true;
     this.error = null;
     try {
-      const response = await this.apiService.get<{ data: { transfers: TransferSession[] } }>(
-        '/api/transfers'
+      const response = await this.apiService.get<{ transfers: TransferSession[] }>(
+        `/api/transfers?limit=${limit}&offset=${offset}`
       );
-      this.transfers = response.data?.transfers || [];
+
+      if (offset === 0) {
+        this.transfers = response.transfers || [];
+      } else {
+        // Append and re-sort for merged dataset
+        const existingIds = new Set(this.transfers.map((t) => t.id));
+        const newTransfers = (response.transfers || []).filter((t) => !existingIds.has(t.id));
+        this.transfers = [...this.transfers, ...newTransfers].sort((a, b) => b.createdAt - a.createdAt);
+      }
+
+      this._hasMore = (response.transfers || []).length === limit;
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Failed to load transfers';
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async loadMoreTransfers() {
+    if (this.isLoading || !this._hasMore) return;
+    this.isLoading = true;
+    try {
+      await this.loadTransfers(this.transfers.length);
     } finally {
       this.isLoading = false;
     }
@@ -146,6 +172,7 @@ export class HomeService extends Service {
         status: 'pending',
       };
       this.uploadingFiles = [...this.uploadingFiles, uploadingFile];
+      this._fileData.set(uploadId, { name: file.name, size: file.size, data: file.data });
       this.executeUpload(uploadId, file);
     }
 
@@ -302,9 +329,35 @@ export class HomeService extends Service {
       await this.apiService.deleteTransfer(file.sessionId);
     }
     this.updateUploadStatus(uploadId, { status: 'cancelled' });
+    // Auto-remove from list after 3 seconds
+    setTimeout(() => {
+      this.removeUpload(uploadId);
+    }, 3000);
   }
 
   removeUpload(uploadId: string) {
     this.uploadingFiles = this.uploadingFiles.filter((f) => f.id !== uploadId);
+    this._fileData.delete(uploadId);
+  }
+
+  async retryUpload(uploadId: string) {
+    const fileData = this._fileData.get(uploadId);
+    if (!fileData) return;
+
+    const newUploadId = `upload-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const uploadingFile: UploadingFile = {
+      id: newUploadId,
+      name: fileData.name,
+      size: fileData.size,
+      progress: 0,
+      status: 'pending',
+    };
+
+    this.updateUploadStatus(uploadId, { status: 'cancelled' });
+    this.uploadingFiles = this.uploadingFiles.filter((f) => f.id !== uploadId);
+    this.uploadingFiles = [...this.uploadingFiles, uploadingFile];
+    this._fileData.set(newUploadId, fileData);
+    this._fileData.delete(uploadId);
+    this.executeUpload(newUploadId, fileData);
   }
 }
