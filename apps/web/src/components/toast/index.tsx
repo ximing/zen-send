@@ -14,16 +14,19 @@ const ToastContent = observer(() => {
       {service.toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`px-4 py-3 rounded-lg border shadow-lg text-sm
-            ${toast.type === 'success'
-              ? 'bg-[var(--bg-surface)] border-[var(--accent)] text-[var(--accent)]'
-              : toast.type === 'error'
-              ? 'bg-[var(--bg-surface)] border-[var(--color-error)] text-[var(--color-error)]'
-              : toast.type === 'warning'
-              ? 'bg-[var(--bg-surface)] border-[var(--color-warning)] text-[var(--color-warning)]'
-              : 'bg-[var(--bg-surface)] border-[var(--color-info)] text-[var(--color-info)]'
-            }`}
+          className={`px-4 py-3 rounded-xl shadow-lg text-sm flex items-center gap-3 bg-[var(--bg-surface)] text-[var(--text)]`}
         >
+          <div
+            className={`w-1 h-4 rounded-full
+              ${toast.type === 'success'
+                ? 'bg-[var(--accent)]'
+                : toast.type === 'error'
+                ? 'bg-[var(--color-error)]'
+                : toast.type === 'warning'
+                ? 'bg-[var(--color-warning)]'
+                : 'bg-[var(--color-info)]'
+              }`}
+          />
           {toast.message}
         </div>
       ))}
