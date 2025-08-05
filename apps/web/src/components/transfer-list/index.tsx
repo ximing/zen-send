@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
-import { FileText, Pencil, MailOpen } from 'lucide-react';
-import { TransferListService, type TransferFilter } from './transfer-list.service';
+import { FileText, Pencil, MailOpen, Eye, Download, Trash2, X, AlertTriangle } from 'lucide-react';
+import { HomeService, type TransferFilter } from '../../pages/home/home.service';
+import { ApiService } from '../../services/api.service';
+import SearchBarComponent from '../search-bar';
+import PreviewModalComponent from '../preview-modal';
 import type { TransferSession, TransferItemType } from '@zen-send/shared';
 
 const FILTERS: { label: string; value: TransferFilter }[] = [
@@ -50,14 +53,14 @@ function getTransferName(transfer: TransferSession): string {
 
 // FilterTabs component
 const FilterTabsComponent = observer(() => {
-  const service = useService(TransferListService);
+  const service = useService(HomeService);
 
   return (
     <div className="flex gap-2 mb-4">
       {FILTERS.map((f) => (
         <button
           key={f.value}
-          onClick={() => service.setFilter(f.value)}
+          onClick={() => service.setTypeFilter(f.value)}
           className={`px-4 py-2 rounded-md text-xs tracking-wider transition-colors
             ${service.filter === f.value
               ? 'bg-[var(--primary)] text-[var(--on-primary)]'
@@ -73,14 +76,77 @@ const FilterTabsComponent = observer(() => {
 
 // TransferItem component
 const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
+  const homeService = useService(HomeService);
+  const apiService = useService(ApiService);
   const icon = getTransferIcon(transfer);
   const name = getTransferName(transfer);
   const size = formatSize(transfer.totalSize);
   const time = formatRelativeTime(transfer.createdAt);
+  const isDeleteConfirm = homeService.deleteConfirmId === transfer.id;
+
+  const handlePreview = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      homeService.setPreviewTransfer(transfer);
+    },
+    [homeService, transfer]
+  );
+
+  const handleDownload = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      try {
+        const blob = await apiService.getTransferFile(transfer.id);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = transfer.originalFileName || 'download';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('Download failed:', err);
+      }
+    },
+    [apiService, transfer]
+  );
+
+  const handleDeleteClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      homeService.setDeleteConfirm(transfer.id);
+    },
+    [homeService, transfer.id]
+  );
+
+  const handleConfirmDelete = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      try {
+        await apiService.deleteTransfer(transfer.id);
+        homeService.setDeleteConfirm(null);
+        await homeService.loadTransfers();
+      } catch (err) {
+        console.error('Delete failed:', err);
+      }
+    },
+    [apiService, homeService, transfer.id]
+  );
+
+  const handleCancelDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      homeService.setDeleteConfirm(null);
+    },
+    [homeService]
+  );
 
   return (
-    <div className="p-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
-                    rounded-lg hover:border-[var(--border-subtle)] transition-colors cursor-pointer">
+    <div
+      className={`p-4 bg-[var(--bg-surface)] border rounded-lg transition-colors
+        ${isDeleteConfirm ? 'border-[var(--danger)] bg-[var(--danger)]/10' : 'border-[var(--border-default)] hover:border-[var(--border-subtle)]'}`}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span>{icon}</span>
@@ -89,7 +155,52 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
             <span className="text-xs text-[var(--text-muted)]">{size}</span>
           </div>
         </div>
-        <span className="text-xs text-[var(--text-muted)]">{time}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[var(--text-muted)] mr-2">{time}</span>
+
+          {isDeleteConfirm ? (
+            <>
+              <button
+                onClick={handleConfirmDelete}
+                className="p-2 hover:bg-[var(--danger)]/20 rounded-lg transition-colors text-[var(--danger)]"
+                title="Confirm delete"
+              >
+                <AlertTriangle size={18} />
+              </button>
+              <button
+                onClick={handleCancelDelete}
+                className="p-2 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+                title="Cancel"
+              >
+                <X size={18} className="text-[var(--text-secondary)]" />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handlePreview}
+                className="p-2 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+                title="Preview"
+              >
+                <Eye size={18} className="text-[var(--text-secondary)]" />
+              </button>
+              <button
+                onClick={handleDownload}
+                className="p-2 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+                title="Download"
+              >
+                <Download size={18} className="text-[var(--text-secondary)]" />
+              </button>
+              <button
+                onClick={handleDeleteClick}
+                className="p-2 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+                title="Delete"
+              >
+                <Trash2 size={18} className="text-[var(--text-secondary)]" />
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -97,7 +208,7 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
 
 // EmptyState component
 const EmptyStateComponent = observer(() => {
-  const service = useService(TransferListService);
+  const service = useService(HomeService);
   const filterLabel = FILTERS.find((f) => f.value === service.filter)?.label ?? 'ALL';
 
   return (
@@ -111,10 +222,11 @@ const EmptyStateComponent = observer(() => {
 });
 
 const TransferListContent = observer(() => {
-  const service = useService(TransferListService);
+  const service = useService(HomeService);
 
   return (
     <div className="space-y-3">
+      <SearchBarComponent />
       <FilterTabsComponent />
 
       {service.filteredTransfers.length === 0 ? (
@@ -124,8 +236,10 @@ const TransferListContent = observer(() => {
           <TransferItem key={transfer.id} transfer={transfer} />
         ))
       )}
+
+      <PreviewModalComponent />
     </div>
   );
 });
 
-export default bindServices(TransferListContent, [TransferListService]);
+export default bindServices(TransferListContent, [HomeService, ApiService]);
