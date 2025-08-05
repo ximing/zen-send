@@ -31,7 +31,7 @@ const SearchBarComponent = observer(() => {
           placeholder="Search transfers..."
           value={service.searchQuery}
           onChange={(e) => service.setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-[var(--bg-surface)] rounded-[var(--radius-lg)]
+          className="w-full pl-10 pr-4 py-2 bg-[var(--bg-surface)] rounded-xl
                      text-[var(--text-primary)] placeholder-[var(--text-muted)]
                      focus:outline-none transition-colors"
         />
@@ -48,7 +48,7 @@ const SearchBarComponent = observer(() => {
           <select
             value={service.filter}
             onChange={(e) => service.setTypeFilter(e.target.value as TransferFilter)}
-            className="w-full pl-9 pr-4 py-2 bg-[var(--bg-surface)] rounded-[var(--radius-lg)]
+            className="w-full pl-9 pr-4 py-2 bg-[var(--bg-surface)] rounded-xl
                        text-[var(--text-primary)] appearance-none cursor-pointer
                        focus:outline-none transition-colors"
           >
@@ -65,7 +65,7 @@ const SearchBarComponent = observer(() => {
           <select
             value={service.timeFilter}
             onChange={(e) => service.setTimeFilter(e.target.value as TimeFilter)}
-            className="w-full px-4 py-2 bg-[var(--bg-surface)] rounded-[var(--radius-lg)]
+            className="w-full px-4 py-2 bg-[var(--bg-surface)] rounded-xl
                        text-[var(--text-primary)] appearance-none cursor-pointer
                        focus:outline-none transition-colors"
           >
