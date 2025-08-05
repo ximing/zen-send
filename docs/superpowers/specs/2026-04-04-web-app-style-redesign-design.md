@@ -156,8 +156,9 @@ Each item shows on hover/always:
 ```
 
 ### Pagination
-- Initial load: 50 items
+- Initial load: 50 items via `GET /api/transfers?limit=50&offset=0`
 - "Load More" button at bottom of list
+- On click: fetch `offset = currentItems.length`, append to list, re-sort
 - Loading indicator while fetching next page
 - No infinite scroll (button-based for predictability)
 
@@ -180,7 +181,11 @@ Each item shows on hover/always:
 - Use existing @rabjs/react service patterns
 - Create `DeviceService` in `apps/web/src/services/device.service.ts`
 - Move HeaderService logout/theme functionality to `SidebarService`
-- Extend `HomeService` for enhanced upload state with speed/ETA calculation
+- Extend `HomeService` for enhanced upload state:
+  - Add `searchQuery` state for filename search
+  - Add `speed` and `eta` fields to upload tracking
+  - Track `startTime` and `bytesUploaded` for speed calculation
+  - Implement rolling average for speed (sample every 500ms)
 
 ### File Preview
 - Use browser's native capabilities where possible
@@ -200,13 +205,18 @@ Each item shows on hover/always:
 - `DELETE /api/devices/:id` - Remove device
 - `PATCH /api/devices/:id/heartbeat` - Update device heartbeat
 
-**New endpoints needed:**
+**New endpoints to implement:**
 - `POST /api/devices/pair-token` - Generate short-lived pairing token for QR code
   - Request: `{ deviceName: string }`
   - Response: `{ token: string, expiresAt: string }`
+  - Token: JWT with 5-minute expiry, signed with JWT_REFRESH_SECRET
+  - Add `CreatePairTokenDto` validator in `apps/server/src/validators/`
 
-**Pagination (existing or new):**
-- `GET /api/transfers?page=1&limit=50` - Paginated transfer list
+**Pagination (existing - verified):**
+- `GET /api/transfers?limit=50&offset=0` - Paginated transfer list
+- Server uses `limit` and `offset` (NOT `page`)
+- Server returns items sorted by `createdAt DESC`
+- On "Load More", append new items and re-sort to handle merged dataset
 
 ## 7. File Changes Summary
 
@@ -229,6 +239,7 @@ Each item shows on hover/always:
 
 ### Server Changes
 - `apps/server/src/controllers/device.controller.ts` - Add `POST /pair-token` endpoint
+- `apps/server/src/validators/create-pair-token.validator.ts` - Add validator for pair token request
 - Add `qrcode` dependency to `apps/web/package.json`
 
 ## 8. Implementation Order
