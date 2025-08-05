@@ -50,10 +50,8 @@ Transform the Zen Send web interface from a traditional header-based layout to a
 ### QR Code Pairing
 - Display user's pairing QR code
 - QR format: `https://zensend.dev/pair?token={TOKEN}`
-- Token is a short-lived (5 minute expiry) JWT containing:
-  - User ID
-  - Device registration info
-  - HMAC signature for validation
+- Token is a short-lived (5 minute expiry) JWT signed with a dedicated secret
+  - Payload contains: userId, deviceName, issuedAt, expiresAt
 - Instructions below QR:
   1. Open Zen Send on target device
   2. Scan the QR code
