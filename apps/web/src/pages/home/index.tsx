@@ -137,7 +137,7 @@ const HomeContent = observer(() => {
     return (
       <div
         key={upload.id}
-        className="flex items-center gap-3 p-3 bg-[var(--bg-elevated)] border border-[var(--border-default)] rounded-lg"
+        className="flex items-center gap-3 p-3 bg-[var(--bg-elevated)] rounded-lg"
       >
         {React.createElement(icon, { size: 16, className: iconColor })}
         <div className="flex-1 min-w-0">
@@ -206,8 +206,9 @@ const HomeContent = observer(() => {
     >
       <Sidebar />
 
-      <main className="flex-1 ml-16 max-w-2xl mx-auto px-6 py-10">
-        <SendToolbar />
+      <main className="flex-1 ml-16 px-6 py-10">
+        <div className="max-w-2xl mx-auto">
+          <SendToolbar />
 
         {service.uploadingFiles.length > 0 && (
           <div className="mb-8">
@@ -224,18 +225,19 @@ const HomeContent = observer(() => {
           <div className="mt-10">
             <button
               onClick={() => sendToolbarService.sendFiles()}
-              className="w-full py-3 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-lg
+              className="w-full py-4 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-lg
                          font-medium tracking-wider hover:bg-[var(--primary-hover)] transition-colors"
             >
               SEND
             </button>
           </div>
         )}
+        </div>
       </main>
 
       {isDragging && (
         <div className="fixed inset-0 bg-[var(--primary)]/10 flex items-center justify-center z-50">
-          <div className="border-[1.5px] border-dashed border-[var(--border-default)] rounded-[14px] p-16 text-center bg-[var(--bg-surface)]">
+          <div className="rounded-[14px] p-16 text-center bg-[var(--bg-surface)]">
             <Upload size={64} className="text-[var(--accent)] mx-auto mb-4" />
             <p className="text-xl text-[var(--text-primary)] font-medium">Release to upload</p>
           </div>
