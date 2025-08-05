@@ -14,6 +14,11 @@ export interface UploadingFile {
   status: 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled';
   sessionId?: string;
   error?: string;
+  // Speed/ETA tracking
+  speed?: number; // bytes per second
+  eta?: number; // seconds remaining
+  startTime?: number; // timestamp
+  uploadedBytes?: number;
 }
 
 export class HomeService extends Service {
@@ -74,7 +79,7 @@ export class HomeService extends Service {
     this.selectedFiles = [];
   }
 
-  async uploadFiles(targetDeviceId: string) {
+  async uploadFiles() {
     const files = this.selectedFiles;
     if (files.length === 0) return;
 
@@ -88,7 +93,7 @@ export class HomeService extends Service {
         status: 'pending',
       };
       this.uploadingFiles = [...this.uploadingFiles, uploadingFile];
-      this.executeUpload(uploadId, file, targetDeviceId);
+      this.executeUpload(uploadId, file);
     }
 
     this.selectedFiles = [];
@@ -96,11 +101,43 @@ export class HomeService extends Service {
 
   private async executeUpload(
     uploadId: string,
-    file: { name: string; size: number; data?: ArrayBuffer },
-    targetDeviceId: string
+    file: { name: string; size: number; data?: ArrayBuffer }
   ) {
     const TEXT_INLINE_MAX_SIZE = 10 * 1024;
     const CHUNK_SIZE = 1 * 1024 * 1024;
+    const startTime = Date.now();
+    const speedSamples: number[] = [];
+    let lastUpdateTime = startTime;
+    let lastUploadedBytes = 0;
+
+    this.updateUploadStatus(uploadId, { startTime, uploadedBytes: 0 });
+
+    // Helper to update speed and ETA
+    const updateSpeedAndEta = (uploadedBytes: number) => {
+      const now = Date.now();
+      const elapsed = (now - lastUpdateTime) / 1000;
+      const bytesDelta = uploadedBytes - lastUploadedBytes;
+
+      if (elapsed >= 0.5 && bytesDelta > 0) {
+        const currentSpeed = bytesDelta / elapsed;
+        speedSamples.push(currentSpeed);
+        if (speedSamples.length > 5) speedSamples.shift();
+
+        // Calculate rolling average speed
+        const avgSpeed = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
+        const remainingBytes = file.size - uploadedBytes;
+        const eta = avgSpeed > 0 ? remainingBytes / avgSpeed : 0;
+
+        this.updateUploadStatus(uploadId, {
+          speed: avgSpeed,
+          eta,
+          uploadedBytes,
+        });
+
+        lastUpdateTime = now;
+        lastUploadedBytes = uploadedBytes;
+      }
+    };
 
     try {
       this.updateUploadStatus(uploadId, { status: 'uploading' });
@@ -111,7 +148,6 @@ export class HomeService extends Service {
         const content = new TextDecoder().decode(file.data);
         const response = await this.apiService.post<any>('/api/transfers/init', {
           sourceDeviceId,
-          targetDeviceId,
           type: 'text',
           fileName: file.name,
           contentType: 'text/plain',
@@ -123,12 +159,14 @@ export class HomeService extends Service {
           status: 'completed',
           progress: 100,
           sessionId: response.data.sessionId,
+          speed: 0,
+          eta: 0,
+          uploadedBytes: file.size,
         });
       } else {
         const chunkCount = Math.ceil(file.size / CHUNK_SIZE);
         const initResponse = await this.apiService.post<any>('/api/transfers/init', {
           sourceDeviceId,
-          targetDeviceId,
           type: 'file',
           fileName: file.name,
           contentType: 'application/octet-stream',
@@ -159,7 +197,9 @@ export class HomeService extends Service {
 
             completedChunks++;
             const progress = Math.round((completedChunks / totalChunks) * 100);
-            this.updateUploadStatus(uploadId, { progress });
+            const uploadedBytes = Math.min(completedChunks * CHUNK_SIZE, file.size);
+            this.updateUploadStatus(uploadId, { progress, uploadedBytes });
+            updateSpeedAndEta(uploadedBytes);
           })
         );
 
@@ -168,6 +208,9 @@ export class HomeService extends Service {
         this.updateUploadStatus(uploadId, {
           status: 'completed',
           progress: 100,
+          speed: 0,
+          eta: 0,
+          uploadedBytes: file.size,
         });
       }
     } catch (error) {

@@ -12,6 +12,19 @@ import Sidebar from '../../components/sidebar';
 import Toast from '../../components/toast';
 import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react';
 
+const formatSpeed = (bytesPerSec: number): string => {
+  if (bytesPerSec > 1024 * 1024) {
+    return `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`;
+  }
+  return `${(bytesPerSec / 1024).toFixed(1)} KB/s`;
+};
+
+const formatEta = (seconds: number): string => {
+  if (seconds < 60) return `${Math.ceil(seconds)}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.ceil(seconds % 60)}s`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+};
+
 const HomeContent = observer(() => {
   const service = useService(HomeService);
   const authService = useService(AuthService);
@@ -121,12 +134,22 @@ const HomeContent = observer(() => {
         <div className="flex-1 min-w-0">
           <div className="text-sm text-[var(--text-primary)] truncate">{upload.name}</div>
           {upload.status === 'uploading' && (
-            <div className="mt-1 h-1 bg-[var(--bg-primary)] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[var(--primary)] transition-all duration-300"
-                style={{ width: `${upload.progress}%` }}
-              />
-            </div>
+            <>
+              <div className="mt-1 h-1 bg-[var(--bg-primary)] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[var(--primary)] transition-all duration-300"
+                  style={{ width: `${upload.progress}%` }}
+                />
+              </div>
+              <div className="flex items-center gap-2 mt-1 text-xs text-[var(--text-secondary)]">
+                {upload.speed !== undefined && upload.speed > 0 && (
+                  <span>{formatSpeed(upload.speed)}</span>
+                )}
+                {upload.eta !== undefined && upload.eta > 0 && (
+                  <span>ETA {formatEta(upload.eta)}</span>
+                )}
+              </div>
+            </>
           )}
           {upload.status === 'failed' && (
             <div className="text-xs text-[var(--color-error)] mt-1">{upload.error}</div>
@@ -189,10 +212,10 @@ const HomeContent = observer(() => {
       </main>
 
       {isDragging && (
-        <div className="fixed inset-0 bg-[var(--bg-overlay)] flex items-center justify-center z-50 pointer-events-none">
-          <div className="text-center">
-            <Upload size={48} className="text-[var(--primary)] mx-auto mb-4" />
-            <p className="text-lg text-[var(--text-primary)]">Drop files here</p>
+        <div className="fixed inset-0 bg-[var(--primary)]/10 flex items-center justify-center z-50">
+          <div className="border-2 border-dashed border-[var(--primary)] rounded-2xl p-16 text-center">
+            <Upload size={64} className="text-[var(--primary)] mx-auto mb-4" />
+            <p className="text-xl text-[var(--text-primary)] font-medium">Release to upload</p>
           </div>
         </div>
       )}
