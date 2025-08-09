@@ -14,6 +14,7 @@
   --bg-overlay: rgba(0, 0, 0, 0.5);
 
   /* Borders */
+  --border-subtle: #E8E5E0;
   --border-focus: #8B9A7D;
 
   /* Text — Light */
@@ -65,6 +66,7 @@
   --bg-overlay: rgba(0, 0, 0, 0.7);
 
   /* Borders */
+  --border-subtle: #3A3A3C;
   --border-focus: #8B9A7D;
 
   /* Text — Dark */
