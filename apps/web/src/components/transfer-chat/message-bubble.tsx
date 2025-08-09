@@ -186,8 +186,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
         <div
           className={`w-0 h-0 border-t-8 border-b-8 border-t-transparent border-b-transparent mt-3 ${
             isSent
-              ? 'border-r-8 border-r-[var(--bg-elevated)] -ml-px'
-              : 'border-l-8 border-l-[var(--bg-elevated)] -mr-px'
+              ? 'border-l-8 border-l-[var(--bg-elevated)] -ml-px'
+              : 'border-r-8 border-r-[var(--bg-elevated)] -mr-px'
           }`}
         />
 
