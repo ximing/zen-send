@@ -7,7 +7,7 @@ import { SocketService } from '../../services/socket.service';
 import { TransferChatService } from './transfer-chat.service';
 import { MessageBubble } from './message-bubble';
 import { DateSeparator } from './date-separator';
-import { BottomToolbar } from './bottom-toolbar';
+import BottomToolbar from './bottom-toolbar';
 import { SearchModal } from './search-modal';
 import { PreviewModal } from '../preview-modal';
 
@@ -18,6 +18,14 @@ const TransferChatContent = observer(() => {
   const chatService = useService(TransferChatService);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const prevTransfersLengthRef = useRef(0);
+
+  // Scroll to bottom function
+  const scrollToBottom = useCallback(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -66,8 +74,10 @@ const TransferChatContent = observer(() => {
 
     // Socket event handlers for real-time transfer updates
     const handleTransferNew = (session: unknown) => {
-      // Add new transfer to the top of the list and refresh
+      // Add new transfer to the list and refresh
       homeService.loadTransfers();
+      // Scroll to bottom when new transfer arrives
+      setTimeout(scrollToBottom, 100);
     };
 
     const handleTransferComplete = (data: unknown) => {
@@ -83,12 +93,20 @@ const TransferChatContent = observer(() => {
       socketService.offTransferNew(handleTransferNew);
       socketService.offTransferComplete(handleTransferComplete);
     };
-  }, [deviceService, socketService, homeService]);
+  }, [deviceService, socketService, homeService, scrollToBottom]);
 
   // Get filtered and grouped transfers using Service methods
   const transfers = homeService.transfers;
   const filtered = chatService.filterTransfers(transfers, chatService.searchQuery, chatService.timeFilter);
   const dateGroups = chatService.getDateGroups(filtered);
+
+  // Auto-scroll to bottom when transfers list grows (new messages sent or received)
+  useEffect(() => {
+    if (transfers.length > prevTransfersLengthRef.current) {
+      prevTransfersLengthRef.current = transfers.length;
+      scrollToBottom();
+    }
+  }, [transfers.length, scrollToBottom]);
 
   // Create a map of uploading files by session id
   const uploadingFilesMap = new Map<string, UploadingFile>();
@@ -102,7 +120,7 @@ const TransferChatContent = observer(() => {
     <div className="flex flex-col flex-1 min-h-0">
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 overflow-y-auto space-y-3 px-3 py-3 relative"
+        className="flex-1 min-h-0 overflow-y-auto space-y-3 py-3"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

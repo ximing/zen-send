@@ -56,7 +56,31 @@ get apiService() {
 }
 ```
 
-### 5. API 类型定义
+### 5. 跨级访问：子组件访问父组件容器中的 Service
+
+容器层次：HomePage → TransferChat → BottomToolbar
+
+子组件可直接访问**父组件容器**中注册的 Service：
+
+```typescript
+// TransferChatService（在 TransferChat 中注册）可访问 HomeService
+export class TransferChatService extends Service {
+  get homeService() {
+    return this.resolve(HomeService); // 父组件容器的 Service
+  }
+}
+
+// BottomToolbar（子组件）可直接 useService(TransferChatService)
+const BottomToolbar = observer(() => {
+  const chatService = useService(TransferChatService); // 父容器的 Service
+  // 无需事件传递，直接调用
+  await chatService.sendText(text);
+});
+```
+
+**核心原则**：子组件通过 `useService` 访问**直接父容器**的 Service；Service 通过 `resolve` 访问**父组件容器**的 Service。
+
+### 6. API 类型定义
 
 `ApiService` 已自动提取 `data` 包装层，类型写真实结构：
 
@@ -79,14 +103,25 @@ src/
 
 ## Design System
 
-- **无边框** — 用背景色差和阴影代替边框
-- **绿色主色** — 交互状态使用绿色
-- **悬浮感** — 透明背景、模糊、hover 上浮
+**设计方向**: Editorial Minimal with Sage Accent — 克制、小众先锋、温暖编辑感、大量留白
 
-### 颜色（亮色模式）
+- **大量留白** — 呼吸感优先
+- **黑白灰** — 承担 95% 视觉重量
+- **点缀色** — 仅在 5% 关键位置出现（Sage Green）
+- **无边框** — 用背景色差代替边框
+- **无渐变** — 除非必要
+
+### 颜色
+
+**Accent - Sage Green**: `#8B9A7D`
 
 | 用途 | 颜色 |
 |------|------|
-| 主色调 | `#22c55e` |
-| 背景 | `#FFFFFF` / `#F9FAFB` |
-| 文字 | `#18181b` / `#71717a` |
+| 背景 | `#F7F5F2` (暖灰) / `#FFFFFF` |
+| 文字主色 | `#2C2C2C` |
+| 文字次色 | `#9A958F` |
+| 文字弱色 | `#B5AFA8` |
+| 边框默认 | `#DDD8D0` |
+| 边框弱色 | `#EDEBE7` |
+| 点缀色 | `#8B9A7D` |
+| 点缀色软 | `#8B9A7D20` (12% 透明度) |

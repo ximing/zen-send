@@ -1,5 +1,6 @@
 import { Service } from '@rabjs/react';
 import type { TransferSession } from '@zen-send/shared';
+import { HomeService } from '../../pages/home/home.service';
 
 export type ChatTimeFilter = 'all' | 'today' | 'week' | 'month';
 
@@ -12,6 +13,20 @@ interface DateGroup {
 export class TransferChatService extends Service {
   searchQuery = '';
   timeFilter: ChatTimeFilter = 'all';
+
+  // Access parent page's HomeService
+  get homeService() {
+    return this.resolve(HomeService);
+  }
+
+  async sendText(content: string) {
+    await this.homeService.sendText(content);
+  }
+
+  addFiles(files: { name: string; size: number; data?: ArrayBuffer }[]) {
+    this.homeService.addFiles(files);
+    this.homeService.uploadFiles();
+  }
 
   getDateGroups(transfers: TransferSession[]): DateGroup[] {
     const now = new Date();
@@ -46,8 +61,8 @@ export class TransferChatService extends Service {
       groups.get(groupKey)!.transfers.push(transfer);
     }
 
-    // Convert to array and sort by date descending
-    return Array.from(groups.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
+    // Convert to array and sort by date ascending
+    return Array.from(groups.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
   }
 
   filterTransfers(transfers: TransferSession[], searchQuery: string, timeFilter: ChatTimeFilter): TransferSession[] {
@@ -79,7 +94,7 @@ export class TransferChatService extends Service {
       });
     }
 
-    return filtered.sort((a, b) => b.createdAt - a.createdAt);
+    return filtered.sort((a, b) => a.createdAt - b.createdAt);
   }
 
   setSearchQuery(query: string) {

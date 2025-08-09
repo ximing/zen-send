@@ -1,39 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { Paperclip, Search, Send, ArrowUp } from 'lucide-react';
-import { HomeService } from '../../../pages/home/home.service';
+import { TransferChatService } from '../transfer-chat.service';
 
-const BottomToolbar = observer(() => {
-  const homeService = useService(HomeService);
+const BottomToolbarContent = observer(() => {
+  const chatService = useService(TransferChatService);
   const [text, setText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    const fileData = files.map((file) => ({
-      name: file.name,
-      size: file.size,
-      data: undefined as ArrayBuffer | undefined,
-    }));
-
-    // Read file data
-    fileData.forEach((file, index) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        fileData[index].data = reader.result as ArrayBuffer;
-        homeService.addFiles([fileData[index]]);
-        homeService.uploadFiles();
-      };
-      reader.readAsArrayBuffer(files[index]);
-    });
-
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, [homeService]);
 
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
@@ -47,17 +20,45 @@ const BottomToolbar = observer(() => {
     window.dispatchEvent(new CustomEvent('open-search-modal'));
   }, []);
 
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const fileData = files.map((file) => ({
+      name: file.name,
+      size: file.size,
+      data: undefined as ArrayBuffer | undefined,
+    }));
+
+    files.forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        fileData[i].data = reader.result as ArrayBuffer;
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Delay to ensure all data is read
+    setTimeout(() => {
+      chatService.addFiles(fileData);
+    }, 100);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [chatService]);
+
   const handleSendText = useCallback(async () => {
     const trimmedText = text.trim();
     if (!trimmedText) return;
 
     try {
-      await homeService.sendText(trimmedText);
+      await chatService.sendText(trimmedText);
       setText('');
     } catch (err) {
       console.error('Failed to send text:', err);
     }
-  }, [text, homeService]);
+  }, [text, chatService]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -75,7 +76,7 @@ const BottomToolbar = observer(() => {
   }, []);
 
   return (
-    <div className="sticky bottom-0 border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2">
+    <div className="w-full bg-[var(--bg-surface)]/90 backdrop-blur-xl rounded-3xl px-6 py-4 shadow-lg">
       {/* Icons row */}
       <div className="flex items-center gap-3 mb-2">
         <button
@@ -124,9 +125,9 @@ const BottomToolbar = observer(() => {
           type="button"
           onClick={handleSendText}
           disabled={!hasText}
-          className={`p-2 rounded-xl transition-colors ${
+          className={`p-2 rounded-xl transition-all duration-150 hover:-translate-y-0.5 ${
             hasText
-              ? 'bg-[var(--primary)] text-white'
+              ? 'bg-[var(--primary)] text-[var(--on-primary)] shadow-[0_2px_8px_rgba(0,0,0,0.15)]'
               : 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
           }`}
         >
@@ -137,5 +138,4 @@ const BottomToolbar = observer(() => {
   );
 });
 
-export { BottomToolbar };
-export default bindServices(BottomToolbar, [HomeService]);
+export default bindServices(BottomToolbarContent, []);

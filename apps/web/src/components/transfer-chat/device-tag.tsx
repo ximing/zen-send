@@ -24,7 +24,8 @@ interface DeviceTagProps {
 export const DeviceTag: React.FC<DeviceTagProps> = ({ device, direction }) => {
   const isSent = direction === 'sent';
   const deviceType = device?.type || 'web';
-  const deviceName = device?.name || 'Unknown Device';
+  // When device is unknown (not in device list), show context-aware name
+  const deviceName = device?.name || (isSent ? 'To Device' : 'From Device');
   const color = DEVICE_COLORS[deviceType];
   const icon = DEVICE_ICONS[deviceType];
 

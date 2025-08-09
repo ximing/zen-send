@@ -150,5 +150,5 @@ const SearchModal = observer(() => {
   );
 });
 
-export default bindServices(SearchModal, [HomeService, TransferChatService]);
+export default bindServices(SearchModal, []);
 export { SearchModal };
