@@ -46,20 +46,13 @@ export class AuthService extends Service {
   }
 
   async login(request: LoginRequest): Promise<void> {
-    const response = await this.apiService.post<{ data: AuthTokens }>('/api/auth/login', request);
-    if (response.data) {
-      this.saveTokens(response.data);
-    }
+    const tokens = await this.apiService.post<AuthTokens>('/api/auth/login', request);
+    this.saveTokens(tokens);
   }
 
   async register(request: RegisterRequest): Promise<void> {
-    const response = await this.apiService.post<{ data: AuthTokens }>(
-      '/api/auth/register',
-      request
-    );
-    if (response.data) {
-      this.saveTokens(response.data);
-    }
+    const tokens = await this.apiService.post<AuthTokens>('/api/auth/register', request);
+    this.saveTokens(tokens);
   }
 
   async logout(): Promise<void> {
@@ -77,12 +70,10 @@ export class AuthService extends Service {
     if (!this.refreshToken) {
       throw new Error('No refresh token');
     }
-    const response = await this.apiService.post<{ data: AuthTokens }>('/api/auth/refresh', {
+    const tokens = await this.apiService.post<AuthTokens>('/api/auth/refresh', {
       refreshToken: this.refreshToken,
     });
-    if (response.data) {
-      this.saveTokens(response.data);
-    }
+    this.saveTokens(tokens);
   }
 
   getAuthHeaders(): Record<string, string> {
