@@ -17,8 +17,8 @@ const BottomToolbarContent = observer(() => {
   }, []);
 
   const handleSearchClick = useCallback(() => {
-    window.dispatchEvent(new CustomEvent('open-search-modal'));
-  }, []);
+    chatService.openSearchModal();
+  }, [chatService]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
