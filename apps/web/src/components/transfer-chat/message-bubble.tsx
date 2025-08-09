@@ -50,7 +50,7 @@ const DeviceIcon: React.FC<DeviceIconProps> = ({ deviceType, isSent }) => {
   const color = isSent ? DEVICE_ICON_COLORS.sent : DEVICE_ICON_COLORS.received;
   return (
     <div
-      className="w-10 h-10 rounded-full border-2 bg-white shadow-md flex items-center justify-center flex-shrink-0"
+      className="w-10 h-10 rounded-full border-2 bg-white dark:bg-[var(--bg-elevated)] shadow-md flex items-center justify-center flex-shrink-0"
       style={{ borderColor: color, color }}
     >
       {DEVICE_TYPE_ICONS[deviceType]}
