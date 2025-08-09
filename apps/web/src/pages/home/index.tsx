@@ -6,7 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { SendToolbarService } from '../../components/send-toolbar/send-toolbar.service';
 import { SocketService } from '../../services/socket.service';
 import SendToolbar from '../../components/send-toolbar';
-import TransferList from '../../components/transfer-list';
+import TransferChat from '../../components/transfer-chat';
 import Sidebar from '../../components/sidebar';
 import Toast from '../../components/toast';
 import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react';
@@ -219,7 +219,7 @@ const HomeContent = observer(() => {
           </div>
         )}
 
-        <TransferList />
+        <TransferChat />
 
         {service.selectedFiles.length > 0 && (
           <div className="mt-10">
