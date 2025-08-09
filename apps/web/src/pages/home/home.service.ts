@@ -83,8 +83,8 @@ export class HomeService extends Service {
       });
     }
 
-    // Sort by time descending (newest first)
-    return [...filtered].sort((a, b) => b.createdAt - a.createdAt);
+    // Sort by time ascending (newest last)
+    return [...filtered].sort((a, b) => a.createdAt - b.createdAt);
   }
 
   get hasMore() {
@@ -133,7 +133,7 @@ export class HomeService extends Service {
         // Append and re-sort for merged dataset
         const existingIds = new Set(this.transfers.map((t) => t.id));
         const newTransfers = (transfers || []).filter((t) => !existingIds.has(t.id));
-        this.transfers = [...this.transfers, ...newTransfers].sort((a, b) => b.createdAt - a.createdAt);
+        this.transfers = [...this.transfers, ...newTransfers].sort((a, b) => a.createdAt - b.createdAt);
       }
 
       this._hasMore = (transfers || []).length === limit;

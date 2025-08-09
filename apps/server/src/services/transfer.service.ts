@@ -115,7 +115,7 @@ export class TransferService {
       createdAt: now,
     });
 
-    // 如果是内联文本，直接插入 transferItem
+    // 如果是内联文本，直接插入 transferItem，并标记为已完成
     if (isInlineText) {
       const itemId = generateItemId();
       await this.db.insert(transferItems).values({
@@ -129,6 +129,12 @@ export class TransferService {
         storageType: 'db',
         createdAt: now,
       });
+
+      // 内联文本无需上传，直接标记为已完成
+      await this.db
+        .update(transferSessions)
+        .set({ status: 'completed', completedAt: now })
+        .where(eq(transferSessions.id, sessionId));
     }
 
     return {
@@ -198,7 +204,7 @@ export class TransferService {
     return { status: 'completed', downloadUrl };
   }
 
-  async getTransferList(userId: string, limit = 50, offset = 0): Promise<TransferSessionInfo[]> {
+  async getTransferList(userId: string, limit = 50, offset = 0): Promise<(TransferSessionInfo & { items: TransferItemInfo[] })[]> {
     const results = await this.db
       .select()
       .from(transferSessions)
@@ -207,7 +213,18 @@ export class TransferService {
       .limit(limit)
       .offset(offset);
 
-    return results as TransferSessionInfo[];
+    // Fetch items for each transfer
+    const transfersWithItems = await Promise.all(
+      results.map(async (session) => {
+        const items = await this.db
+          .select()
+          .from(transferItems)
+          .where(eq(transferItems.sessionId, session.id));
+        return { ...session, items: items as TransferItemInfo[] };
+      })
+    );
+
+    return transfersWithItems;
   }
 
   async getTransferById(

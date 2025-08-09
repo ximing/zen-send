@@ -1,0 +1,106 @@
+<h2>气泡设计 - 紧凑布局</h2>
+<p class="subtitle">图标与气泡紧密连接</p>
+
+<div class="split" style="margin-top: 20px;">
+  <!-- 发送的消息 -->
+  <div class="mockup">
+    <div class="mockup-header">发送的气泡</div>
+    <div class="mockup-body" style="padding: 30px; background: #f5f5f5;">
+      <!-- 文件气泡 -->
+      <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
+        <!-- 设备图标 -->
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 2px solid #22c55e; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0;">
+          💻
+        </div>
+        <!-- 气泡 -->
+        <div style="position: relative; max-width: 70%; background: #e5e5e5; border-radius: 16px; padding: 12px 16px; margin-left: 8px;">
+          <!-- 尖角 -->
+          <div style="position: absolute; left: -8px; top: 10px; width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid #e5e5e5;"></div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="color: #666;">📄</div>
+            <div>
+              <div style="font-size: 13px; font-weight: 500;">photo.jpg 等 3 个文件</div>
+              <div style="font-size: 11px; color: #888;">2.5 MB ✓ Done</div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.05);">
+            <span style="font-size: 10px; color: #888;">PC-Windows</span>
+            <span style="font-size: 10px; color: #888;">5分钟前</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图片气泡 -->
+      <div style="display: flex; align-items: flex-start;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 2px solid #22c55e; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0;">
+          💻
+        </div>
+        <div style="position: relative; max-width: 70%; background: #e5e5e5; border-radius: 16px; padding: 10px; margin-left: 8px;">
+          <div style="position: absolute; left: -8px; top: 10px; width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid #e5e5e5;"></div>
+          <div style="max-width: 180px; border-radius: 8px; overflow: hidden;">
+            <img src="https://picsum.photos/300/200" style="width: 100%; height: auto; display: block;" />
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.05);">
+            <span style="font-size: 10px; color: #888;">PC-Windows</span>
+            <span style="font-size: 10px; color: #888;">3分钟前</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 接收的消息 -->
+  <div class="mockup">
+    <div class="mockup-header">接收的气泡</div>
+    <div class="mockup-body" style="padding: 30px; background: #f5f5f5;">
+      <!-- 文件气泡 -->
+      <div style="display: flex; align-items: flex-start; justify-content: flex-end; margin-bottom: 15px;">
+        <div style="position: relative; max-width: 70%; background: #ffffff; border: 1px solid #e5e5e5; border-radius: 16px; padding: 12px 16px; margin-right: 8px;">
+          <div style="position: absolute; right: -8px; top: 10px; width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid #ffffff;"></div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="color: #666;">📄</div>
+            <div>
+              <div style="font-size: 13px; font-weight: 500;">document.pdf</div>
+              <div style="font-size: 11px; color: #888;">1.2 MB</div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.05);">
+            <span style="font-size: 10px; color: #888;">📱 iPhone</span>
+            <span style="font-size: 10px; color: #888;">10分钟前</span>
+          </div>
+        </div>
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 2px solid #a855f7; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0;">
+          📱
+        </div>
+      </div>
+
+      <!-- 图片气泡 -->
+      <div style="display: flex; align-items: flex-start; justify-content: flex-end;">
+        <div style="position: relative; max-width: 70%; background: #ffffff; border: 1px solid #e5e5e5; border-radius: 16px; padding: 10px; margin-right: 8px;">
+          <div style="position: absolute; right: -8px; top: 10px; width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid #ffffff;"></div>
+          <div style="max-width: 180px; border-radius: 8px; overflow: hidden;">
+            <img src="https://picsum.photos/300/200" style="width: 100%; height: auto; display: block;" />
+          </div>
+          <div style="display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.05);">
+            <span style="font-size: 10px; color: #888;">📱 iPhone</span>
+            <span style="font-size: 10px; color: #888;">1分钟前</span>
+          </div>
+        </div>
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 2px solid #a855f7; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0;">
+          📱
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px;">
+  <h3>布局说明</h3>
+  <ul style="font-size: 13px; line-height: 1.8;">
+    <li><strong>图标 + 尖角 + 气泡</strong> - 三者紧密连接，间距仅8px</li>
+    <li><strong>尖角位置</strong> - 在图标与气泡之间，指向图标</li>
+    <li><strong>图片气泡</strong> - 最大宽度180px，高度自适应</li>
+  </ul>
+</div>
+
+<p style="margin-top: 15px; font-size: 12px; color: #666;">这个布局更紧凑了，请看看效果。</p>
