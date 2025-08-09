@@ -45,15 +45,11 @@ export class DeviceService extends Service {
   }
 
   async generatePairToken(deviceName: string) {
-    try {
-      const response = await this.apiService.post<{ token: string; expiresAt: string }>('/api/devices/pair-token', {
-        deviceName,
-      });
-      this._pairToken = response.token;
-      this._pairTokenExpiry = new Date(response.expiresAt);
-    } catch (error) {
-      console.error('Failed to generate pair token:', error);
-    }
+    const response = await this.apiService.post<{ token: string; expiresAt: string }>('/api/devices/pair-token', {
+      deviceName,
+    });
+    this._pairToken = response.token;
+    this._pairTokenExpiry = new Date(response.expiresAt);
   }
 
   async removeDevice(deviceId: string) {

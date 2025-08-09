@@ -75,6 +75,14 @@ export class SocketService extends Service {
     this.socket?.on('transfer:complete', callback);
   }
 
+  offTransferNew(callback: (session: unknown) => void) {
+    this.socket?.off('transfer:new', callback);
+  }
+
+  offTransferComplete(callback: (data: { sessionId: string }) => void) {
+    this.socket?.off('transfer:complete', callback);
+  }
+
   emitTransferComplete(sessionId: string) {
     this.socket?.emit('transfer:complete', { sessionId });
   }

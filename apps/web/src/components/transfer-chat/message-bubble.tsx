@@ -51,11 +51,23 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
   const itemType = firstItem?.type || 'file';
   const icon = TYPE_ICONS[itemType];
 
+  // Multi-file detection
+  const itemCount = transfer.items?.length ?? 1;
+  const isMultiFile = itemCount > 1;
+  const displayFileName = isMultiFile
+    ? `${transfer.originalFileName} 等 ${itemCount} 个文件`
+    : (transfer.originalFileName || 'Unknown');
+
+  // Thumbnail items for multi-file display (max 4)
+  const thumbnailItems = isMultiFile ? (transfer.items ?? []).slice(0, 4) : [];
+
   const [isHovered, setIsHovered] = useState(false);
 
   const isUploading = uploadingFile && (uploadingFile.status === 'uploading' || uploadingFile.status === 'pending');
   const isCompleted = uploadingFile?.status === 'completed' || transfer.status === 'completed';
   const isFailed = uploadingFile?.status === 'failed' || transfer.status === 'failed';
+  const isPending = transfer.status === 'pending';
+  const isExpired = transfer.status === 'expired';
 
   const handlePreview = useCallback(() => {
     homeService.setPreviewTransfer(transfer);
@@ -92,8 +104,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
     >
       <div
         className={`relative max-w-[70%] rounded-2xl px-4 py-3 transition-all
-          ${isSent
-            ? 'bg-[var(--primary)]/10 rounded-br-md'
+          ${isPending ? 'bg-[var(--bg-surface)] opacity-50' : isSent
+            ? 'bg-[var(--primary)]/15 rounded-br-md'
             : 'bg-[var(--bg-elevated)] rounded-bl-md'
           }
           ${isHovered ? 'shadow-md' : ''}
@@ -101,18 +113,53 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
       >
         <div className="flex items-start gap-3">
           {/* Thumbnail/Icon */}
-          <div className="flex-shrink-0 w-12 h-12 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center overflow-hidden">
-            {icon}
-          </div>
+          {isMultiFile ? (
+            <div className="flex-shrink-0 flex gap-1">
+              {thumbnailItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="w-10 h-10 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center overflow-hidden"
+                >
+                  {item.type === 'text' ? (
+                    <Pencil size={16} className="text-[var(--text-secondary)]" />
+                  ) : (
+                    <FileText size={16} className="text-[var(--text-secondary)]" />
+                  )}
+                </div>
+              ))}
+              {itemCount > 4 && (
+                <div className="w-10 h-10 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center">
+                  <span className="text-xs text-[var(--text-muted)]">+{itemCount - 4}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex-shrink-0 w-12 h-12 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center overflow-hidden">
+              {icon}
+            </div>
+          )}
 
           {/* File Info */}
           <div className="flex-1 min-w-0">
-            <div className="text-sm text-[var(--text-primary)] font-medium truncate">
-              {transfer.originalFileName || 'Unknown'}
-            </div>
-            <div className="text-xs text-[var(--text-muted)] mt-0.5">
-              {formatSize(transfer.totalSize)}
-            </div>
+            {itemType === 'text' && firstItem?.content ? (
+              <>
+                <div className={`text-sm font-medium line-clamp-3 ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+                  {firstItem.content}
+                </div>
+                <div className="text-xs text-[var(--text-muted)] mt-0.5">
+                  {formatSize(transfer.totalSize)}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={`text-sm font-medium truncate ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+                  {displayFileName}
+                </div>
+                <div className="text-xs text-[var(--text-muted)] mt-0.5">
+                  {formatSize(transfer.totalSize)}
+                </div>
+              </>
+            )}
 
             {/* Progress bar for uploading */}
             {isUploading && (
@@ -148,7 +195,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
           </div>
 
           {/* Action buttons on hover */}
-          {isHovered && !isUploading && (
+          {isHovered && !isUploading && !isPending && !isExpired && (
             <div className={`flex gap-1 ${isSent ? 'order-1' : 'order-3'}`}>
               <button
                 onClick={handlePreview}

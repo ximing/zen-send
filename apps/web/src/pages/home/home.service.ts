@@ -360,4 +360,21 @@ export class HomeService extends Service {
     this._fileData.delete(uploadId);
     this.executeUpload(newUploadId, fileData);
   }
+
+  async sendText(content: string) {
+    const sourceDeviceId = 'web-device';
+    try {
+      await this.apiService.post('/api/transfers/init', {
+        sourceDeviceId,
+        type: 'text',
+        fileName: 'text.txt',
+        contentType: 'text/plain',
+        totalSize: new TextEncoder().encode(content).length,
+        content,
+      });
+      await this.loadTransfers();
+    } catch (e) {
+      throw new Error(e instanceof Error ? e.message : 'Failed to send text');
+    }
+  }
 }

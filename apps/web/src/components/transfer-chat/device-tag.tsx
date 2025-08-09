@@ -29,9 +29,9 @@ export const DeviceTag: React.FC<DeviceTagProps> = ({ device, direction }) => {
   const icon = DEVICE_ICONS[deviceType];
 
   return (
-    <div className={`flex items-center gap-1.5 text-[var(--text-muted)] ${isSent ? 'justify-end' : 'justify-start'}`}>
-      {icon}
-      <span className="text-[11px]">{deviceName}</span>
+    <div className={`flex items-center gap-1.5 ${isSent ? 'justify-end' : 'justify-start'}`}>
+      <span className="text-[var(--text-secondary)]">{icon}</span>
+      <span className="text-[11px] text-[var(--text-muted)]">{deviceName}</span>
       <span
         className="w-1.5 h-1.5 rounded-full"
         style={{ backgroundColor: color }}

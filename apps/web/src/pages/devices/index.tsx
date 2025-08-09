@@ -24,7 +24,9 @@ const DevicesPage = observer(() => {
   useEffect(() => {
     deviceService.registerCurrentDevice();
     deviceService.loadDevices();
-    generateQRCode();
+    generateQRCode().catch(() => {
+      // Error is handled by ApiService redirecting to login
+    });
   }, []);
 
   const generateQRCode = useCallback(async () => {
