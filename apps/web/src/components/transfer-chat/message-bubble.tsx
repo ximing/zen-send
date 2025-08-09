@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { observer, useService } from '@rabjs/react';
 import {
   FileText,
@@ -32,7 +32,7 @@ const DEVICE_TYPE_ICONS: Record<DeviceType, React.ReactNode> = {
 };
 
 const DEVICE_ICON_COLORS = {
-  sent: '#22c55e',
+  sent: '#8B9A7D',
   received: '#a855f7',
 } as const;
 
@@ -103,6 +103,32 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
   const [isHovered, setIsHovered] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  // Load image preview for image types
+  useEffect(() => {
+    if (!isImageType(transfer.contentType)) {
+      setImageUrl(null);
+      return;
+    }
+
+    let revoked = false;
+    apiService.getTransferFile(transfer.id).then((blob) => {
+      if (revoked) return;
+      const url = URL.createObjectURL(blob);
+      setImageUrl(url);
+    }).catch(() => {
+      if (!revoked) setImageUrl(null);
+    });
+
+    return () => {
+      revoked = true;
+      setImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
+  }, [apiService, transfer.id, transfer.contentType]);
 
   const textContent = firstItem?.content || '';
   const isLongText = textContent.length > 150;
@@ -179,7 +205,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
             {/* Icon for files, not for text */}
             {itemType !== 'text' && (
               <div className="flex-shrink-0">
-                {icon}
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={transfer.originalFileName}
+                    className="w-12 h-12 object-cover rounded-lg"
+                  />
+                ) : (
+                  icon
+                )}
               </div>
             )}
 
