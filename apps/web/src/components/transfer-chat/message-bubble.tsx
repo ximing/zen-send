@@ -180,16 +180,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
     >
       <div className={`flex items-start ${isSent ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Device Icon - external on the side */}
-        {device && (
-          <DeviceIcon deviceType={device.type} isSent={isSent} />
-        )}
+        <DeviceIcon deviceType={device?.type || 'web'} isSent={isSent} />
 
         {/* Tail - CSS triangle pointing to icon, matches bubble background */}
         <div
-          className={`w-0 h-0 border-t-8 border-b-8 border-t-transparent border-b-transparent ${
+          className={`w-0 h-0 border-t-8 border-b-8 border-t-transparent border-b-transparent mt-3 ${
             isSent
-              ? 'border-r-8 border-r-[var(--bg-elevated)] -ml-0.5'
-              : 'border-l-8 border-l-[var(--bg-elevated)] -mr-0.5'
+              ? 'border-r-8 border-r-[var(--bg-elevated)] -ml-px'
+              : 'border-l-8 border-l-[var(--bg-elevated)] -mr-px'
           }`}
         />
 
