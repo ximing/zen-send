@@ -7,8 +7,13 @@ import {
   AlertCircle,
   Download,
   Eye,
+  Copy,
+  Globe,
+  Smartphone,
+  Tablet,
+  Monitor,
 } from 'lucide-react';
-import type { TransferSession, TransferItemType } from '@zen-send/shared';
+import type { TransferSession, TransferItemType, DeviceType } from '@zen-send/shared';
 import { DeviceTag } from './device-tag';
 import { useTransferBubble } from './hooks/use-transfer-bubble';
 import { HomeService, type UploadingFile } from '../../pages/home/home.service';
@@ -17,6 +22,41 @@ import { ApiService } from '../../services/api.service';
 const TYPE_ICONS: Record<TransferItemType, React.ReactNode> = {
   file: <FileText size={24} className="text-[var(--text-secondary)]" />,
   text: <Pencil size={24} className="text-[var(--text-secondary)]" />,
+};
+
+const DEVICE_TYPE_ICONS: Record<DeviceType, React.ReactNode> = {
+  web: <Globe size={20} />,
+  android: <Smartphone size={20} />,
+  ios: <Tablet size={20} />,
+  desktop: <Monitor size={20} />,
+};
+
+const DEVICE_ICON_COLORS = {
+  sent: '#22c55e',
+  received: '#a855f7',
+} as const;
+
+const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
+
+function isImageType(mimeType: string): boolean {
+  return IMAGE_TYPES.includes(mimeType);
+}
+
+interface DeviceIconProps {
+  deviceType: DeviceType;
+  isSent: boolean;
+}
+
+const DeviceIcon: React.FC<DeviceIconProps> = ({ deviceType, isSent }) => {
+  const color = isSent ? DEVICE_ICON_COLORS.sent : DEVICE_ICON_COLORS.received;
+  return (
+    <div
+      className="w-10 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+      style={{ borderColor: color, color }}
+    >
+      {DEVICE_TYPE_ICONS[deviceType]}
+    </div>
+  );
 };
 
 function formatSize(bytes: number): string {
@@ -62,6 +102,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
   const thumbnailItems = isMultiFile ? (transfer.items ?? []).slice(0, 4) : [];
 
   const [isHovered, setIsHovered] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const textContent = firstItem?.content || '';
+  const isLongText = textContent.length > 150;
 
   const isUploading = uploadingFile && (uploadingFile.status === 'uploading' || uploadingFile.status === 'pending');
   const isCompleted = uploadingFile?.status === 'completed' || transfer.status === 'completed';
@@ -89,140 +134,136 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
     }
   }, [apiService, transfer]);
 
+  const handleCopyText = useCallback(() => {
+    if (firstItem?.content) {
+      navigator.clipboard.writeText(firstItem.content);
+    }
+  }, [firstItem]);
+
   const getProgress = () => {
     if (uploadingFile) return uploadingFile.progress;
     if (transfer.status === 'completed') return 100;
     return 0;
   };
 
+  const bubbleColor = isSent ? DEVICE_ICON_COLORS.sent : DEVICE_ICON_COLORS.received;
+
   return (
     <div
-      className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-3`}
+      className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-2`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       title={new Date(transfer.createdAt).toLocaleString('zh-CN')}
     >
-      <div
-        className={`relative max-w-[70%] rounded-2xl px-4 py-3 transition-all
-          ${isPending ? 'bg-[var(--bg-surface)] opacity-50' : isSent
-            ? 'bg-[var(--primary)]/15 rounded-br-md'
-            : 'bg-[var(--bg-elevated)] rounded-bl-md'
-          }
-          ${isHovered ? 'shadow-md' : ''}
-        `}
-      >
-        <div className="flex items-start gap-3">
-          {/* Thumbnail/Icon */}
-          {isMultiFile ? (
-            <div className="flex-shrink-0 flex gap-1">
-              {thumbnailItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="w-10 h-10 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center overflow-hidden"
-                >
-                  {item.type === 'text' ? (
-                    <Pencil size={16} className="text-[var(--text-secondary)]" />
-                  ) : (
-                    <FileText size={16} className="text-[var(--text-secondary)]" />
+      <div className={`flex items-center ${isSent ? 'flex-row-reverse' : 'flex-row'}`}>
+        {/* Device Icon - external on the side */}
+        {device && (
+          <DeviceIcon deviceType={device.type} isSent={isSent} />
+        )}
+
+        {/* Tail - CSS triangle pointing to icon */}
+        <div
+          className="w-0 h-0"
+          style={{
+            borderTop: '8px solid transparent',
+            borderBottom: '8px solid transparent',
+            [isSent ? 'borderLeft' : 'borderRight']: `8px solid ${bubbleColor}`,
+          }}
+        />
+
+        {/* Bubble */}
+        <div
+          className={`relative max-w-[90%] min-w-[260px] rounded-2xl px-5 py-3 transition-all duration-150
+            ${isPending ? 'bg-[var(--bg-surface)] opacity-50' : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80'}
+            ${isHovered ? 'shadow-lg' : ''}
+          `}
+          style={{ borderTop: `2px solid ${bubbleColor}` }}
+        >
+          {/* Compact single-line layout */}
+          <div className="flex items-center gap-4">
+            {/* Icon for files, not for text */}
+            {itemType !== 'text' && (
+              <div className="flex-shrink-0">
+                {icon}
+              </div>
+            )}
+
+            {/* File Info - compact vertical stack */}
+            <div className="flex-1 min-w-0">
+              {itemType === 'text' && firstItem?.content ? (
+                <div>
+                  <div className={`text-sm leading-relaxed whitespace-pre-wrap ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'} ${isLongText && !isExpanded ? 'line-clamp-3' : ''}`}>
+                    {firstItem.content}
+                  </div>
+                  {isLongText && (
+                    <button
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="text-xs text-[var(--primary)] hover:text-[var(--primary-hover)] mt-1"
+                    >
+                      {isExpanded ? '收起' : '展开'}
+                    </button>
                   )}
                 </div>
-              ))}
-              {itemCount > 4 && (
-                <div className="w-10 h-10 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center">
-                  <span className="text-xs text-[var(--text-muted)]">+{itemCount - 4}</span>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex-shrink-0 w-12 h-12 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center overflow-hidden">
-              {icon}
-            </div>
-          )}
-
-          {/* File Info */}
-          <div className="flex-1 min-w-0">
-            {itemType === 'text' && firstItem?.content ? (
-              <>
-                <div className={`text-sm font-medium line-clamp-3 ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
-                  {firstItem.content}
-                </div>
-                <div className="text-xs text-[var(--text-muted)] mt-0.5">
-                  {formatSize(transfer.totalSize)}
-                </div>
-              </>
-            ) : (
-              <>
-                <div className={`text-sm font-medium truncate ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+              ) : (
+                <div className={`text-sm font-medium truncate leading-relaxed ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
                   {displayFileName}
                 </div>
-                <div className="text-xs text-[var(--text-muted)] mt-0.5">
-                  {formatSize(transfer.totalSize)}
-                </div>
-              </>
-            )}
-
-            {/* Progress bar for uploading */}
-            {isUploading && (
-              <div className="mt-2">
-                <div className="h-[3px] bg-[var(--border-subtle)] rounded-[2px] overflow-hidden">
-                  <div
-                    className="h-full bg-[var(--accent)] transition-[width] duration-200 ease"
-                    style={{ width: `${getProgress()}%` }}
-                  />
-                </div>
-                {uploadingFile.speed !== undefined && uploadingFile.speed > 0 && (
-                  <div className="text-[10px] text-[var(--text-muted)] mt-1">
-                    {formatSize(uploadingFile.speed)}/s
-                  </div>
+              )}
+              <div className="flex items-center gap-3 text-xs text-[var(--text-muted)] mt-1">
+                <span>{formatSize(transfer.totalSize)}</span>
+                {isCompleted && (
+                  <span className="flex items-center gap-1 text-[var(--color-success)]">
+                    <CheckCircle size={10} /> Done
+                  </span>
+                )}
+                {isFailed && (
+                  <span className="flex items-center gap-1 text-[var(--color-error)]">
+                    <AlertCircle size={10} /> Failed
+                  </span>
                 )}
               </div>
-            )}
+            </div>
 
-            {/* Status indicators */}
-            {isCompleted && (
-              <div className="flex items-center gap-1 mt-1">
-                <CheckCircle size={12} className="text-[var(--color-success)]" />
-                <span className="text-[10px] text-[var(--color-success)]">Completed</span>
-              </div>
-            )}
-
-            {isFailed && (
-              <div className="flex items-center gap-1 mt-1">
-                <AlertCircle size={12} className="text-[var(--color-error)]" />
-                <span className="text-[10px] text-[var(--color-error)]">Failed</span>
+            {/* Action buttons */}
+            {(isHovered || isCompleted) && !isUploading && !isPending && !isExpired && (
+              <div className={`flex gap-2 flex-shrink-0 ${isSent ? 'order-1' : 'order-3'}`}>
+                {itemType === 'text' ? (
+                  <button
+                    onClick={handleCopyText}
+                    className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                    title="Copy"
+                  >
+                    <Copy size={16} className="text-[var(--text-secondary)] hover:text-[var(--accent)]" />
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handlePreview}
+                      className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                      title="Preview"
+                    >
+                      <Eye size={16} className="text-[var(--text-secondary)] hover:text-[var(--accent)]" />
+                    </button>
+                    <button
+                      onClick={handleDownload}
+                      className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                      title="Download"
+                    >
+                      <Download size={16} className="text-[var(--text-secondary)] hover:text-[var(--accent)]" />
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
 
-          {/* Action buttons on hover */}
-          {isHovered && !isUploading && !isPending && !isExpired && (
-            <div className={`flex gap-1 ${isSent ? 'order-1' : 'order-3'}`}>
-              <button
-                onClick={handlePreview}
-                className="p-1.5 hover:bg-[var(--bg-surface)] rounded-lg transition-colors"
-                title="Preview"
-              >
-                <Eye size={14} className="text-[var(--text-secondary)]" />
-              </button>
-              <button
-                onClick={handleDownload}
-                className="p-1.5 hover:bg-[var(--bg-surface)] rounded-lg transition-colors"
-                title="Download"
-              >
-                <Download size={14} className="text-[var(--text-secondary)]" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Device tag */}
-        <div className={`mt-2 ${isSent ? 'text-right' : 'text-left'}`}>
-          <DeviceTag device={device} direction={direction} />
-        </div>
-
-        {/* Time */}
-        <div className={`text-[10px] text-[var(--text-muted)] mt-1 ${isSent ? 'text-right' : 'text-left'}`}>
-          {formatRelativeTime(transfer.createdAt)}
+          {/* Bottom row: Device tag + Time */}
+          <div className="flex items-center justify-between mt-3 pt-2 border-t border-[var(--border-subtle)]/30">
+            <DeviceTag device={device} direction={direction} />
+            <span className="text-xs text-[var(--text-muted)]">
+              {formatRelativeTime(transfer.createdAt)}
+            </span>
+          </div>
         </div>
       </div>
     </div>
