@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { Paperclip, Search, Send, ArrowUp } from 'lucide-react';
 import { TransferChatService } from '../transfer-chat.service';
+import { getMimeTypeFromExtension } from '../../../lib/zen-bridge';
 
 const BottomToolbarContent = observer(() => {
   const chatService = useService(TransferChatService);
@@ -27,6 +28,7 @@ const BottomToolbarContent = observer(() => {
     const fileData = files.map((file) => ({
       name: file.name,
       size: file.size,
+      type: file.type || getMimeTypeFromExtension(file.name),
       data: undefined as ArrayBuffer | undefined,
     }));
 
