@@ -66,10 +66,12 @@ export async function browserOpenFileDialog(options?: {
       const files: ZenBridgeFile[] = [];
       for (const file of Array.from(input.files)) {
         const data = await file.arrayBuffer();
+        // Fallback to inferring type from extension if file.type is empty
+        const type = file.type || getMimeTypeFromExtension(file.name);
         files.push({
           name: file.name,
           size: file.size,
-          type: file.type,
+          type,
           path: '', // Browser cannot get real path
           data,
         });
@@ -79,4 +81,25 @@ export async function browserOpenFileDialog(options?: {
 
     input.click();
   });
+}
+
+// Infer MIME type from file extension
+function getMimeTypeFromExtension(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    svg: 'image/svg+xml',
+    pdf: 'application/pdf',
+    txt: 'text/plain',
+    json: 'application/json',
+    zip: 'application/zip',
+    mp3: 'audio/mpeg',
+    mp4: 'video/mp4',
+    wav: 'audio/wav',
+  };
+  return mimeTypes[ext || ''] || 'application/octet-stream';
 }
