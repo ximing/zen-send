@@ -69,14 +69,17 @@ function formatSize(bytes: number): string {
 }
 
 function formatRelativeTime(timestamp: number): string {
-  const diff = Date.now() - timestamp;
+  // Handle timestamp in seconds or milliseconds
+  const ts = timestamp > 1e12 ? timestamp : timestamp * 1000;
+  const diff = Date.now() - ts;
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return 'JUST_NOW';
-  if (minutes < 60) return `${minutes}M_AGO`;
+  if (minutes < 1) return '刚刚';
+  if (minutes < 60) return `${minutes}分钟前`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}H_AGO`;
+  if (hours < 24) return `${hours}小时前`;
   const days = Math.floor(hours / 24);
-  return `${days}D_AGO`;
+  if (days < 30) return `${days}天前`;
+  return new Date(ts).toLocaleDateString('zh-CN');
 }
 
 interface MessageBubbleProps {
@@ -189,9 +192,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
         <div
           className={`w-0 h-0 border-t-8 border-b-8 border-t-transparent border-b-transparent mt-3 ${
             isSent
-              ? 'border-l-8 border-l-[var(--bg-elevated)] -ml-px'
-              : 'border-r-8 border-r-[var(--bg-elevated)] -mr-px'
+              ? 'border-l-8 -ml-px'
+              : 'border-r-8 -mr-px'
           }`}
+          style={{
+            [isSent ? 'borderLeftColor' : 'borderRightColor']: isPending ? 'var(--bg-surface)' : 'var(--bg-elevated)',
+          }}
         />
 
         {/* Bubble */}
