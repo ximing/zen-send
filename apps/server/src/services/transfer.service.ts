@@ -196,8 +196,12 @@ export class TransferService {
       .set({ status: 'completed', completedAt: now })
       .where(eq(transferSessions.id, sessionId));
 
+    // For single-chunk files, the actual file is at chunk_0, not the directory
+    const s3Key = session.chunkCount === 1
+      ? `transfers/${sessionId}/chunk_0`
+      : session.s3Key;
     const downloadUrl = await this.s3Service.getPresignedDownloadUrl(
-      session.s3Key,
+      s3Key,
       session.originalFileName
     );
 
@@ -263,7 +267,11 @@ export class TransferService {
     }
 
     const session = sessions[0];
-    return this.s3Service.getPresignedDownloadUrl(session.s3Key, session.originalFileName);
+    // For single-chunk files, the actual file is at chunk_0, not the directory
+    const s3Key = session.chunkCount === 1
+      ? `transfers/${sessionId}/chunk_0`
+      : session.s3Key;
+    return this.s3Service.getPresignedDownloadUrl(s3Key, session.originalFileName);
   }
 
   async addTransferItem(
