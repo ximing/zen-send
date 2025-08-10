@@ -5,7 +5,11 @@ import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { HomeService } from '../../services/home.service';
 
-function BottomToolbarInner() {
+interface BottomToolbarProps {
+  onSearchPress: () => void;
+}
+
+function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
   const themeService = useService(ThemeService);
   const homeService = useService(HomeService);
   const colors = themeService.colors;
@@ -44,6 +48,9 @@ function BottomToolbarInner() {
         <View style={styles.iconsRow}>
           <TouchableOpacity style={styles.iconButton} onPress={handleSelectFile}>
             <Text style={styles.iconText}>📎</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={onSearchPress}>
+            <Text style={styles.iconText}>🔍</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.inputRow}>

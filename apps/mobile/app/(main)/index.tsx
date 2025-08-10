@@ -9,6 +9,7 @@ import TransferList from '../../src/components/transfer-list';
 import BottomToolbar from '../../src/components/bottom-toolbar';
 import SelectedFiles from '../../src/components/selected-files';
 import PreviewModal from '../../src/components/preview-modal';
+import SearchModal from '../../src/components/search-modal';
 import type { TransferSession } from '@zen-send/shared';
 
 interface HomeContentProps {
@@ -18,6 +19,7 @@ interface HomeContentProps {
 function HomeContentInner({ homeService }: HomeContentProps) {
   const themeService = useService(ThemeService);
   const [previewTransfer, setPreviewTransfer] = useState<TransferSession | null>(null);
+  const [searchVisible, setSearchVisible] = useState(false);
 
   const handleDownload = async (transfer: TransferSession) => {
     setPreviewTransfer(null);
@@ -34,12 +36,13 @@ function HomeContentInner({ homeService }: HomeContentProps) {
       <SelectedFiles />
       <FilterTabs />
       <TransferList onItemPress={setPreviewTransfer} />
-      <BottomToolbar />
+      <BottomToolbar onSearchPress={() => setSearchVisible(true)} />
       <PreviewModal
         transfer={previewTransfer}
         onClose={() => setPreviewTransfer(null)}
         onDownload={handleDownload}
       />
+      <SearchModal visible={searchVisible} onClose={() => setSearchVisible(false)} />
     </View>
   );
 }
