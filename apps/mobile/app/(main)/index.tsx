@@ -1,40 +1,39 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { useService, observer } from '@rabjs/react';
+import { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { useService, observer, bindServices } from '@rabjs/react';
 import { ThemeService } from '../../src/services/theme.service';
+import { HomeService } from '../../src/services/home.service';
+import Header from '../../src/components/header';
+import FilterTabs from '../../src/components/filter-tabs';
+import TransferList from '../../src/components/transfer-list';
+import type { TransferSession } from '@zen-send/shared';
 
-function HomeScreen() {
+interface HomeContentProps {
+  homeService: HomeService;
+}
+
+function HomeContentInner({ homeService }: HomeContentProps) {
   const themeService = useService(ThemeService);
-  const colors = themeService.colors;
+  const [previewTransfer, setPreviewTransfer] = useState<TransferSession | null>(null);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>Zen Send</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Your devices are connected
-        </Text>
-      </View>
+    <View style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]}>
+      <Header />
+      <FilterTabs />
+      <TransferList onItemPress={setPreviewTransfer} />
     </View>
   );
+}
+
+const HomeContent = bindServices(HomeContentInner, [HomeService]);
+
+function HomeScreen() {
+  return <HomeContent />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
   },
 });
 
