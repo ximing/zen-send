@@ -225,7 +225,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
                 <img
                   src={imageUrl}
                   alt={transfer.originalFileName}
-                  className="w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  className="w-full max-h-[300px] rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity"
                   onClick={handlePreview}
                 />
               </div>
