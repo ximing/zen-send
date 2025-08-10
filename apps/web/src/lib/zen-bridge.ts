@@ -84,7 +84,7 @@ export async function browserOpenFileDialog(options?: {
 }
 
 // Infer MIME type from file extension
-function getMimeTypeFromExtension(filename: string): string {
+export function getMimeTypeFromExtension(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase();
   const mimeTypes: Record<string, string> = {
     png: 'image/png',
