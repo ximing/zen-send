@@ -8,6 +8,7 @@ import FilterTabs from '../../src/components/filter-tabs';
 import TransferList from '../../src/components/transfer-list';
 import BottomToolbar from '../../src/components/bottom-toolbar';
 import SelectedFiles from '../../src/components/selected-files';
+import PreviewModal from '../../src/components/preview-modal';
 import type { TransferSession } from '@zen-send/shared';
 
 interface HomeContentProps {
@@ -18,6 +19,15 @@ function HomeContentInner({ homeService }: HomeContentProps) {
   const themeService = useService(ThemeService);
   const [previewTransfer, setPreviewTransfer] = useState<TransferSession | null>(null);
 
+  const handleDownload = async (transfer: TransferSession) => {
+    setPreviewTransfer(null);
+    const url = await homeService.downloadTransfer(transfer);
+    if (url) {
+      // For now, the URL could be used to share or open the file
+      // In a real app, you'd use expo-file-system to save and share
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]}>
       <Header />
@@ -25,6 +35,11 @@ function HomeContentInner({ homeService }: HomeContentProps) {
       <FilterTabs />
       <TransferList onItemPress={setPreviewTransfer} />
       <BottomToolbar />
+      <PreviewModal
+        transfer={previewTransfer}
+        onClose={() => setPreviewTransfer(null)}
+        onDownload={handleDownload}
+      />
     </View>
   );
 }
