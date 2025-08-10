@@ -13,8 +13,17 @@
     "lint": "eslint app/"
   },
   "dependencies": {
+    "@rabjs/react": "^9.0.5",
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "@react-navigation/native": "^7.0.0",
+    "@react-navigation/native-stack": "^7.0.0",
+    "@zen-send/dto": "workspace:*",
     "@zen-send/shared": "workspace:*",
     "expo": "~55.0.0",
+    "expo-clipboard": "~7.0.0",
+    "expo-document-picker": "~13.0.0",
+    "expo-file-system": "~18.0.0",
+    "expo-secure-store": "~14.0.0",
     "expo-status-bar": "~2.0.0",
     "react": "^19.0.0",
     "react-native": "^0.84.1",
