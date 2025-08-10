@@ -11,6 +11,7 @@ export interface UploadingFile {
   id: string;
   name: string;
   size: number;
+  type?: string;
   progress: number;
   status: 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled';
   sessionId?: string;
@@ -24,7 +25,7 @@ export interface UploadingFile {
 
 export class HomeService extends Service {
   transfers: TransferSession[] = [];
-  selectedFiles: { name: string; size: number; data?: ArrayBuffer }[] = [];
+  selectedFiles: { name: string; size: number; type?: string; data?: ArrayBuffer }[] = [];
   filter: TransferFilter = 'all';
   timeFilter: TimeFilter = 'all';
   searchQuery = '';
@@ -34,7 +35,7 @@ export class HomeService extends Service {
   previewTransfer: TransferSession | null = null;
   deleteConfirmId: string | null = null;
   private _hasMore = true;
-  private _fileData = new Map<string, { name: string; size: number; data?: ArrayBuffer }>();
+  private _fileData = new Map<string, { name: string; size: number; type?: string; data?: ArrayBuffer }>();
 
   get authService() {
     return this.resolve(AuthService);
@@ -154,7 +155,7 @@ export class HomeService extends Service {
     }
   }
 
-  addFiles(files: { name: string; size: number; data?: ArrayBuffer }[]) {
+  addFiles(files: { name: string; size: number; type?: string; data?: ArrayBuffer }[]) {
     this.selectedFiles = [...this.selectedFiles, ...files];
   }
 
@@ -176,11 +177,12 @@ export class HomeService extends Service {
         id: uploadId,
         name: file.name,
         size: file.size,
+        type: file.type,
         progress: 0,
         status: 'pending',
       };
       this.uploadingFiles = [...this.uploadingFiles, uploadingFile];
-      this._fileData.set(uploadId, { name: file.name, size: file.size, data: file.data });
+      this._fileData.set(uploadId, { name: file.name, size: file.size, type: file.type, data: file.data });
       this.executeUpload(uploadId, file);
     }
 
@@ -189,7 +191,7 @@ export class HomeService extends Service {
 
   private async executeUpload(
     uploadId: string,
-    file: { name: string; size: number; data?: ArrayBuffer }
+    file: { name: string; size: number; type?: string; data?: ArrayBuffer }
   ) {
     const TEXT_INLINE_MAX_SIZE = 10 * 1024;
     const CHUNK_SIZE = 1 * 1024 * 1024;
@@ -257,7 +259,7 @@ export class HomeService extends Service {
           sourceDeviceId,
           type: 'file',
           fileName: file.name,
-          contentType: 'application/octet-stream',
+          contentType: file.type || 'application/octet-stream',
           totalSize: file.size,
           chunkCount,
         });
