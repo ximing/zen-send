@@ -29,6 +29,7 @@ export class SendToolbarService extends Service {
     const formattedFiles = files.map((f) => ({
       name: f.name,
       size: f.size,
+      type: f.type,
       data: f.data,
     }));
     this.homeService.addFiles(formattedFiles);

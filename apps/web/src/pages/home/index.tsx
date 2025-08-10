@@ -59,7 +59,7 @@ const HomeContent = observer(() => {
       e.stopPropagation();
       setIsDragging(false);
 
-      const files: { name: string; size: number; data?: ArrayBuffer }[] = [];
+      const files: { name: string; size: number; type?: string; data?: ArrayBuffer }[] = [];
       const items = e.dataTransfer.items;
 
       const MAX_DEPTH = 10;
@@ -79,6 +79,7 @@ const HomeContent = observer(() => {
           files.push({
             name: file.name,
             size: file.size,
+            type: file.type,
             data: buffer,
           });
         } else if (entry.isDirectory) {
@@ -106,6 +107,7 @@ const HomeContent = observer(() => {
             files.push({
               name: file.name,
               size: file.size,
+              type: file.type,
               data: buffer,
             });
           }
