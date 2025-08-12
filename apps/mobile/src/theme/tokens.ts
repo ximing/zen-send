@@ -25,6 +25,13 @@ export const tokens = {
       accentSoft: '#8B9A7D20',
     },
   },
+  deviceColors: {
+    web: '#3B82F6',
+    android: '#22C55E',
+    ios: '#A855F7',
+    desktop: '#F97316',
+    unknown: '#6B7280',
+  },
   spacing: {
     xs: 4,
     sm: 8,

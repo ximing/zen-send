@@ -33,6 +33,10 @@ export class ThemeService extends Service {
     return this.mode === 'dark';
   }
 
+  getDeviceColor(deviceType: string): string {
+    return tokens.deviceColors[deviceType as keyof typeof tokens.deviceColors] ?? tokens.deviceColors.unknown;
+  }
+
   private async loadTheme() {
     try {
       const stored = await AsyncStorage.getItem(THEME_KEY);
