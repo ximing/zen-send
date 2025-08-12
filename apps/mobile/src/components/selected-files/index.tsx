@@ -18,9 +18,10 @@ function formatTime(seconds: number): string {
 interface SelectedFilesItemProps {
   progress: UploadProgress;
   onCancel: () => void;
+  onRemove: () => void;
 }
 
-function SelectedFilesItemInner({ progress, onCancel }: SelectedFilesItemProps) {
+function SelectedFilesItemInner({ progress, onCancel, onRemove }: SelectedFilesItemProps) {
   const themeService = useService(ThemeService);
   const colors = themeService.colors;
 
@@ -60,6 +61,11 @@ function SelectedFilesItemInner({ progress, onCancel }: SelectedFilesItemProps) 
             <Text style={styles.cancelText}>✕</Text>
           </TouchableOpacity>
         )}
+        {progress.status !== 'uploading' && (
+          <TouchableOpacity onPress={onRemove} style={styles.cancelButton}>
+            <Text style={styles.cancelText}>✕</Text>
+          </TouchableOpacity>
+        )}
         {progress.status === 'uploading' && (
           <View style={[styles.progressBar, { backgroundColor: colors.bgElevated }]}>
             <View
@@ -93,6 +99,7 @@ function SelectedFilesInner() {
           key={progress.sessionId}
           progress={progress}
           onCancel={() => homeService.cancelUpload(progress.sessionId)}
+          onRemove={() => homeService.removeUpload(progress.sessionId)}
         />
       ))}
     </View>
