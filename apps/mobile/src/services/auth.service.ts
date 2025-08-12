@@ -1,4 +1,5 @@
 import { Service } from '@rabjs/react';
+import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ApiService } from './api.service';
 import type { LoginRequest, RegisterRequest } from '@zen-send/dto';
@@ -6,12 +7,14 @@ import type { AuthTokens } from '@zen-send/shared';
 
 const TOKEN_KEY = 'zen_send_tokens';
 const SERVER_URL_KEY = 'zen_send_server_url';
+const DEVICE_ID_KEY = 'zen_send_device_id';
+const DEFAULT_SERVER_URL = 'http://localhost:3110';
 
 export class AuthService extends Service {
   accessToken: string | null = null;
   refreshToken: string | null = null;
   user: { id: string; email: string } | null = null;
-  serverUrl: string = '';
+  serverUrl: string = DEFAULT_SERVER_URL;
 
   constructor() {
     super();
@@ -19,24 +22,46 @@ export class AuthService extends Service {
     this.loadServerUrl();
   }
 
+  get apiService() {
+    return this.resolve(ApiService);
+  }
+
+  get serverUrlWithProtocol(): string {
+    return this.serverUrl;
+  }
+
   private async loadServerUrl() {
     try {
-      const url = await AsyncStorage.getItem(SERVER_URL_KEY);
-      if (url) {
-        this.serverUrl = url;
+      const stored = await AsyncStorage.getItem(SERVER_URL_KEY);
+      if (stored) {
+        this.serverUrl = stored;
       }
     } catch {
-      // ignore
+      // Use default
     }
   }
 
   async saveServerUrl(url: string): Promise<void> {
-    await AsyncStorage.setItem(SERVER_URL_KEY, url);
     this.serverUrl = url;
+    await AsyncStorage.setItem(SERVER_URL_KEY, url);
   }
 
-  getServerUrl(): string {
-    return this.serverUrl || 'http://localhost:3110';
+  async loadDeviceId(): Promise<string> {
+    try {
+      const stored = await AsyncStorage.getItem(DEVICE_ID_KEY);
+      if (stored && stored.startsWith('mobile-')) {
+        return stored;
+      }
+    } catch {
+      // Generate new ID on error
+    }
+    const newId = 'mobile-' + Math.random().toString(36).slice(2);
+    await this.saveDeviceId(newId);
+    return newId;
+  }
+
+  async saveDeviceId(deviceId: string): Promise<void> {
+    await AsyncStorage.setItem(DEVICE_ID_KEY, deviceId);
   }
 
   get isAuthenticated() {
@@ -45,7 +70,7 @@ export class AuthService extends Service {
 
   private async loadTokens() {
     try {
-      const stored = await AsyncStorage.getItem(TOKEN_KEY);
+      const stored = await SecureStore.getItemAsync(TOKEN_KEY);
       if (stored) {
         const tokens: AuthTokens = JSON.parse(stored);
         this.accessToken = tokens.accessToken;
@@ -53,48 +78,40 @@ export class AuthService extends Service {
         this.user = tokens.user;
       }
     } catch {
-      await AsyncStorage.removeItem(TOKEN_KEY);
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
     }
   }
 
   private async saveTokens(tokens: AuthTokens) {
-    await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
+    await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(tokens));
     this.accessToken = tokens.accessToken;
     this.refreshToken = tokens.refreshToken;
     this.user = tokens.user;
   }
 
-  get apiService() {
-    return this.resolve(ApiService);
-  }
-
   async login(request: LoginRequest, serverUrl: string): Promise<void> {
-    // Save serverUrl before making any API calls
     await this.saveServerUrl(serverUrl);
-    const tokens = await this.apiService.post<AuthTokens>('/api/auth/login', request);
-    await this.saveTokens(tokens);
-  }
+    const response = await fetch(`${serverUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
 
-  async register(request: RegisterRequest): Promise<void> {
-    const tokens = await this.apiService.post<AuthTokens>('/api/auth/register', request);
-    await this.saveTokens(tokens);
-  }
-
-  async logout(): Promise<void> {
-    try {
-      await this.apiService.post('/api/auth/logout');
-    } finally {
-      await AsyncStorage.removeItem(TOKEN_KEY);
-      this.accessToken = null;
-      this.refreshToken = null;
-      this.user = null;
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Login failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
     }
+
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(typeof result.data === 'string' ? result.data : 'Login failed');
+    }
+
+    this.saveTokens(result.data);
   }
 
   async loginWithQrToken(token: string, serverUrl: string): Promise<void> {
-    // Save serverUrl before making any API calls
     await this.saveServerUrl(serverUrl);
-    // Exchange pair token for auth tokens directly
     const response = await fetch(`${serverUrl}/api/auth/pair-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -106,34 +123,52 @@ export class AuthService extends Service {
     }
     const result = await response.json();
     if (!result.success) {
-      throw new Error(result.data || 'Login failed');
+      throw new Error(typeof result.data === 'string' ? result.data : 'Login failed');
     }
-    const tokens = result.data as AuthTokens;
-    await this.saveTokens(tokens);
+    await this.saveTokens(result.data);
   }
 
-  async doRefreshToken(): Promise<void> {
-    if (!this.refreshToken) {
-      throw new Error('No refresh token');
-    }
-    const tokens = await this.apiService.post<AuthTokens>('/api/auth/refresh', {
-      refreshToken: this.refreshToken,
+  async register(request: RegisterRequest): Promise<void> {
+    const response = await fetch(`${this.serverUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
     });
-    await this.saveTokens(tokens);
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Registration failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(typeof result.data === 'string' ? result.data : 'Registration failed');
+    }
+
+    this.saveTokens(result.data);
+  }
+
+  async logout(): Promise<void> {
+    try {
+      if (this.accessToken) {
+        await fetch(`${this.serverUrl}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.accessToken}`,
+          },
+        });
+      }
+    } finally {
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      this.accessToken = null;
+      this.refreshToken = null;
+      this.user = null;
+    }
   }
 
   getAuthHeaders(): Record<string, string> {
     if (!this.accessToken) return {};
     return { Authorization: `Bearer ${this.accessToken}` };
-  }
-
-  handleUnauthorized(): void {
-    // Clear tokens on 401
-    AsyncStorage.removeItem(TOKEN_KEY);
-    this.accessToken = null;
-    this.refreshToken = null;
-    this.user = null;
-    // Navigation to login should be handled by the app's navigation system
-    // This method can be overridden or events can be emitted for navigation
   }
 }
