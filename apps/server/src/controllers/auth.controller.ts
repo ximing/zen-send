@@ -13,9 +13,6 @@ export class AuthController {
 
   @Post('/register')
   async register(@Body() dto: RegisterDto) {
-    console.log('authService:', this.authService);
-    console.log('authService.register:', this.authService?.register);
-    console.log('authService proto:', Object.getPrototypeOf(this.authService));
     try {
       const tokens = await this.authService.register(dto);
       return ResponseUtil.created(tokens);
