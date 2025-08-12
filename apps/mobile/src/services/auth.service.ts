@@ -6,6 +6,7 @@ import type { AuthTokens } from '@zen-send/shared';
 
 const TOKEN_KEY = 'zen_send_tokens';
 const SERVER_URL_KEY = 'zen_send_server_url';
+const DEVICE_ID_KEY = 'zen_send_device_id';
 const DEFAULT_SERVER_URL = 'http://localhost:3110';
 
 export class AuthService extends Service {
@@ -38,6 +39,25 @@ export class AuthService extends Service {
 
   async getServerUrl(): Promise<string> {
     return this.serverUrl;
+  }
+
+  async loadDeviceId(): Promise<string> {
+    try {
+      const stored = await AsyncStorage.getItem(DEVICE_ID_KEY);
+      if (stored && stored.startsWith('mobile-')) {
+        return stored;
+      }
+    } catch {
+      // Generate new ID on error
+    }
+    // Generate and persist new ID
+    const newId = 'mobile-' + Math.random().toString(36).slice(2);
+    await this.saveDeviceId(newId);
+    return newId;
+  }
+
+  async saveDeviceId(deviceId: string): Promise<void> {
+    await AsyncStorage.setItem(DEVICE_ID_KEY, deviceId);
   }
 
   get isAuthenticated() {
