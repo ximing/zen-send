@@ -8,6 +8,7 @@ import {
   LogOut,
   type LucideIcon,
 } from 'lucide-react';
+import { isElectron } from '../../lib/env';
 import { SidebarService } from './sidebar-service';
 
 interface NavItem {
@@ -92,19 +93,19 @@ const SidebarContent = observer(() => {
 
   return (
     <aside
-      className="fixed left-0 top-0 h-full w-16 flex flex-col
+      className="fixed left-0 top-0 h-full w-[68px] flex flex-col
                  bg-[var(--bg-surface)]
                  z-40"
     >
       {/* Top: Logo */}
-      <div className="h-16 flex items-center justify-center mb-4">
+      <div className={`h-16 flex items-center justify-center mb-4 ${isElectron ? 'mt-5' : ''}`}>
         <span className="text-sm font-bold tracking-wider text-[var(--accent)]">
           ZS
         </span>
       </div>
 
       {/* Middle: Navigation */}
-      <div className="flex-1 flex flex-col items-center gap-2 py-4">
+      <div className="flex-1 flex flex-col items-center gap-2">
         {navItems.map((item) => (
           <NavButton
             key={item.path}
