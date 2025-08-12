@@ -37,7 +37,7 @@ function DrawerContentInner() {
         <Text style={[styles.email, { color: colors.textSecondary }]}>
           {user?.email ?? ''}
         </Text>
-        <Text style={[styles.serverUrl, { color: colors.textTertiary }]}>
+        <Text style={[styles.serverUrl, { color: colors.textMuted }]}>
           {serverUrl}
         </Text>
       </View>
