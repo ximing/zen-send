@@ -14,6 +14,7 @@ export class AuthService extends Service {
   refreshToken: string | null = null;
   user: { id: string; email: string } | null = null;
   serverUrl: string = DEFAULT_SERVER_URL;
+  isLoading: boolean = true;
 
   constructor() {
     super();
@@ -78,6 +79,8 @@ export class AuthService extends Service {
       }
     } catch {
       await SecureStore.deleteItemAsync(TOKEN_KEY);
+    } finally {
+      this.isLoading = false;
     }
   }
 

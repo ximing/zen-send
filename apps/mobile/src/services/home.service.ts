@@ -21,6 +21,7 @@ export class HomeService extends Service {
   filter: TransferFilter = 'all';
   loading = false;
   loadingMore = false;
+  isRefreshing = false;
   offset = 0;
   hasMore = true;
   searchQuery = '';
@@ -74,6 +75,25 @@ export class HomeService extends Service {
       console.error('Failed to load transfers:', err);
     } finally {
       this.loading = false;
+    }
+  }
+
+  async refresh() {
+    if (this.isRefreshing) return;
+    this.isRefreshing = true;
+    this.offset = 0;
+    this.hasMore = true;
+    try {
+      const response = await this.apiService.get<{ transfers: TransferSession[] }>(
+        `/api/transfers?limit=${this.LIMIT}&offset=0`
+      );
+      this.transfers = response.transfers;
+      this.offset = this.transfers.length;
+      this.hasMore = response.transfers.length === this.LIMIT;
+    } catch (err) {
+      console.error('Failed to refresh transfers:', err);
+    } finally {
+      this.isRefreshing = false;
     }
   }
 

@@ -1,25 +1,44 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { observer } from '@rabjs/react';
 import { useService } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
+import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 
 interface TransferItemProps {
   transfer: TransferSession;
   onPress: () => void;
+  onDownload?: () => void;
+  onPreview?: () => void;
 }
 
-function TransferItemInner({ transfer, onPress }: TransferItemProps) {
+function TransferItemInner({ transfer, onPress, onDownload, onPreview }: TransferItemProps) {
   const themeService = useService(ThemeService);
   const colors = themeService.colors;
 
   const firstItem = transfer.items?.[0];
   const isText = firstItem?.type === 'text';
-  const icon = isText ? '✏️' : '📎';
   const name = isText ? firstItem?.content?.slice(0, 30) || 'Text' : firstItem?.name || 'File';
   const size = isText ? 'Text' : firstItem?.size ? formatSize(firstItem.size) : 'File';
 
   const timeAgo = getRelativeTime(transfer.createdAt);
+
+  const handleCopy = async () => {
+    if (firstItem?.content) {
+      await Clipboard.setStringAsync(firstItem.content);
+      showToast('Copied to clipboard');
+    }
+  };
+
+  const handleDownload = () => {
+    onDownload?.();
+  };
+
+  const handlePreview = () => {
+    onPreview?.();
+  };
 
   return (
     <TouchableOpacity
@@ -27,7 +46,11 @@ function TransferItemInner({ transfer, onPress }: TransferItemProps) {
       onPress={onPress}
     >
       <View style={[styles.iconContainer, { backgroundColor: colors.bgElevated }]}>
-        <Text style={styles.icon}>{icon}</Text>
+        <Ionicons
+          name={isText ? 'create-outline' : 'document-outline'}
+          size={20}
+          color={colors.textSecondary}
+        />
       </View>
       <View style={styles.content}>
         <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
@@ -36,6 +59,22 @@ function TransferItemInner({ transfer, onPress }: TransferItemProps) {
         <Text style={[styles.meta, { color: colors.textSecondary }]}>
           {size} · {timeAgo}
         </Text>
+      </View>
+      <View style={styles.actions}>
+        {isText ? (
+          <TouchableOpacity style={styles.actionBtn} onPress={handleCopy}>
+            <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        ) : (
+          <>
+            <TouchableOpacity style={styles.actionBtn} onPress={handlePreview}>
+              <Ionicons name="eye-outline" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
+              <Ionicons name="download-outline" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -48,8 +87,9 @@ function formatSize(bytes: number): string {
 }
 
 function getRelativeTime(timestamp: number): string {
+  // Database stores timestamps in seconds, convert to milliseconds
   const now = Date.now();
-  const diff = now - timestamp;
+  const diff = now - timestamp * 1000;
   const minutes = Math.floor(diff / 60000);
   if (minutes < 1) return 'JUST NOW';
   if (minutes < 60) return `${minutes}M AGO`;
@@ -75,9 +115,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  icon: {
-    fontSize: 20,
-  },
   content: {
     flex: 1,
     marginLeft: 12,
@@ -89,6 +126,13 @@ const styles = StyleSheet.create({
   meta: {
     fontSize: 12,
     marginTop: 2,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  actionBtn: {
+    padding: 6,
   },
 });
 

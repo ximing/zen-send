@@ -1,5 +1,6 @@
 import { View, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Text, Alert } from 'react-native';
 import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
@@ -60,13 +61,13 @@ function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
       <View style={[styles.container, { backgroundColor: colors.bgSurface, borderTopColor: colors.borderSubtle }]}>
         <View style={styles.iconsRow}>
           <TouchableOpacity style={styles.iconButton} onPress={handleSelectFile}>
-            <Text style={styles.iconText}>📎</Text>
+            <Ionicons name="attach" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={onSearchPress}>
-            <Text style={styles.iconText}>🔍</Text>
+            <Ionicons name="search" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={handlePasteClipboard}>
-            <Text style={styles.iconText}>📋</Text>
+            <Ionicons name="clipboard-outline" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
         <View style={styles.inputRow}>
@@ -86,7 +87,7 @@ function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
             onPress={handleSendText}
             disabled={!text.trim()}
           >
-            <Text style={[styles.sendIcon, { color: text.trim() ? colors.bgPrimary : colors.textMuted }]}>➤</Text>
+            <Ionicons name="send" size={18} color={text.trim() ? colors.bgPrimary : colors.textMuted} />
           </TouchableOpacity>
         </View>
       </View>

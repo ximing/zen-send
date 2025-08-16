@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
@@ -59,7 +60,7 @@ function QrScannerInner({ visible, onClose, onScan }: QrScannerProps) {
         />
         <View style={styles.overlay}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeText}>✕</Text>
+            <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>
           <View style={styles.frame} />
         </View>
