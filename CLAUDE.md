@@ -12,8 +12,9 @@ Zen Send is a monorepo containing a server, web frontend, and React Native mobil
 
 ### Apps
 - **apps/server**: Express.js backend with Socket.io for real-time communication
-- **apps/web**: React 19 frontend with Vite
+- **apps/web**: React 19 frontend with Vite (port 5274, proxies API to server)
 - **apps/mobile**: React Native (Expo) for Android and iOS
+- **apps/electron**: Electron desktop app for Windows/macOS/Linux
 
 ### Packages
 - **packages/dto**: Shared TypeScript interface types for request/response DTOs (RegisterRequest, LoginRequest, etc.)
@@ -43,11 +44,19 @@ pnpm typecheck        # Run TypeScript type checking
 pnpm --filter @zen-send/server dev    # Run server only
 pnpm --filter @zen-send/server build  # Build server
 pnpm --filter @zen-send/server typecheck
+pnpm --filter @zen-send/server migrate:generate  # Generate Drizzle migrations
+pnpm --filter @zen-send/server migrate:migrate    # Run Drizzle migrations
 
 # Web-specific
 cd apps/web && pnpm dev          # Run web only
 cd apps/web && pnpm build        # Build web for production (outputs to server/public)
 cd apps/web && pnpm typecheck   # Type-check web only
+
+# Electron-specific
+cd apps/electron && pnpm dev     # Run Electron app in dev mode
+cd apps/electron && pnpm dist:mac  # Build macOS .app
+cd apps/electron && pnpm dist:win  # Build Windows .exe
+cd apps/electron && pnpm dist:linux  # Build Linux AppImage
 ```
 
 ## Code Organization
@@ -77,12 +86,23 @@ apps/server/src/
 - `DbService` wraps database operations
 - `S3Service` handles S3 presigned URLs
 
+**Server IOC Rules:**
+- `container.ts` must be imported before all controllers (ensures TypeDI init first)
+- Services use `@Service()` decorator and constructor injection
+- Socket handlers use `Container.get()` (not constructor injection)
+
 ### Transfer Module (Chunked S3 Multipart Upload)
 - Files are uploaded in 1MB chunks via S3 multipart upload
 - Server generates presigned URLs for direct client-to-S3 upload
 - Tracks chunk uploads in `chunkUploads` table
 - Supports text and clipboard transfers in addition to files
 - Transfer sessions expire after `TRANSFER_TTL_DAYS` (default 30)
+
+### Database Schema (Drizzle ORM + MySQL)
+**Tables:** `users`, `devices`, `transfer_sessions`, `transfer_items`, `download_history`, `chunk_uploads`
+- **No foreign keys** - Joins done in business code
+- **Unix timestamps** - All timestamps stored as integers (seconds, not milliseconds)
+- **Schema location:** `apps/server/src/db/schema.ts`
 
 ### DTO Architecture
 
@@ -102,18 +122,39 @@ Web imports types from `@zen-send/dto`, server imports types and adds validation
 - **State Management**: @rabjs/react for reactive state with observer/Service patterns
 - **Theme System**: `src/theme/` - Light/dark mode via CSS variables
 - **Real-time**: Socket.io client for device discovery and transfers
+- **Web build output**: `apps/server/public/` (served by Express in production)
+
+### @rabjs/react Critical Rules
+These rules are **non-obvious and must be followed**:
+
+1. **Components must use `observer()`** - Components wrapped with `observer()` from @rabjs/react才能响应状态变化
+2. **Never destructure observables** - `const { count } = service` breaks reactivity; use `service.count` directly
+3. **resolve() must use getters** - Use `get apiService() { return this.resolve(ApiService); }` not property assignment
+4. **Global vs page services** - Global: `register()` in main.tsx; Page-level: `bindServices()` at component export
+5. **API types** - ApiService unwraps `data` layer; type generics reflect actual structure, not wrapper
 
 ### Real-time Communication (Socket.io)
-**Server events handled:**
+**Client → Server events:**
 - `device:heartbeat` - Keep device marked as online
 - `device:register` - Explicit device registration
 - `transfer:notify` - Send transfer notification to target device
 - `transfer:progress` - Emit progress updates to session room
 - `transfer:complete` - Notify session of transfer completion
 
-**Server events emitted:**
+**Server → Client events:**
 - `device:list` - List of user's devices (online/offline status)
 - `transfer:new` - New incoming transfer notification
+
+### ID Generation
+Uses `nanoid` with 22-character IDs and type prefixes:
+| Prefix | Entity | Example |
+|--------|--------|---------|
+| `u` | User | `u3KkL9mW2XyPqRsTuVwY` |
+| `d` | Device | `d4LlMnO5PqRsTuVwXyZa` |
+| `s` | Transfer Session | `s5MmNoO6QrStUvWxYbZc` |
+| `i` | Transfer Item | `i6NnOpP7RsTuVwXyZcAd` |
+| `h` | Download History | `h7OoPqQ8StUvWxYzAdBe` |
+| `c` | Chunk | `c8PpQrR9TuVwXyZaBdCe` |
 
 ## Naming Conventions
 
@@ -144,8 +185,10 @@ components/
 - **Server**: Express.js + routing-controllers + Socket.io + typedi
 - **Web**: React 19 + Vite + Tailwind CSS v4 + @rabjs/react
 - **Mobile**: React Native + Expo
+- **Desktop**: Electron 40 + Vite + @rabjs/react
 - **Validation**: class-validator + class-transformer
 - **Database**: Drizzle ORM + MySQL
+- **File Storage**: AWS S3 (presigned URLs for direct client upload)
 
 ## Development
 

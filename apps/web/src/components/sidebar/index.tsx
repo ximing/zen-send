@@ -99,9 +99,7 @@ const SidebarContent = observer(() => {
     >
       {/* Top: Logo */}
       <div className={`h-16 flex items-center justify-center mb-4 ${isElectron ? 'mt-5' : ''}`}>
-        <span className="text-sm font-bold tracking-wider text-[var(--accent)]">
-          ZS
-        </span>
+        <img src={service.logoSrc} alt="Zen Send" className="w-10 h-10 object-contain" />
       </div>
 
       {/* Middle: Navigation */}

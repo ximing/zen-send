@@ -1,7 +1,6 @@
 import { Service } from '@rabjs/react';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ApiService } from './api.service';
 import type { LoginRequest, RegisterRequest } from '@zen-send/dto';
 import type { AuthTokens } from '@zen-send/shared';
 
