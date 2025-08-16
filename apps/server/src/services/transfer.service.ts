@@ -196,6 +196,28 @@ export class TransferService {
       .set({ status: 'completed', completedAt: now })
       .where(eq(transferSessions.id, sessionId));
 
+    // Create transfer_item for S3 uploads if not exists
+    const existingItems = await this.db
+      .select()
+      .from(transferItems)
+      .where(eq(transferItems.sessionId, sessionId));
+
+    if (existingItems.length === 0) {
+      const itemId = generateItemId();
+      await this.db.insert(transferItems).values({
+        id: itemId,
+        sessionId,
+        type: 'file',
+        name: session.originalFileName,
+        mimeType: session.contentType,
+        size: session.totalSize,
+        content: null,
+        thumbnailKey: null,
+        storageType: 's3',
+        createdAt: now,
+      });
+    }
+
     // For single-chunk files, the actual file is at chunk_0, not the directory
     const s3Key = session.chunkCount === 1
       ? `transfers/${sessionId}/chunk_0`

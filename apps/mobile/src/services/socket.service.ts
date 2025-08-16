@@ -7,9 +7,10 @@ import { HomeService } from './home.service';
 export class SocketService extends Service {
   socket: Socket | null = null;
   private _deviceId: string | null = null;
+  connected: boolean = false;
 
   get isConnected() {
-    return this.socket?.connected ?? false;
+    return this.connected;
   }
 
   get authService() {
@@ -37,8 +38,13 @@ export class SocketService extends Service {
 
     this._deviceId = deviceId;
     const token = this.authService.accessToken;
+    const serverUrl = this.serverUrl;
 
-    this.socket = io(this.serverUrl, {
+    console.log('[Socket] Connecting to:', serverUrl);
+    console.log('[Socket] Device ID:', deviceId);
+    console.log('[Socket] Token exists:', !!token);
+
+    this.socket = io(serverUrl, {
       transports: ['websocket'],
       auth: {
         token,
@@ -46,10 +52,21 @@ export class SocketService extends Service {
     });
 
     this.socket.on('connect', () => {
+      console.log('[Socket] Connected, socket ID:', this.socket?.id);
+      this.connected = true;
       this.socket?.emit('device:register', {
         name: deviceName,
         type: deviceType,
       });
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.log('[Socket] Connect error:', error.message);
+    });
+
+    this.socket.on('disconnect', (reason) => {
+      console.log('[Socket] Disconnected:', reason);
+      this.connected = false;
     });
 
     this.socket.on('transfer:new', (data: unknown) => {
@@ -57,15 +74,13 @@ export class SocketService extends Service {
       const title = payload.session?.sourceDeviceName ?? 'New Transfer';
       const body = payload.session?.items?.[0]?.name ?? 'You have a new incoming transfer';
       this.notificationService.showTransferNotification(title, body);
+      // Refresh transfers list when a new transfer arrives
+      this.homeService.refresh();
     });
 
     this.socket.on('transfer:progress', (data: unknown) => {
       const payload = data as { sessionId: string; progress: number; speed: number };
       this.homeService.updateProgressFromSocket(payload.sessionId, payload.progress, payload.speed);
-    });
-
-    this.socket.on('disconnect', () => {
-      // Handle disconnect
     });
 
     setInterval(() => this.sendHeartbeat(), 30000);

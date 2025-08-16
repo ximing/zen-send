@@ -1,16 +1,13 @@
-import { View, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Text, Alert } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Text, Alert, ActionSheetIOS } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { HomeService } from '../../services/home.service';
 
-interface BottomToolbarProps {
-  onSearchPress: () => void;
-}
-
-function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
+function BottomToolbarInner() {
   const themeService = useService(ThemeService);
   const homeService = useService(HomeService);
   const colors = themeService.colors;
@@ -28,6 +25,43 @@ function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
     } catch (err) {
       console.error('File selection error:', err);
     }
+  };
+
+  const handleAddMedia = () => {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: ['取消', '从相册选择', '拍摄照片'],
+        cancelButtonIndex: 0,
+      },
+      async (buttonIndex) => {
+        if (buttonIndex === 1) {
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsMultipleSelection: true,
+          });
+          if (!result.canceled && result.assets && result.assets.length > 0) {
+            const files = result.assets.map((asset) => ({
+              uri: asset.uri,
+              name: asset.uri.split('/').pop() || 'image.jpg',
+              mimeType: 'image/jpeg',
+            }));
+            await homeService.uploadFiles(files);
+          }
+        } else if (buttonIndex === 2) {
+          const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images'],
+          });
+          if (!result.canceled && result.assets && result.assets.length > 0) {
+            const files = result.assets.map((asset) => ({
+              uri: asset.uri,
+              name: asset.uri.split('/').pop() || 'image.jpg',
+              mimeType: 'image/jpeg',
+            }));
+            await homeService.uploadFiles(files);
+          }
+        }
+      }
+    );
   };
 
   const handleSendText = async () => {
@@ -61,10 +95,10 @@ function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
       <View style={[styles.container, { backgroundColor: colors.bgSurface, borderTopColor: colors.borderSubtle }]}>
         <View style={styles.iconsRow}>
           <TouchableOpacity style={styles.iconButton} onPress={handleSelectFile}>
-            <Ionicons name="attach" size={22} color={colors.textPrimary} />
+            <Ionicons name="folder-outline" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton} onPress={onSearchPress}>
-            <Ionicons name="search" size={22} color={colors.textPrimary} />
+          <TouchableOpacity style={styles.iconButton} onPress={handleAddMedia}>
+            <Ionicons name="image-outline" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={handlePasteClipboard}>
             <Ionicons name="clipboard-outline" size={22} color={colors.textPrimary} />

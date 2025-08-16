@@ -42,6 +42,7 @@ export class SendToolbarService extends Service {
       {
         name: 'text.txt',
         size: new Blob([this.textInput]).size,
+        type: 'text/plain',
         data: new TextEncoder().encode(this.textInput).buffer as ArrayBuffer,
       },
     ]);

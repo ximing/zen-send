@@ -17,6 +17,7 @@ export class ApiService extends Service {
   }
 
   private isRefreshing = false;
+  private refreshPromise: Promise<void> | null = null;
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${path}`;
@@ -38,14 +39,29 @@ export class ApiService extends Service {
     // Handle 401 with token refresh (avoid infinite loops)
     if (response.status === 401 && !this.isRefreshing && !path.includes('/auth/refresh')) {
       this.isRefreshing = true;
+      this.refreshPromise = this.authService.doRefreshToken().then(() => {
+        this.refreshPromise = null;
+      }).catch(() => {
+        this.refreshPromise = null;
+      });
       try {
-        await this.authService.doRefreshToken();
+        await this.refreshPromise;
         response = await makeRequest();
       } catch {
         this.authService.handleUnauthorized();
         throw new Error('Unauthorized');
       } finally {
         this.isRefreshing = false;
+      }
+    }
+
+    // If another request is already refreshing tokens, wait for it and retry
+    if (response.status === 401 && this.isRefreshing && this.refreshPromise && !path.includes('/auth/refresh')) {
+      try {
+        await this.refreshPromise;
+        response = await makeRequest();
+      } catch {
+        throw new Error('Unauthorized');
       }
     }
 

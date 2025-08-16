@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { MailOpen } from 'lucide-react';
+import { getMimeTypeFromExtension } from '../../lib/zen-bridge';
 import { HomeService, type UploadingFile } from '../../pages/home/home.service';
 import { DeviceService } from '../../services/device.service';
 import { SocketService } from '../../services/socket.service';
@@ -51,6 +52,7 @@ const TransferChatContent = observer(() => {
     const fileData = files.map((file) => ({
       name: file.name,
       size: file.size,
+      type: file.type || getMimeTypeFromExtension(file.name),
       data: undefined as ArrayBuffer | undefined,
     }));
 
@@ -108,12 +110,15 @@ const TransferChatContent = observer(() => {
     }
   }, [transfers.length, scrollToBottom]);
 
-  // Create a map of uploading files by session id
+  // Create a map of uploading files by uploadId or sessionId
   const uploadingFilesMap = new Map<string, UploadingFile>();
   for (const file of homeService.uploadingFiles) {
+    // Map by sessionId if available
     if (file.sessionId) {
       uploadingFilesMap.set(file.sessionId, file);
     }
+    // Also map by uploadId for temporary transfers
+    uploadingFilesMap.set(file.id, file);
   }
 
   return (

@@ -183,6 +183,38 @@ export class HomeService extends Service {
       };
       this.uploadingFiles = [...this.uploadingFiles, uploadingFile];
       this._fileData.set(uploadId, { name: file.name, size: file.size, type: file.type, data: file.data });
+
+      // Create a temporary transfer session to show in the chat list
+      const tempSession: TransferSession = {
+        id: uploadId,
+        userId: this.authService.user?.id || '',
+        sourceDeviceId: 'web-device',
+        targetDeviceId: null,
+        status: 'pending',
+        s3Bucket: '',
+        s3Key: '',
+        originalFileName: file.name,
+        totalSize: file.size,
+        chunkCount: 0,
+        receivedChunks: 0,
+        contentType: file.type || 'application/octet-stream',
+        ttlExpiresAt: 0,
+        createdAt: Math.floor(Date.now() / 1000),
+        items: [{
+          id: `temp-item-${uploadId}`,
+          sessionId: uploadId,
+          type: 'file',
+          name: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          size: file.size,
+          content: undefined,
+          thumbnailKey: undefined,
+          storageType: 's3',
+          createdAt: Math.floor(Date.now() / 1000),
+        }],
+      };
+      this.transfers = [...this.transfers, tempSession];
+
       this.executeUpload(uploadId, file);
     }
 
@@ -234,13 +266,19 @@ export class HomeService extends Service {
 
       const sourceDeviceId = 'web-device';
 
-      if (file.data && file.size <= TEXT_INLINE_MAX_SIZE) {
+      // Check if file is text type (actual text files, not small images)
+      const isTextFile = file.type?.startsWith('text/') || 
+                         file.name.endsWith('.txt') || 
+                         file.name.endsWith('.md') ||
+                         file.name.endsWith('.json');
+
+      if (isTextFile && file.data && file.size <= TEXT_INLINE_MAX_SIZE) {
         const content = new TextDecoder().decode(file.data);
         const { sessionId } = await this.apiService.post<{ sessionId: string }>('/api/transfers/init', {
           sourceDeviceId,
           type: 'text',
           fileName: file.name,
-          contentType: 'text/plain',
+          contentType: file.type || 'text/plain',
           totalSize: file.size,
           content,
         });
@@ -253,6 +291,9 @@ export class HomeService extends Service {
           eta: 0,
           uploadedBytes: file.size,
         });
+
+        // Refresh transfer list after successful inline text upload
+        await this.loadTransfers();
       } else {
         const chunkCount = Math.ceil(file.size / CHUNK_SIZE);
         const { sessionId, presignedUrls } = await this.apiService.post<{ sessionId: string; presignedUrls: string[] }>('/api/transfers/init', {
@@ -302,6 +343,9 @@ export class HomeService extends Service {
           eta: 0,
           uploadedBytes: file.size,
         });
+
+        // Refresh transfer list after successful upload
+        await this.loadTransfers();
       }
     } catch (error) {
       this.updateUploadStatus(uploadId, {
@@ -331,6 +375,25 @@ export class HomeService extends Service {
     this.uploadingFiles = this.uploadingFiles.map((f) =>
       f.id === uploadId ? { ...f, ...updates } : f
     );
+
+    // Also update the temporary transfer session if sessionId is provided
+    if (updates.sessionId) {
+      this.transfers = this.transfers.map((t) =>
+        t.id === uploadId ? { ...t, id: updates.sessionId! } : t
+      );
+    }
+
+    // Update transfer status when upload completes
+    if (updates.status === 'completed' && updates.sessionId) {
+      this.transfers = this.transfers.map((t) =>
+        t.id === updates.sessionId ? { ...t, status: 'completed' } : t
+      );
+
+      // Auto-remove uploading file state after 2 seconds
+      setTimeout(() => {
+        this.removeUpload(uploadId);
+      }, 2000);
+    }
   }
 
   async cancelUpload(uploadId: string) {

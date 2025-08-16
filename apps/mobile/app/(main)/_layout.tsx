@@ -11,6 +11,8 @@ function MainLayoutInner() {
   const socketService = useService(SocketService);
 
   useEffect(() => {
+    console.log('[MainLayout] isLoading:', authService.isLoading, 'isAuthenticated:', authService.isAuthenticated, 'user:', !!authService.user);
+
     if (authService.isLoading) return;
 
     if (!authService.isAuthenticated) {
@@ -20,6 +22,7 @@ function MainLayoutInner() {
 
     if (authService.user) {
       authService.loadDeviceId().then((deviceId) => {
+        console.log('[MainLayout] Calling connect with deviceId:', deviceId);
         const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
         socketService.connect(deviceId, 'Mobile Device', deviceType);
       });

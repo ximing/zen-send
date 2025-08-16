@@ -4,17 +4,25 @@
 
 ### 1. Service 注册规则
 
+**所有 Service 都是全局单例**，在应用入口统一注册：
+
 | 类型 | 注册方式 | 位置 |
 |------|---------|------|
-| 全局 Service | `register()` | `main.tsx` |
-| 页面/组件 Service | `bindServices()` | 组件导出处 |
+| 所有 Service | `register()` | `app/_layout.tsx` |
 
 ```typescript
-// ✅ 全局 Service - main.tsx
+// ✅ 正确：在 _layout.tsx 全局注册
 register(ApiService);
-register(ToastService);
+register(AuthService);
+register(ThemeService);
+register(SocketService);
+register(HomeService);
 
-// ✅ 页面 Service - 组件导出
+// ✅ 页面组件直接使用 observer，不需要 bindServices
+export default observer(HomeContentInner);
+
+// ❌ 错误：不要在页面级别使用 bindServices
+// 这会创建新的容器，导致 Service 实例不一致
 export default bindServices(HomeContent, [HomeService]);
 ```
 
@@ -56,29 +64,29 @@ get apiService() {
 }
 ```
 
-### 5. 跨级访问：子组件访问父组件容器中的 Service
+### 5. Service 之间访问依赖
 
-容器层次：HomePage → TransferChat → BottomToolbar
-
-子组件可直接访问**父组件容器**中注册的 Service：
+所有 Service 都是全局单例，通过 `resolve()` 获取其他 Service：
 
 ```typescript
-// TransferChatService（在 TransferChat 中注册）可访问 HomeService
-export class TransferChatService extends Service {
-  get homeService() {
-    return this.resolve(HomeService); // 父组件容器的 Service
+export class HomeService extends Service {
+  // ✅ 正确：getter 延迟解析
+  get apiService() {
+    return this.resolve(ApiService);
+  }
+
+  get socketService() {
+    return this.resolve(SocketService);
+  }
+
+  async loadData() {
+    // 直接使用 resolve 的 Service
+    const data = await this.apiService.get('/api/data');
   }
 }
-
-// BottomToolbar（子组件）可直接 useService(TransferChatService)
-const BottomToolbar = observer(() => {
-  const chatService = useService(TransferChatService); // 父容器的 Service
-  // 无需事件传递，直接调用
-  await chatService.sendText(text);
-});
 ```
 
-**核心原则**：子组件通过 `useService` 访问**直接父容器**的 Service；Service 通过 `resolve` 访问**父组件容器**的 Service。
+**核心原则**：所有页面共享同一个全局 Service 实例，状态在任何地方修改都会同步更新。
 
 ### 6. API 类型定义
 
@@ -95,10 +103,14 @@ const { transfers } = await this.apiService.get<{ data: { transfers: [...] } }>(
 ## 目录结构
 
 ```
+app/
+├── _layout.tsx            # 应用入口（register 所有 Service）
+├── (auth)/                # 认证相关页面
+└── (main)/                # 主页面
 src/
-├── services/              # 全局 Service（register()）
-├── pages/                 # 页面 + 页面级 Service
-└── components/            # 组件 + 组件级 Service（bindServices()）
+├── services/              # 全局 Service（在 _layout.tsx 注册）
+├── components/            # 通用组件（使用 useService + observer）
+└── theme/                 # 主题配置
 ```
 
 ## Design System

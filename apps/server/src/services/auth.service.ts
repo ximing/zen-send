@@ -16,6 +16,10 @@ import { generateUserId } from '../utils/id.js';
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+  user?: {
+    id: string;
+    email: string;
+  };
 }
 
 export interface RegisterInput {
@@ -56,11 +60,15 @@ export class AuthService {
     return bcrypt.compare(password, hash);
   }
 
-  private generateTokens(payload: TokenPayload): AuthTokens {
-    return {
+  private generateTokens(payload: TokenPayload, user?: { id: string; email: string }): AuthTokens {
+    const tokens: AuthTokens = {
       accessToken: signAccessToken(payload),
       refreshToken: signRefreshToken(payload),
     };
+    if (user) {
+      tokens.user = { id: user.id, email: user.email };
+    }
+    return tokens;
   }
 
   async register(input: RegisterInput): Promise<AuthTokens> {
@@ -91,7 +99,7 @@ export class AuthService {
     });
 
     logger.info('Generating tokens');
-    return this.generateTokens({ userId: id });
+    return this.generateTokens({ userId: id }, { id, email: input.email });
   }
 
   async login(input: LoginInput): Promise<AuthTokens> {
@@ -108,7 +116,7 @@ export class AuthService {
       throw new Error('Invalid credentials');
     }
 
-    return this.generateTokens({ userId: user.id });
+    return this.generateTokens({ userId: user.id }, { id: user.id, email: user.email });
   }
 
   async refresh(refreshToken: string): Promise<AuthTokens> {
@@ -122,7 +130,13 @@ export class AuthService {
       throw new Error('Invalid refresh token');
     }
 
-    return this.generateTokens({ userId: payload.userId });
+    const result = await this.db.select().from(users).where(eq(users.id, payload.userId)).limit(1);
+    if (result.length === 0) {
+      throw new Error('User not found');
+    }
+    const user = result[0];
+
+    return this.generateTokens({ userId: payload.userId }, { id: user.id, email: user.email });
   }
 
   logout(refreshToken: string): void {
@@ -138,6 +152,12 @@ export class AuthService {
       throw new Error('Invalid pair token');
     }
 
-    return this.generateTokens({ userId: payload.userId });
+    const result = await this.db.select().from(users).where(eq(users.id, payload.userId)).limit(1);
+    if (result.length === 0) {
+      throw new Error('User not found');
+    }
+    const user = result[0];
+
+    return this.generateTokens({ userId: payload.userId }, { id: user.id, email: user.email });
   }
 }

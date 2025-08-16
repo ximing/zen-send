@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { X, Download, Eye, FileText } from 'lucide-react';
 import { HomeService } from '../../pages/home/home.service';
@@ -19,13 +19,16 @@ const isImageType = (contentType?: string) => {
 const PreviewModal = observer(() => {
   const homeService = useService(HomeService);
   const apiService = useService(ApiService);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const transfer = homeService.previewTransfer;
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
+  // Get effective content type - prefer item mimeType over session contentType
+  const firstItem = transfer?.items?.[0];
+  const effectiveContentType = firstItem?.mimeType || transfer?.contentType;
+
   // Load image preview for image types
   useEffect(() => {
-    if (!transfer || !isImageType(transfer.contentType)) {
+    if (!transfer || !isImageType(effectiveContentType)) {
       setImageUrl(null);
       return;
     }
@@ -46,25 +49,14 @@ const PreviewModal = observer(() => {
         return null;
       });
     };
-  }, [apiService, transfer?.id, transfer?.contentType]);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (transfer) {
-      dialog.showModal();
-    } else {
-      dialog.close();
-    }
-  }, [transfer]);
+  }, [apiService, transfer?.id, effectiveContentType]);
 
   const handleClose = useCallback(() => {
     homeService.setPreviewTransfer(null);
   }, [homeService]);
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === dialogRef.current) {
+    if (e.currentTarget === e.target) {
       handleClose();
     }
   }, [handleClose]);
@@ -88,16 +80,14 @@ const PreviewModal = observer(() => {
 
   if (!transfer) return null;
 
-  const firstItem = transfer.items?.[0];
   const isText = firstItem?.type === 'text';
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="fixed inset-0 w-full max-w-lg mx-auto bg-[var(--bg-elevated)] rounded-2xl shadow-xl backdrop:bg-black/50"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={handleBackdropClick}
     >
-      <div className="p-6">
+      <div className="bg-[var(--bg-elevated)] rounded-2xl shadow-xl max-w-lg w-full mx-4 p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-[var(--text-primary)]">
@@ -158,7 +148,7 @@ const PreviewModal = observer(() => {
           </button>
         </div>
       </div>
-    </dialog>
+    </div>
   );
 });
 

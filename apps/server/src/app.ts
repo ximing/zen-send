@@ -5,6 +5,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { useExpressServer } from 'routing-controllers';
 import { logger } from '@zen-send/logger';
 import { setupSocket } from './socket/socket.js';
+import { setSocketIO } from './socket/socket-instance.js';
 import { initIOC } from './ioc.js';
 import { Container } from 'typedi';
 
@@ -37,6 +38,7 @@ export async function createApp(): Promise<{ app: express.Application; io: Socke
   });
 
   setupSocket(io);
+  setSocketIO(io);
 
   useExpressServer(app, {
     controllers,
