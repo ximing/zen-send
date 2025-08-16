@@ -21,11 +21,11 @@ COPY apps/server/.env.example ./apps/server/
 # Install dependencies (production only for smaller image)
 RUN pnpm install --frozen-lockfile --prod=false
 
-# Build workspace packages first (needed by server)
-RUN pnpm --filter @zen-send/dto build && pnpm --filter @zen-send/logger build && pnpm --filter @zen-send/shared build
+# Build workspace packages in dependency order
+RUN pnpm -r build --filter @zen-send/dto --filter @zen-send/logger --filter @zen-send/shared
 
 # Build server
-RUN pnpm build:server
+RUN pnpm --filter @zen-send/server build
 
 # Production stage
 FROM node:22-alpine AS production
