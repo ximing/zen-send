@@ -41,9 +41,7 @@ jobs:
         run: pnpm install
 
       - name: Build packages
-        run: |
-          pnpm --filter "@zen-send/dto" build
-          pnpm --filter "@zen-send/shared" build
+        run: pnpm turbo build --filter=@zen-send/shared
 
       - name: Upload packages artifacts
         uses: actions/upload-artifact@v4
