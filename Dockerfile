@@ -21,11 +21,8 @@ COPY apps/server/.env.example ./apps/server/
 # Install dependencies (production only for smaller image)
 RUN pnpm install --frozen-lockfile --prod=false
 
-# Build workspace packages using turbo (respects dependency order)
-RUN pnpm turbo build --filter=@zen-send/dto --filter=@zen-send/logger --filter=@zen-send/shared --filter=@zen-send/server
-
-# Build server
-RUN pnpm --filter @zen-send/server build
+# Build workspace packages using turbo (builds all packages in dependency order)
+RUN pnpm turbo build
 
 # Production stage
 FROM node:22-alpine AS production
