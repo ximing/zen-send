@@ -21,6 +21,9 @@ COPY apps/server/.env.example ./apps/server/
 # Install dependencies (production only for smaller image)
 RUN pnpm install --frozen-lockfile --prod=false
 
+# Build workspace packages first (needed by server)
+RUN pnpm --filter @zen-send/dto build && pnpm --filter @zen-send/logger build && pnpm --filter @zen-send/shared build
+
 # Build server
 RUN pnpm build:server
 
