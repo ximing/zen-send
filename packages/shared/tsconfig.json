@@ -6,6 +6,7 @@
     "noEmit": false,
     "declaration": true,
     "composite": false,
+    "baseUrl": ".",
     "paths": {
       "@zen-send/dto": ["../dto/dist"],
       "@zen-send/dto/*": ["../dto/dist/*"]
