@@ -24,10 +24,12 @@ RUN pnpm install --prod=false
 # Build workspace packages in dependency order
 # Clear incremental build cache for all packages and build
 RUN rm -f packages/dto/tsconfig.tsbuildinfo packages/logger/tsconfig.tsbuildinfo packages/shared/tsconfig.tsbuildinfo apps/server/tsconfig.tsbuildinfo 2>/dev/null || true && \
-    pnpm --filter @zen-send/dto build && \
-    pnpm --filter @zen-send/logger build && \
-    pnpm --filter @zen-send/shared build && \
-    pnpm --filter @zen-send/server build
+    echo "=== Building dto ===" && pnpm --filter @zen-send/dto build && \
+    echo "=== Building logger ===" && pnpm --filter @zen-send/logger build && \
+    echo "=== Building shared ===" && pnpm --filter @zen-send/shared build && \
+    echo "=== Building server ===" && pnpm --filter @zen-send/server build && \
+    echo "=== Build complete ===" && \
+    ls -la apps/server/dist/ 2>&1 || echo "Server dist missing!"
 
 # Production stage
 FROM node:22-alpine AS production
