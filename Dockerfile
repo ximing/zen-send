@@ -22,8 +22,8 @@ COPY apps/server/.env.example ./apps/server/
 RUN pnpm install --prod=false
 
 # Build workspace packages in dependency order
-# Clear incremental build cache and build all required packages
-RUN rm -f packages/dto/tsconfig.tsbuildinfo packages/logger/tsconfig.tsbuildinfo packages/shared/tsconfig.tsbuildinfo 2>/dev/null || true && \
+# Clear incremental build cache for all packages and build
+RUN rm -f packages/dto/tsconfig.tsbuildinfo packages/logger/tsconfig.tsbuildinfo packages/shared/tsconfig.tsbuildinfo apps/server/tsconfig.tsbuildinfo 2>/dev/null || true && \
     pnpm --filter @zen-send/dto build && \
     pnpm --filter @zen-send/logger build && \
     pnpm --filter @zen-send/shared build && \
