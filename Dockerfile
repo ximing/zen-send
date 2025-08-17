@@ -24,7 +24,10 @@ RUN pnpm install --prod=false
 # Build workspace packages in dependency order
 # First build dto to ensure its dist exists
 RUN pnpm --filter @zen-send/dto build && \
-    ls -la packages/dto/dist/ && \
+    echo "=== Checking dist contents ===" && \
+    ls -la packages/dto/dist/ 2>&1 || echo "dist folder missing!" && \
+    echo "=== Listing all files in dto ===" && \
+    ls -la packages/dto/ && \
     pnpm --filter @zen-send/logger build && \
     pnpm --filter @zen-send/shared build
 
