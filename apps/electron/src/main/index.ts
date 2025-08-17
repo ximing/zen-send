@@ -80,9 +80,7 @@ function registerIpcHandlers(_windowManager: WindowManager): void {
     const result = await dialog.showOpenDialog({
       title: options?.title || 'Open File',
       filters: options?.filters || [{ name: 'All Files', extensions: ['*'] }],
-      properties: options?.multiSelections
-        ? ['openFile', 'multiSelections']
-        : ['openFile'],
+      properties: options?.multiSelections ? ['openFile', 'multiSelections'] : ['openFile'],
     });
     return result.canceled ? null : result.filePaths;
   });
