@@ -35,7 +35,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: 📦 Install dependencies
-        run: pnpm install --filter @zen-send/mobile
+        run: pnpm install
 
       - name: 🔧 Prepare update config
         env:
