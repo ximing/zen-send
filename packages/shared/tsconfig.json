@@ -2,14 +2,15 @@
   "extends": "@zen-send/typescript-config/node.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "noEmit": false,
     "declaration": true,
-    "composite": true,
+    "composite": false,
     "paths": {
-      "@zen-send/dto": ["../dto/src"],
-      "@zen-send/dto/*": ["../dto/src/*"]
+      "@zen-send/dto": ["../dto/dist"],
+      "@zen-send/dto/*": ["../dto/dist/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
