@@ -4,7 +4,11 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "noEmit": false,
-    "declaration": true
+    "declaration": true,
+    "paths": {
+      "@zen-send/dto": ["../dto/src"],
+      "@zen-send/dto/*": ["../dto/src/*"]
+    }
   },
   "include": ["src"]
 }
