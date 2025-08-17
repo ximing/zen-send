@@ -2,9 +2,10 @@
   "extends": "@zen-send/typescript-config/node.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "noEmit": false,
     "declaration": true,
+    "composite": true,
     "paths": {
       "@zen-send/dto": ["../dto/src"],
       "@zen-send/dto/*": ["../dto/src/*"]
