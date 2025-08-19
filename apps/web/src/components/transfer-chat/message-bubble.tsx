@@ -230,7 +230,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
 
           {/* Bubble */}
           <div
-            className={`relative max-w-[calc(100vw-140px)] min-w-[180px] rounded-2xl px-5 py-3 transition-all duration-150
+            className={`relative max-w-[75%] min-w-[180px] rounded-2xl px-5 py-3 transition-all duration-150
             ${isPending ? 'bg-[var(--bg-surface)] opacity-50' : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80'}
             ${isHovered ? 'shadow-lg' : ''}
           `}
