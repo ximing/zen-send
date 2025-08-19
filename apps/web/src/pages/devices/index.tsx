@@ -5,14 +5,7 @@ import Sidebar from '../../components/sidebar';
 import { DeviceService } from '../../services/device.service';
 import { ThemeService } from '../../services/theme.service';
 import type { Device, DeviceType } from '@zen-send/shared';
-import {
-  RefreshCw,
-  Trash2,
-  X,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-} from 'lucide-react';
+import { RefreshCw, Trash2, X, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import iconSprite from '../../assets/icon.png';
 
 const DevicesPage = observer(() => {
@@ -35,7 +28,8 @@ const DevicesPage = observer(() => {
     const deviceName = navigator.userAgent.includes('Mobile') ? 'Web Mobile' : 'Web Browser';
     await deviceService.generatePairToken(deviceName);
     if (deviceService.pairToken) {
-      const url = `https://zensend.dev/pair?token=${deviceService.pairToken}`;
+      const serverUrl = window.location.origin;
+      const url = `${serverUrl}/pair?token=${deviceService.pairToken}`;
       const qr = await QRCode.toDataURL(url, { width: 200, margin: 2 });
       setQrCodeUrl(qr);
     }
@@ -57,16 +51,16 @@ const DevicesPage = observer(() => {
   // Sprite map: each icon is 120x120px (including background)
   // Light theme (left): 0-480px, Dark theme (right): 480-960px
   const DEVICE_SPRITE_POSITIONS: Record<DeviceType, number> = {
-    web: 0,       // First icon (0px)
+    web: 0, // First icon (0px)
     android: 120, // Second icon (120px)
-    ios: 240,     // Third icon (240px)
+    ios: 240, // Third icon (240px)
     desktop: 360, // Fourth icon (360px)
   };
 
   const getDeviceIcon = (type: DeviceType, isDarkTheme: boolean) => {
     const bgPosition = DEVICE_SPRITE_POSITIONS[type];
     const spriteOffsetX = isDarkTheme ? 480 : 0;
-    
+
     return (
       <div
         style={{
@@ -133,15 +127,21 @@ const DevicesPage = observer(() => {
             <div className="mt-6 pt-6">
               <ol className="space-y-2 text-sm text-[var(--text-secondary)]">
                 <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">1</span>
+                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">
+                    1
+                  </span>
                   <span>Open Zen Send on target device</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">2</span>
+                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">
+                    2
+                  </span>
                   <span>Scan the QR code</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">3</span>
+                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">
+                    3
+                  </span>
                   <span>Start transferring</span>
                 </li>
               </ol>
