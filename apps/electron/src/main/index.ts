@@ -19,7 +19,7 @@ let isQuitting = false;
 // Server URL store
 const serverUrlStore = new Store<{ serverUrl: string }>({
   name: 'server-url',
-  defaults: { serverUrl: '' },
+  defaults: { serverUrl: process.env.VITE_DEFAULT_SERVER_URL || '' },
 });
 
 export function getIsQuitting(): boolean {

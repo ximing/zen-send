@@ -13,7 +13,7 @@ const fileDropCallbackMap = new Map<
 // Server URL store (shared with main process via IPC)
 const serverUrlStore = new Store<{ serverUrl: string }>({
   name: 'server-url',
-  defaults: { serverUrl: '' },
+  defaults: { serverUrl: process.env.VITE_DEFAULT_SERVER_URL || '' },
 });
 
 // Log platform info for debugging

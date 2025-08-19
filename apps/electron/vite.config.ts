@@ -7,12 +7,16 @@ import { resolve } from 'path';
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Development server URL (web app runs on port 5274)
-const VITE_DEV_SERVER_URL = isProduction ? 'https://zen-send.app' : 'http://localhost:5274';
+const VITE_DEV_SERVER_URL = isProduction ? 'https://zs.aimo.plus' : 'http://localhost:5274';
+
+// Default server URL for first launch
+const VITE_DEFAULT_SERVER_URL = process.env.VITE_DEFAULT_SERVER_URL || VITE_DEV_SERVER_URL;
 
 const define = {
   'process.env.VITE_DEV_SERVER_URL': JSON.stringify(VITE_DEV_SERVER_URL),
   'process.env.VITE_IS_ELECTRON': JSON.stringify(true),
   'process.env.VITE_IS_PRODUCTION': JSON.stringify(isProduction),
+  'process.env.VITE_DEFAULT_SERVER_URL': JSON.stringify(VITE_DEFAULT_SERVER_URL),
 };
 
 export default defineConfig({
