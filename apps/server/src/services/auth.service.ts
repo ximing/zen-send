@@ -142,22 +142,4 @@ export class AuthService {
   logout(refreshToken: string): void {
     this.invalidatedTokens.add(refreshToken);
   }
-
-  async pairLogin(token: string): Promise<AuthTokens> {
-    const { verifyRefreshToken } = await import('../utils/jwt.js');
-
-    const payload = verifyRefreshToken(token);
-
-    if (!payload.userId) {
-      throw new Error('Invalid pair token');
-    }
-
-    const result = await this.db.select().from(users).where(eq(users.id, payload.userId)).limit(1);
-    if (result.length === 0) {
-      throw new Error('User not found');
-    }
-    const user = result[0];
-
-    return this.generateTokens({ userId: payload.userId }, { id: user.id, email: user.email });
-  }
 }

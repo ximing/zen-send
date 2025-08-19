@@ -33,12 +33,15 @@ function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showQrScanner, setShowQrScanner] = useState(false);
 
-  const handleQrScan = async ({ token, serverUrl }: { token: string; serverUrl: string }) => {
+  const handleQrScan = async ({ tokens, serverUrl }: { tokens: { accessToken: string; refreshToken: string; user: { id: string; email: string } }; serverUrl: string }) => {
     setShowQrScanner(false);
     setIsLoading(true);
     setError(null);
     try {
-      await authService.loginWithQrToken(token, serverUrl);
+      // Save server URL first
+      await authService.saveServerUrl(serverUrl);
+      // Set tokens directly from QR data
+      await authService.setTokens(tokens);
       router.replace('/(main)');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'QR login failed');

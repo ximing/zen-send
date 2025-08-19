@@ -4,11 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
+import type { AuthTokens } from '@zen-send/shared';
 
 interface QrScannerProps {
   visible: boolean;
   onClose: () => void;
-  onScan: (result: { token: string; serverUrl: string }) => void;
+  onScan: (result: { tokens: AuthTokens; serverUrl: string }) => void;
 }
 
 function QrScannerInner({ visible, onClose, onScan }: QrScannerProps) {
@@ -17,14 +18,17 @@ function QrScannerInner({ visible, onClose, onScan }: QrScannerProps) {
   const [permission, requestPermission] = useCameraPermissions();
 
   const handleBarCodeScanned = (data: string) => {
-    // Parse QR code: https://zensend.dev/pair?token={TOKEN}
+    // Parse QR code: https://zensend.dev/api/auth/qr-login?data={tokens}
     try {
       const url = new URL(data);
-      const token = url.searchParams.get('token');
+      const dataParam = url.searchParams.get('data');
       // Extract server base URL (e.g., https://zensend.dev)
       const serverUrl = `${url.protocol}//${url.host}`;
-      if (token) {
-        onScan({ token, serverUrl });
+      if (dataParam) {
+        const tokens: AuthTokens = JSON.parse(decodeURIComponent(dataParam));
+        if (tokens.accessToken && tokens.refreshToken && tokens.user) {
+          onScan({ tokens, serverUrl });
+        }
       }
     } catch {
       // Invalid URL format

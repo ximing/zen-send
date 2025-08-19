@@ -1,11 +1,9 @@
 // NOTE: Do NOT import 'reflect-metadata' here - only in app.ts/index.ts
 import { eq, and } from 'drizzle-orm';
 import { Service } from 'typedi';
-import jwt from 'jsonwebtoken';
 import { DbService } from './db.service.js';
 import { devices } from '../db/schema.js';
 import { generateDeviceId } from '../utils/id.js';
-import { JWT_REFRESH_SECRET } from '../utils/jwt.js';
 
 export interface DeviceInfo {
   id: string;
@@ -96,20 +94,5 @@ export class DeviceService {
       .from(devices)
       .where(and(eq(devices.userId, userId), eq(devices.isOnline, 1)));
     return result as DeviceInfo[];
-  }
-
-  async generatePairToken(userId: string, deviceName: string): Promise<{ token: string; expiresAt: Date }> {
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-    const payload = {
-      userId,
-      deviceName,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(expiresAt.getTime() / 1000),
-    };
-
-    const token = jwt.sign(payload, JWT_REFRESH_SECRET, { algorithm: 'HS256' });
-
-    return { token, expiresAt };
   }
 }

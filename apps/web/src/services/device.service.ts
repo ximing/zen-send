@@ -4,8 +4,6 @@ import type { Device, DeviceListResponse } from '@zen-send/shared';
 
 export class DeviceService extends Service {
   private _devices: Device[] = [];
-  private _pairToken: string | null = null;
-  private _pairTokenExpiry: Date | null = null;
   private _loading = false;
 
   get devices() {
@@ -13,12 +11,6 @@ export class DeviceService extends Service {
   }
   get loading() {
     return this._loading;
-  }
-  get pairToken() {
-    return this._pairToken;
-  }
-  get pairTokenExpiry() {
-    return this._pairTokenExpiry;
   }
 
   get apiService() {
@@ -44,14 +36,6 @@ export class DeviceService extends Service {
     } finally {
       this._loading = false;
     }
-  }
-
-  async generatePairToken(deviceName: string) {
-    const response = await this.apiService.post<{ token: string; expiresAt: string }>('/api/devices/pair-token', {
-      deviceName,
-    });
-    this._pairToken = response.token;
-    this._pairTokenExpiry = new Date(response.expiresAt);
   }
 
   async removeDevice(deviceId: string) {

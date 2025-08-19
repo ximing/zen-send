@@ -93,6 +93,11 @@ export class AuthService extends Service {
     this.user = tokens.user;
   }
 
+  // For QR code login - directly set tokens from scanned data
+  async setTokens(tokens: AuthTokens): Promise<void> {
+    await this.saveTokens(tokens);
+  }
+
   async login(request: LoginRequest, serverUrl: string): Promise<void> {
     await this.saveServerUrl(serverUrl);
     const response = await fetch(`${serverUrl}/api/auth/login`, {
@@ -111,24 +116,6 @@ export class AuthService extends Service {
       throw new Error(typeof result.data === 'string' ? result.data : 'Login failed');
     }
 
-    await this.saveTokens(result.data);
-  }
-
-  async loginWithQrToken(token: string, serverUrl: string): Promise<void> {
-    await this.saveServerUrl(serverUrl);
-    const response = await fetch(`${serverUrl}/api/auth/pair-login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token }),
-    });
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Login failed' }));
-      throw new Error(error.error || `HTTP ${response.status}`);
-    }
-    const result = await response.json();
-    if (!result.success) {
-      throw new Error(typeof result.data === 'string' ? result.data : 'Login failed');
-    }
     await this.saveTokens(result.data);
   }
 

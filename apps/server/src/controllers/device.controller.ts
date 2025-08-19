@@ -15,7 +15,6 @@ import {
 import { Service } from 'typedi';
 import { DeviceService } from '../services/device.service.js';
 import { RegisterDeviceDto } from '../validators/device.validator.js';
-import { CreatePairTokenDto } from '../validators/create-pair-token.validator.js';
 import { ResponseUtil } from '../utils/response.js';
 import type { TokenPayload } from '../utils/jwt.js';
 
@@ -74,12 +73,5 @@ export class DeviceController {
 
     await this.deviceService.updateDeviceHeartbeat(id);
     return ResponseUtil.success({ ok: true });
-  }
-
-  @Post('/pair-token')
-  @HttpCode(201)
-  async createPairToken(@CurrentUser() user: TokenPayload, @Body() dto: CreatePairTokenDto) {
-    const jwt = await this.deviceService.generatePairToken(user.userId, dto.deviceName);
-    return ResponseUtil.created({ token: jwt.token, expiresAt: jwt.expiresAt });
   }
 }
