@@ -331,7 +331,9 @@ jobs:
       - name: Get version from package.json (for master branch)
         if: github.ref == 'refs/heads/master'
         id: version
-        run: echo "VERSION=v$(node -p \"require('./apps/electron/package.json').version\")" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=v$(node -p "const pkg = require('./apps/electron/package.json'); process.stdout.write(pkg.version)")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create tag for master branch
         if: github.ref == 'refs/heads/master'
