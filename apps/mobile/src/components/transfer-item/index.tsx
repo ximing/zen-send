@@ -67,6 +67,18 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
     }
   };
 
+  const handleCopyLink = async () => {
+    if (firstItem?.storageType === 's3') {
+      try {
+        const { url } = await apiService.getTransferExternalLink(transfer.id);
+        await Clipboard.setStringAsync(url);
+        showToast('Link copied');
+      } catch (err) {
+        showToast('Failed to copy link');
+      }
+    }
+  };
+
   const handleDownload = () => {
     onDownload?.();
   };
@@ -116,6 +128,11 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
             <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
               <Ionicons name="download-outline" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
+            {firstItem?.storageType === 's3' && (
+              <TouchableOpacity style={styles.actionBtn} onPress={handleCopyLink}>
+                <Ionicons name="link-outline" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
           </>
         )}
       </View>
