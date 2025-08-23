@@ -226,7 +226,7 @@ export class HomeService extends Service {
     file: { name: string; size: number; type?: string; data?: ArrayBuffer }
   ) {
     const TEXT_INLINE_MAX_SIZE = 10 * 1024;
-    const CHUNK_SIZE = 1 * 1024 * 1024;
+    const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB - must match server's S3 multipart minimum
     const startTime = Date.now();
     const speedSamples: number[] = [];
     let lastUpdateTime = startTime;
