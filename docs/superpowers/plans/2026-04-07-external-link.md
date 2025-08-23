@@ -5,7 +5,7 @@
 **Goal:** 为文件消息添加"复制外链"功能，用户点击后可复制 S3 预签名下载地址（6小时有效期）
 
 **Architecture:**
-- 后端：新增公开 API 端点 `/api/transfers/:id/external-link`（无需认证），调用 S3Service 生成 6 小时有效期的预签名 URL
+- 后端：新增需认证的 API 端点 `/api/transfers/:id/external-link`，验证 transfer 属于当前用户，调用 S3Service 生成 6 小时有效期的预签名 URL
 - Web：MessageBubble 添加复制链接按钮，调用新 API 并复制到剪贴板
 - Mobile：TransferItem 添加复制链接按钮，实现逻辑与 Web 一致
 
@@ -25,10 +25,11 @@
 
 ```typescript
 // 新建文件: apps/server/src/controllers/external-link.controller.ts
-import { JsonController, Get, Param, HttpError } from 'routing-controllers';
+import { JsonController, Get, Param, HttpError, CurrentUser, Authorized } from 'routing-controllers';
 import { Service } from 'typedi';
 import { TransferService } from '../services/transfer.service.js';
 import { ResponseUtil } from '../utils/response.js';
+import type { TokenPayload } from '../utils/jwt.js';
 
 @JsonController('/api/transfers')
 @Service()
@@ -36,31 +37,40 @@ export class ExternalLinkController {
   constructor(private transferService: TransferService) {}
 
   @Get('/:id/external-link')
-  async getExternalLink(@Param('id') id: string) {
+  @Authorized()
+  async getExternalLink(@CurrentUser() user: TokenPayload, @Param('id') id: string) {
     try {
-      const { url, expiresAt } = await this.transferService.getExternalLink(id);
+      const { url, expiresAt } = await this.transferService.getExternalLink(id, user.userId);
       return ResponseUtil.success({ url, expiresAt });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to generate external link';
+      if (message.includes('not found') || message.includes('not belong')) {
+        throw new HttpError(404, message);
+      }
       throw new HttpError(400, message);
     }
   }
 }
 ```
 
-**注意**：routing-controllers 会自动合并同 base path 的 controller，所以 `ExternalLinkController` 和 `TransferController` 都用 `/api/transfers` 是可以的，方法级别的路由不会冲突。
+**注意**：使用 `@Authorized()` 要求认证，service 层会验证 transfer 是否属于当前用户。
 
 - [ ] **Step 2: 在 TransferService 添加 getExternalLink 方法**
 
 ```typescript
 // apps/server/src/services/transfer.service.ts 添加方法
-async getExternalLink(sessionId: string): Promise<{ url: string; expiresAt: number }> {
+async getExternalLink(sessionId: string, userId: string): Promise<{ url: string; expiresAt: number }> {
   const session = await this.db.query.transferSessions.findFirst({
     where: eq(transferSessions.id, sessionId),
   });
 
   if (!session) {
     throw new Error('Transfer not found');
+  }
+
+  // 验证 transfer 是否属于当前用户
+  if (session.userId !== userId) {
+    throw new Error('Transfer does not belong to current user');
   }
 
   if (session.status !== 'completed') {
@@ -102,8 +112,8 @@ async getExternalLink(sessionId: string): Promise<{ url: string; expiresAt: numb
 - [ ] **Step 4: 测试 API**
 
 ```bash
-# 启动服务器后测试
-curl http://localhost:3110/api/transfers/{sessionId}/external-link
+# 启动服务器后测试（需要带上 auth token）
+curl -H "Authorization: Bearer <token>" http://localhost:3110/api/transfers/{sessionId}/external-link
 # 预期返回: { success: true, data: { url: "https://...", expiresAt: ... } }
 ```
 
@@ -111,7 +121,7 @@ curl http://localhost:3110/api/transfers/{sessionId}/external-link
 
 ```bash
 git add apps/server/src/controllers/external-link.controller.ts apps/server/src/services/transfer.service.ts
-git commit -m "feat(server): add public external-link API endpoint"
+git commit -m "feat(server): add authenticated external-link API endpoint"
 ```
 
 ---
@@ -225,4 +235,5 @@ git commit -m "feat(mobile): add copy link button to transfer item"
 - [ ] URL 有效期为 6 小时
 - [ ] Web 端点击复制链接按钮后，URL 已复制到剪贴板
 - [ ] Mobile 端点击复制链接按钮后，URL 已复制到剪贴板
-- [ ] 未登录用户也可以访问外链 API
+- [ ] 未登录用户无法访问外链 API（返回 401）
+- [ ] 无法获取其他用户的 transfer 外链（返回 404）
