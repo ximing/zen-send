@@ -22,9 +22,10 @@ export interface InitTransferOutput {
   sessionId: string;
   s3Bucket: string;
   s3Key: string;
+  uploadId: string;
   chunkCount: number;
   chunkSize: number;
-  presignedUrls?: { chunkIndex: number; url: string; s3Key: string }[];
+  presignedUrls?: string[];
 }
 
 export interface TransferSessionInfo {
@@ -75,7 +76,7 @@ export class TransferService {
     const sessionId = generateSessionId();
     const now = Math.floor(Date.now() / 1000);
     const ttlExpiresAt = now + this.s3Service.getTransferTtlDays() * 24 * 60 * 60;
-    const s3Key = `transfers/${sessionId}/`;
+    const s3Key = `transfers/${sessionId}`;
     const contentType = input.contentType || 'application/octet-stream';
     const fileName = input.fileName || 'untitled';
     const TEXT_INLINE_MAX_SIZE = 10 * 1024; // 10KB
@@ -86,16 +87,15 @@ export class TransferService {
                          input.content !== undefined;
 
     let chunkCount = 0;
-    const presignedUrls: { chunkIndex: number; url: string; s3Key: string }[] = [];
+    let uploadId = '';
+    const presignedUrls: string[] = [];
 
     if (!isInlineText) {
-      // S3 上传模式
+      // S3 上传模式 - 使用真正的 multipart upload
       chunkCount = input.chunkCount ?? 0;
-      for (let i = 0; i < chunkCount; i++) {
-        const chunkS3Key = `transfers/${sessionId}/chunk_${i}`;
-        const url = await this.s3Service.getPresignedUploadUrl(chunkS3Key, contentType);
-        presignedUrls.push({ chunkIndex: i, url, s3Key: chunkS3Key });
-      }
+      const multipartResult = await this.s3Service.initMultipartUpload(sessionId, contentType, chunkCount);
+      uploadId = multipartResult.uploadId;
+      presignedUrls.push(...multipartResult.presignedUrls);
     }
 
     await this.db.insert(transferSessions).values({
@@ -106,6 +106,7 @@ export class TransferService {
       status: 'pending',
       s3Bucket: this.s3Service.getBucket(),
       s3Key,
+      uploadId,
       originalFileName: fileName,
       totalSize: input.totalSize,
       chunkCount,
@@ -141,6 +142,7 @@ export class TransferService {
       sessionId,
       s3Bucket: this.s3Service.getBucket(),
       s3Key,
+      uploadId,
       chunkCount,
       chunkSize: this.CHUNK_SIZE,
       presignedUrls,
@@ -191,6 +193,23 @@ export class TransferService {
       );
     }
 
+    // Complete multipart upload - this assembles all parts into a single file in S3
+    if (session.uploadId && session.chunkCount > 0) {
+      // Get all chunk uploads ordered by chunk index
+      const chunks = await this.db
+        .select()
+        .from(chunkUploads)
+        .where(eq(chunkUploads.sessionId, sessionId))
+        .orderBy(chunkUploads.chunkIndex);
+
+      const parts = chunks.map((chunk) => ({
+        partNumber: chunk.chunkIndex + 1, // S3 part numbers are 1-indexed
+        etag: chunk.etag!,
+      }));
+
+      await this.s3Service.completeMultipartUpload(sessionId, session.uploadId, parts);
+    }
+
     await this.db
       .update(transferSessions)
       .set({ status: 'completed', completedAt: now })
@@ -218,12 +237,9 @@ export class TransferService {
       });
     }
 
-    // For single-chunk files, the actual file is at chunk_0, not the directory
-    const s3Key = session.chunkCount === 1
-      ? `transfers/${sessionId}/chunk_0`
-      : session.s3Key;
+    // S3 object key is transfers/${sessionId} (the multipart upload assembles to this key)
     const downloadUrl = await this.s3Service.getPresignedDownloadUrl(
-      s3Key,
+      session.s3Key,
       session.originalFileName
     );
 
@@ -290,10 +306,9 @@ export class TransferService {
 
     const session = sessions[0];
     // For single-chunk files, the actual file is at chunk_0, not the directory
-    // Note: session.s3Key may have trailing slash from init, but actual S3 key doesn't
     const s3Key = session.chunkCount === 1
       ? `transfers/${sessionId}/chunk_0`
-      : session.s3Key.replace(/\/$/, '');
+      : session.s3Key;
     return this.s3Service.getPresignedDownloadUrl(s3Key, session.originalFileName);
   }
 
@@ -419,14 +434,9 @@ export class TransferService {
     const EXTERNAL_LINK_EXPIRY = 6 * 60 * 60;
     const expiresAt = Math.floor(Date.now() / 1000) + EXTERNAL_LINK_EXPIRY;
 
-    // Determine S3 key: single chunk file is transfers/${sessionId}/chunk_0, multi chunk is transfers/${sessionId}
-    // Note: session.s3Key may have trailing slash from init, but actual S3 key doesn't
-    const s3Key = session.chunkCount === 1
-      ? `transfers/${sessionId}/chunk_0`
-      : session.s3Key.replace(/\/$/, '');
-
+    // S3 object key is transfers/${sessionId} (multipart upload stores assembled file here)
     const url = await this.s3Service.getPresignedDownloadUrl(
-      s3Key,
+      session.s3Key,
       session.originalFileName || 'download',
       EXTERNAL_LINK_EXPIRY
     );

@@ -67,6 +67,14 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
     }
   };
 
+  const handleDownload = () => {
+    onDownload?.();
+  };
+
+  const handlePreview = () => {
+    onPreview?.();
+  };
+
   const handleCopyLink = async () => {
     if (firstItem?.storageType === 's3') {
       try {
@@ -77,14 +85,6 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
         showToast('Failed to copy link');
       }
     }
-  };
-
-  const handleDownload = () => {
-    onDownload?.();
-  };
-
-  const handlePreview = () => {
-    onPreview?.();
   };
 
   return (

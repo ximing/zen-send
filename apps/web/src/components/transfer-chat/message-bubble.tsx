@@ -200,9 +200,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
       try {
         const { url } = await apiService.getTransferExternalLink(transfer.id);
         await navigator.clipboard.writeText(url);
-        toastService.show('Link copied, valid for 6 hours', 'success');
+        toastService.show('链接已复制，可在 6 小时内访问', 'success');
       } catch (err) {
         console.error('Failed to copy link:', err);
+        toastService.show('复制链接失败', 'error');
       }
     }, [apiService, transfer.id, toastService]);
 

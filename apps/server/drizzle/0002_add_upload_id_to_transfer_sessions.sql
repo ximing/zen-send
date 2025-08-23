@@ -1,0 +1,1 @@
+ALTER TABLE `transferSessions` ADD `uploadId` varchar(100);
