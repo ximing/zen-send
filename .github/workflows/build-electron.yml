@@ -333,7 +333,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./apps/electron/package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$VERSION-${{ github.run_number }}" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION-pc-${{ github.run_number }}" >> $GITHUB_OUTPUT
 
       - name: 🚀 Create GitHub Release
         env:
