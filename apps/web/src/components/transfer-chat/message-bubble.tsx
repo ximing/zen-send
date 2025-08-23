@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { observer, useService } from '@rabjs/react';
 import { FileText, Pencil, CheckCircle, AlertCircle, Download, Eye, Copy } from 'lucide-react';
 import type { TransferSession, TransferItemType, DeviceType } from '@zen-send/shared';
-import { DeviceTag } from './device-tag';
 import { useTransferBubble } from './hooks/use-transfer-bubble';
 import { HomeService, type UploadingFile } from '../../pages/home/home.service';
 import { ApiService } from '../../services/api.service';
@@ -288,19 +287,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
                       {displayFileName}
                     </div>
                   )}
-                  <div className="flex items-center gap-3 text-xs text-[var(--text-muted)] mt-1">
-                    <span>{formatSize(transfer.totalSize)}</span>
-                    {isCompleted && !isUploading && (
-                      <span className="flex items-center gap-1 text-[var(--color-success)]">
-                        <CheckCircle size={10} /> Done
-                      </span>
-                    )}
-                    {isFailed && (
-                      <span className="flex items-center gap-1 text-[var(--color-error)]">
-                        <AlertCircle size={10} /> Failed
-                      </span>
-                    )}
-                  </div>
 
                   {/* Upload progress bar */}
                   {isUploading && uploadingFile && (
@@ -369,9 +355,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
               </div>
             )}
 
-            {/* Bottom row: Device tag + Time */}
-            <div className="flex items-center justify-between mt-3 pt-2 border-t border-[var(--border-subtle)]/30">
-              <DeviceTag device={device} direction={direction} />
+            {/* Bottom row: Size + Status + Time */}
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[var(--border-subtle)]/30">
+              <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                <span>{formatSize(transfer.totalSize)}</span>
+                {isCompleted && !isUploading && (
+                  <span className="flex items-center gap-1 text-[var(--color-success)]">
+                    <CheckCircle size={10} /> Done
+                  </span>
+                )}
+                {isFailed && (
+                  <span className="flex items-center gap-1 text-[var(--color-error)]">
+                    <AlertCircle size={10} /> Failed
+                  </span>
+                )}
+              </div>
               <span className="text-xs text-[var(--text-muted)]">
                 {formatRelativeTime(transfer.createdAt)}
               </span>

@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { LoginRequest, RegisterRequest } from '@zen-send/dto';
 import type { AuthTokens } from '@zen-send/shared';
+import { ApiService } from './api.service';
 
 const TOKEN_KEY = 'zen_send_tokens';
 const SERVER_URL_KEY = 'zen_send_server_url';

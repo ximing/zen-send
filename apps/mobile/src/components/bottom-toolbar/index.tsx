@@ -27,41 +27,86 @@ function BottomToolbarInner() {
     }
   };
 
-  const handleAddMedia = () => {
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ['取消', '从相册选择', '拍摄照片'],
-        cancelButtonIndex: 0,
-      },
-      async (buttonIndex) => {
-        if (buttonIndex === 1) {
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsMultipleSelection: true,
-          });
-          if (!result.canceled && result.assets && result.assets.length > 0) {
-            const files = result.assets.map((asset) => ({
-              uri: asset.uri,
-              name: asset.uri.split('/').pop() || 'image.jpg',
-              mimeType: 'image/jpeg',
-            }));
-            await homeService.uploadFiles(files);
-          }
-        } else if (buttonIndex === 2) {
-          const result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ['images'],
-          });
-          if (!result.canceled && result.assets && result.assets.length > 0) {
-            const files = result.assets.map((asset) => ({
-              uri: asset.uri,
-              name: asset.uri.split('/').pop() || 'image.jpg',
-              mimeType: 'image/jpeg',
-            }));
-            await homeService.uploadFiles(files);
+  const handleAddMedia = async () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['取消', '从相册选择', '拍摄照片'],
+          cancelButtonIndex: 0,
+        },
+        async (buttonIndex) => {
+          if (buttonIndex === 1) {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ['images'],
+              allowsMultipleSelection: true,
+            });
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              const files = result.assets.map((asset) => ({
+                uri: asset.uri,
+                name: asset.fileName || asset.uri.split('/').pop() || 'image.jpg',
+                mimeType: asset.mimeType || 'image/jpeg',
+              }));
+              await homeService.uploadFiles(files);
+            }
+          } else if (buttonIndex === 2) {
+            const result = await ImagePicker.launchCameraAsync({
+              mediaTypes: ['images'],
+            });
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              const files = result.assets.map((asset) => ({
+                uri: asset.uri,
+                name: asset.fileName || asset.uri.split('/').pop() || 'image.jpg',
+                mimeType: asset.mimeType || 'image/jpeg',
+              }));
+              await homeService.uploadFiles(files);
+            }
           }
         }
-      }
-    );
+      );
+    } else {
+      // Android: use Alert with buttons
+      Alert.alert(
+        '选择图片来源',
+        '',
+        [
+          { text: '取消', style: 'cancel' },
+          {
+            text: '从相册选择',
+            onPress: async () => {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsMultipleSelection: true,
+              });
+              if (!result.canceled && result.assets && result.assets.length > 0) {
+                const files = result.assets.map((asset) => ({
+                  uri: asset.uri,
+                  name: asset.fileName || asset.uri.split('/').pop() || 'image.jpg',
+                  mimeType: asset.mimeType || 'image/jpeg',
+                }));
+                await homeService.uploadFiles(files);
+              }
+            },
+          },
+          {
+            text: '拍摄照片',
+            onPress: async () => {
+              const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ['images'],
+              });
+              if (!result.canceled && result.assets && result.assets.length > 0) {
+                const files = result.assets.map((asset) => ({
+                  uri: asset.uri,
+                  name: asset.fileName || asset.uri.split('/').pop() || 'image.jpg',
+                  mimeType: asset.mimeType || 'image/jpeg',
+                }));
+                await homeService.uploadFiles(files);
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   const handleSendText = async () => {

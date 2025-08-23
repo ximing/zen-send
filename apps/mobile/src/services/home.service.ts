@@ -196,14 +196,14 @@ export class HomeService extends Service {
       this.uploadProgress = [...this.uploadProgress, progressEntry];
 
       try {
-        // Get file info
+        // Get file info using arrayBuffer (React Native fetch doesn't support blob())
         const response = await fetch(doc.uri);
-        const blob = await response.blob();
-        const size = blob.size;
+        const arrayBuffer = await response.arrayBuffer();
+        const size = arrayBuffer.byteLength;
 
         // For files <= 10KB, send as text inline
         if (size <= 10 * 1024) {
-          const content = await blob.text();
+          const content = new TextDecoder().decode(arrayBuffer);
           await apiService.post('/api/transfers/init', {
             type: 'text',
             content,
@@ -231,16 +231,18 @@ export class HomeService extends Service {
 
           // Upload chunks with parallelization and retry
           const chunkSize = initResponse.chunkSize || 1024 * 1024;
-          const chunks: { index: number; blob: Blob }[] = [];
+          const chunks: { index: number; data: ArrayBuffer; size: number }[] = [];
 
           let offset = 0;
           let chunkIndex = 0;
           while (offset < size) {
+            const chunkEnd = Math.min(offset + chunkSize, size);
             chunks.push({
               index: chunkIndex,
-              blob: blob.slice(offset, offset + chunkSize),
+              data: arrayBuffer.slice(offset, chunkEnd),
+              size: chunkEnd - offset,
             });
-            offset += chunkSize;
+            offset = chunkEnd;
             chunkIndex++;
           }
 
@@ -258,7 +260,7 @@ export class HomeService extends Service {
                 try {
                   const response = await fetch(presignedUrl, {
                     method: 'PUT',
-                    body: chunk.blob,
+                    body: chunk.data,
                     signal: abortController.signal,
                   });
 
@@ -292,7 +294,7 @@ export class HomeService extends Service {
                   });
 
                   uploadedChunks[idx] = true;
-                  uploadedBytes += chunk.blob.size;
+                  uploadedBytes += chunk.size;
 
                   // Update progress
                   const elapsed = (Date.now() - startTime) / 1000;
