@@ -1,0 +1,1 @@
+ALTER TABLE `transferSessions` MODIFY COLUMN `uploadId` varchar(500);
