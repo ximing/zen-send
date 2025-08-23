@@ -316,11 +316,8 @@ export class TransferService {
     }
 
     const session = sessions[0];
-    // For single-chunk files, the actual file is at chunk_0, not the directory
-    const s3Key = session.chunkCount === 1
-      ? `transfers/${sessionId}/chunk_0`
-      : session.s3Key;
-    return this.s3Service.getPresignedDownloadUrl(s3Key, session.originalFileName);
+    // Both small files (PutObject) and large files (multipart) end up at transfers/${sessionId}
+    return this.s3Service.getPresignedDownloadUrl(session.s3Key, session.originalFileName);
   }
 
   async addTransferItem(
