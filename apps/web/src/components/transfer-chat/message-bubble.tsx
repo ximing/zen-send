@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { observer, useService } from '@rabjs/react';
-import { FileText, Pencil, CheckCircle, AlertCircle, Download, Eye, Copy } from 'lucide-react';
+import { FileText, Pencil, CheckCircle, AlertCircle, Download, Eye, Copy, Link } from 'lucide-react';
 import type { TransferSession, TransferItemType, DeviceType } from '@zen-send/shared';
 import { useTransferBubble } from './hooks/use-transfer-bubble';
 import { HomeService, type UploadingFile } from '../../pages/home/home.service';
 import { ApiService } from '../../services/api.service';
 import { ThemeService } from '../../services/theme.service';
+import { ToastService } from '../toast/toast.service';
 import iconSprite from '../../assets/icon.png';
 
 const TYPE_ICONS: Record<TransferItemType, React.ReactNode> = {
@@ -194,6 +195,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
       }
     }, [firstItem]);
 
+    const handleCopyLink = useCallback(async () => {
+      try {
+        const { url } = await apiService.getTransferExternalLink(transfer.id);
+        await navigator.clipboard.writeText(url);
+        const toastService = useService(ToastService);
+        toastService.show('Link copied, valid for 6 hours', 'success');
+      } catch (err) {
+        console.error('Failed to copy link:', err);
+      }
+    }, [apiService, transfer.id]);
+
     const getProgress = () => {
       if (uploadingFile) return uploadingFile.progress;
       if (transfer.status === 'completed') return 100;
@@ -348,6 +360,18 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
                             className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
                           />
                         </button>
+                        {firstItem?.storageType === 's3' && (
+                          <button
+                            onClick={handleCopyLink}
+                            className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                            title="Copy Link"
+                          >
+                            <Link
+                              size={16}
+                              className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                            />
+                          </button>
+                        )}
                       </>
                     )}
                   </div>

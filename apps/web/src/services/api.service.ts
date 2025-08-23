@@ -90,6 +90,10 @@ export class ApiService extends Service {
     return this.get<{ downloadUrl: string }>(`/api/transfers/${transferId}/download`).then(res => res.downloadUrl);
   }
 
+  async getTransferExternalLink(transferId: string): Promise<{ url: string; expiresAt: number }> {
+    return this.get<{ url: string; expiresAt: number }>(`/api/transfers/${transferId}/external-link`);
+  }
+
   async getTransferFile(transferId: string): Promise<Blob> {
     const downloadUrl = await this.getTransferDownloadUrl(transferId);
     const response = await fetch(downloadUrl);
