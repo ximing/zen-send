@@ -263,7 +263,7 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
               style={[styles.qrCopyBtn, { backgroundColor: colors.accent }]}
               onPress={handleCopyQRUrl}
             >
-              <Text style={[styles.qrCopyText, { color: colors.bgPrimary }]}>Copy Link</Text>
+              <Text style={[styles.qrCopyText, { color: '#FFFFFF' }]}>Copy Link</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.qrCloseBtn, { backgroundColor: colors.bgElevated }]}
