@@ -134,14 +134,9 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
       </View>
       <View style={styles.actions}>
         {isText ? (
-          <>
-            <TouchableOpacity style={styles.actionBtn} onPress={handleCopy}>
-              <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </>
+          <TouchableOpacity style={styles.actionBtn} onPress={handleCopy}>
+            <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
         ) : (
           <>
             <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
@@ -152,9 +147,6 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
                 <Ionicons name="link-outline" size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={styles.actionBtn} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
           </>
         )}
       </View>
