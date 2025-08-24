@@ -1,8 +1,12 @@
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Sharing from 'expo-sharing';
+import * as IntentLauncher from 'expo-intent-launcher';
+import * as Clipboard from 'expo-clipboard';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { ApiService } from '../../services/api.service';
+import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 import { useState, useEffect } from 'react';
 
@@ -16,6 +20,7 @@ interface PreviewModalProps {
   transfer: TransferSession | null;
   onClose: () => void;
   onDownload: (transfer: TransferSession) => void;
+  onDelete?: (transfer: TransferSession) => void;
 }
 
 function formatSize(bytes: number): string {
@@ -24,7 +29,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps) {
+function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewModalProps) {
   const themeService = useService(ThemeService);
   const apiService = useService(ApiService);
   const colors = themeService.colors;
@@ -78,6 +83,41 @@ function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps)
       setLoadingImage(false);
     }
   }, [isImage, firstItem, transferId, storageType, itemContent, apiService]);
+
+  const handleShare = async () => {
+    if (!transfer) return;
+
+    try {
+      const downloadUrl = await apiService.getTransferDownloadUrl(transfer.id);
+      if (downloadUrl) {
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(downloadUrl);
+        } else {
+          await IntentLauncher.shareAsync(downloadUrl);
+        }
+      }
+    } catch (err) {
+      console.error('[PreviewModal] Share failed:', err);
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDelete && transfer) {
+      onDelete(transfer);
+      onClose();
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!transfer) return;
+    try {
+      const { url } = await apiService.getTransferExternalLink(transfer.id);
+      await Clipboard.setStringAsync(url);
+      showToast('Link copied');
+    } catch (err) {
+      showToast('Failed to copy link');
+    }
+  };
 
   // Early returns AFTER all hooks
   if (!transfer) return null;
@@ -138,19 +178,32 @@ function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps)
 
           <View style={[styles.actions, { borderTopColor: colors.borderSubtle }]}>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.bgElevated }]}
-              onPress={onClose}
+              style={[styles.actionBtn, { backgroundColor: colors.accent }]}
+              onPress={() => onDownload(transfer)}
             >
-              <Text style={[styles.actionText, { color: colors.textPrimary }]}>CLOSE</Text>
+              <Ionicons name="download-outline" size={22} color={colors.bgPrimary} />
             </TouchableOpacity>
-            {!isText && (
-              <TouchableOpacity
-                style={[styles.actionButton, { backgroundColor: colors.accent }]}
-                onPress={() => onDownload(transfer)}
-              >
-                <Text style={[styles.actionText, { color: colors.bgPrimary }]}>DOWNLOAD</Text>
-              </TouchableOpacity>
-            )}
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: '#5856D6' }]}
+              onPress={handleCopyLink}
+            >
+              <Ionicons name="link-outline" size={22} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: '#007AFF' }]}
+              onPress={handleShare}
+            >
+              <Ionicons name="share-outline" size={22} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: '#FF3B30' }]}
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={22} color="white" />
+            </TouchableOpacity>
           </View>
         </View>
       </TouchableOpacity>
@@ -223,9 +276,16 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'space-around',
     padding: 16,
     borderTopWidth: 1,
+  },
+  actionBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actionButton: {
     flex: 1,
