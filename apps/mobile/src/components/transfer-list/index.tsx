@@ -9,10 +9,9 @@ import type { TransferSession } from '@zen-send/shared';
 interface TransferListProps {
   onItemPress: (transfer: TransferSession) => void;
   onDownload: (transfer: TransferSession) => void;
-  onPreview: (transfer: TransferSession) => void;
 }
 
-function TransferListInner({ onItemPress, onDownload, onPreview }: TransferListProps) {
+function TransferListInner({ onItemPress, onDownload }: TransferListProps) {
   const themeService = useService(ThemeService);
   const homeService = useService(HomeService);
   const colors = themeService.colors;
@@ -22,7 +21,6 @@ function TransferListInner({ onItemPress, onDownload, onPreview }: TransferListP
       transfer={item}
       onPress={() => onItemPress(item)}
       onDownload={() => onDownload(item)}
-      onPreview={() => onPreview(item)}
     />
   );
 

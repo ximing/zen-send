@@ -80,7 +80,6 @@ function HomeContentInner() {
         <TransferList
           onItemPress={setPreviewTransfer}
           onDownload={(t) => handleDownload(t)}
-          onPreview={setPreviewTransfer}
         />
         <BottomToolbar />
         <PreviewModal

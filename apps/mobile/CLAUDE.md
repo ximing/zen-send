@@ -88,6 +88,36 @@ export class HomeService extends Service {
 
 **核心原则**：所有页面共享同一个全局 Service 实例，状态在任何地方修改都会同步更新。
 
+### 7. Toast 规范
+
+**必须使用全局 Toast**，禁止在组件内部创建局部 Toast 状态：
+
+```typescript
+// ✅ 正确：使用全局 showToast
+import { showToast } from '../components/toast';
+
+const handleCopy = async () => {
+  await Clipboard.setStringAsync(url);
+  showToast('Link copied');
+};
+
+// ❌ 错误：组件内部维护 toast 状态
+const [toastMessage, setToastMessage] = useState<string | null>(null);
+const showToast = (msg: string) => {
+  setToastMessage(msg);
+  setTimeout(() => setToastMessage(null), 2000);
+};
+```
+
+**原因**：
+- 全局 Toast 使用 Modal 渲染，可以正确显示在所有其他 Modal 之上
+- 局部 Toast 在 Modal 内部会被遮罩层覆盖
+- 统一管理，避免重复代码
+
+**使用位置**：
+- `app/_layout.tsx` 中渲染 `<ToastInner />`
+- 其他地方只导入 `showToast` 函数调用
+
 ### 6. API 类型定义
 
 `ApiService` 已自动提取 `data` 包装层，类型写真实结构：
