@@ -9,6 +9,7 @@ import { ApiService } from '../../services/api.service';
 import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 import { useState, useEffect } from 'react';
+import QRCode from 'react-native-qrcode';
 
 // Check if mime type is an image
 const isImageMimeType = (mimeType: string | null): boolean => {
@@ -140,13 +141,6 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
     setShowQRModal(false);
   };
 
-  const handleCopyQRUrl = async () => {
-    if (qrDataUrl) {
-      await Clipboard.setStringAsync(qrDataUrl);
-      showToast('Link copied');
-    }
-  };
-
   // Early returns AFTER all hooks
   if (!transfer) return null;
   if (!firstItem) return null;
@@ -249,22 +243,23 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
         </View>
       </TouchableOpacity>
 
-      {/* QR Code Modal - Shows download URL */}
+      {/* QR Code Modal - Shows download QR code */}
       <Modal visible={showQRModal} transparent animationType="fade" onRequestClose={handleCloseQR}>
         <TouchableOpacity style={styles.qrOverlay} activeOpacity={1} onPress={handleCloseQR}>
           <View style={[styles.qrContainer, { backgroundColor: colors.bgSurface }]}>
-            <Text style={[styles.qrTitle, { color: colors.textPrimary }]}>Download Link</Text>
+            <Text style={[styles.qrTitle, { color: colors.textPrimary }]}>Download QR Code</Text>
             <View style={styles.qrCodeWrapper}>
-              <Text style={[styles.qrUrlText, { color: colors.textSecondary }]} numberOfLines={3}>
-                {qrDataUrl}
-              </Text>
+              {qrDataUrl ? (
+                <QRCode
+                  value={qrDataUrl}
+                  size={200}
+                  bgColor="#FFFFFF"
+                  fgColor="#000000"
+                />
+              ) : (
+                <ActivityIndicator color={colors.accent} />
+              )}
             </View>
-            <TouchableOpacity
-              style={[styles.qrCopyBtn, { backgroundColor: colors.accent }]}
-              onPress={handleCopyQRUrl}
-            >
-              <Text style={[styles.qrCopyText, { color: '#FFFFFF' }]}>Copy Link</Text>
-            </TouchableOpacity>
             <TouchableOpacity
               style={[styles.qrCloseBtn, { backgroundColor: colors.bgElevated }]}
               onPress={handleCloseQR}
@@ -385,23 +380,8 @@ const styles = StyleSheet.create({
   },
   qrCodeWrapper: {
     padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    maxWidth: '100%',
-  },
-  qrUrlText: {
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  qrCopyBtn: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 10,
-  },
-  qrCopyText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   qrCloseBtn: {
     marginTop: 12,

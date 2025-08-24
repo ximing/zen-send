@@ -36,6 +36,7 @@
     "react": "19.2.0",
     "react-native": "0.83.4",
     "react-native-gesture-handler": "~2.31.0",
+    "react-native-qrcode": "^0.2.7",
     "react-native-qrcode-svg": "^6.3.21",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-svg": "~15.8.0",
