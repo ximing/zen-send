@@ -9,6 +9,7 @@ import { ApiService } from '../../services/api.service';
 import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 import { useState, useEffect } from 'react';
+import QRCode from 'react-native-qrcode-svg';
 
 // Check if mime type is an image
 const isImageMimeType = (mimeType: string | null): boolean => {
@@ -35,6 +36,8 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
   const colors = themeService.colors;
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
 
   // Derive values from transfer (safe even if transfer is null)
   const firstItem = transfer?.items?.[0] ?? null;
@@ -119,6 +122,22 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
     }
   };
 
+  const handleShowQR = async () => {
+    if (!transfer) return;
+    try {
+      const url = await apiService.getTransferDownloadUrl(transfer.id);
+      setQrUrl(url);
+      setShowQRModal(true);
+    } catch (err) {
+      showToast('Failed to get download URL');
+    }
+  };
+
+  const handleCloseQR = () => {
+    setShowQRModal(false);
+    setQrUrl(null);
+  };
+
   // Early returns AFTER all hooks
   if (!transfer) return null;
   if (!firstItem) return null;
@@ -193,6 +212,13 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
 
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
+              onPress={handleShowQR}
+            >
+              <Ionicons name="qr-outline" size={22} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
               onPress={handleShare}
             >
               <Ionicons name="share-outline" size={22} color={colors.textSecondary} />
@@ -207,6 +233,31 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
           </View>
         </View>
       </TouchableOpacity>
+
+      {/* QR Code Modal */}
+      <Modal visible={showQRModal} transparent animationType="fade" onRequestClose={handleCloseQR}>
+        <TouchableOpacity style={styles.qrOverlay} activeOpacity={1} onPress={handleCloseQR}>
+          <View style={[styles.qrContainer, { backgroundColor: colors.bgSurface }]}>
+            <Text style={[styles.qrTitle, { color: colors.textPrimary }]}>Download QR Code</Text>
+            <View style={styles.qrCodeWrapper}>
+              {qrUrl && (
+                <QRCode
+                  value={qrUrl}
+                  size={200}
+                  color={colors.textPrimary}
+                  backgroundColor={colors.bgSurface}
+                />
+              )}
+            </View>
+            <TouchableOpacity
+              style={[styles.qrCloseBtn, { backgroundColor: colors.bgElevated }]}
+              onPress={handleCloseQR}
+            >
+              <Text style={[styles.qrCloseText, { color: colors.textPrimary }]}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </Modal>
   );
 }
@@ -297,6 +348,38 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 13,
+    fontWeight: '500',
+  },
+  qrOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qrContainer: {
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    minWidth: 280,
+  },
+  qrTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 20,
+  },
+  qrCodeWrapper: {
+    padding: 16,
+    backgroundColor: 'white',
+    borderRadius: 12,
+  },
+  qrCloseBtn: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  qrCloseText: {
+    fontSize: 14,
     fontWeight: '500',
   },
 });
