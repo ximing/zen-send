@@ -125,13 +125,19 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
   const handleShowQR = async () => {
     if (!transfer) return;
     try {
+      console.log('[PreviewModal] handleShowQR called, transfer.id:', transfer.id);
       const url = await apiService.getTransferDownloadUrl(transfer.id);
+      console.log('[PreviewModal] got url:', url ? url.substring(0, 50) : 'null');
       if (url) {
         const dataUrl = await QRCode.toDataURL(url, { width: 280, margin: 2 });
+        console.log('[PreviewModal] generated QR dataUrl length:', dataUrl.length);
         setQrDataUrl(dataUrl);
         setShowQRModal(true);
+      } else {
+        showToast('No download URL available');
       }
     } catch (err) {
+      console.error('[PreviewModal] QR error:', err);
       showToast('Failed to generate QR code');
     }
   };
@@ -199,32 +205,38 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
           </ScrollView>
 
           <View style={[styles.actions, { borderTopColor: colors.borderSubtle }]}>
-            <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
-              onPress={() => onDownload(transfer)}
-            >
-              <Ionicons name="download-outline" size={22} color={colors.accent} />
-            </TouchableOpacity>
+            {!isText && (
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
+                onPress={() => onDownload(transfer)}
+              >
+                <Ionicons name="download-outline" size={22} color={colors.accent} />
+              </TouchableOpacity>
+            )}
+
+            {!isText && firstItem?.storageType === 's3' && (
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
+                onPress={handleShowQR}
+              >
+                <Ionicons name="qr-code-outline" size={22} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+
+            {!isText && (
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
+                onPress={handleShare}
+              >
+                <Ionicons name="share-outline" size={22} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
               onPress={handleCopyLink}
             >
               <Ionicons name="link-outline" size={22} color={colors.textSecondary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
-              onPress={handleShowQR}
-            >
-              <Ionicons name="qr-code-outline" size={22} color={colors.textSecondary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
-              onPress={handleShare}
-            >
-              <Ionicons name="share-outline" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
 
             <TouchableOpacity
