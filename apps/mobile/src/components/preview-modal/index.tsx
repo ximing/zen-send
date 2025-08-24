@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   },
   qrCodeWrapper: {
     padding: 16,
-    backgroundColor: colors.bgElevated,
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     maxWidth: '100%',
   },
