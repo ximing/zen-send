@@ -1,10 +1,11 @@
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { observer } from '@rabjs/react';
 import { useService } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { ApiService } from '../../services/api.service';
+import { HomeService } from '../../services/home.service';
 import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 import { useState, useEffect } from 'react';
@@ -25,6 +26,7 @@ interface TransferItemProps {
 function TransferItemInner({ transfer, onPress, onDownload, onPreview }: TransferItemProps) {
   const themeService = useService(ThemeService);
   const apiService = useService(ApiService);
+  const homeService = useService(HomeService);
   const colors = themeService.colors;
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
 
@@ -87,6 +89,28 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
     }
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Transfer',
+      'Are you sure you want to delete this?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await homeService.deleteTransfer(transfer.id);
+              showToast('Deleted');
+            } catch (err) {
+              showToast('Failed to delete');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <TouchableOpacity
       style={[styles.container, { backgroundColor: colors.bgSurface }]}
@@ -117,9 +141,14 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
       </View>
       <View style={styles.actions}>
         {isText ? (
-          <TouchableOpacity style={styles.actionBtn} onPress={handleCopy}>
-            <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleCopy}>
+              <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleDelete}>
+              <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </>
         ) : (
           <>
             <TouchableOpacity style={styles.actionBtn} onPress={handlePreview}>
@@ -133,6 +162,9 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
                 <Ionicons name="link-outline" size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
+            <TouchableOpacity style={styles.actionBtn} onPress={handleDelete}>
+              <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
           </>
         )}
       </View>

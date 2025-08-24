@@ -196,10 +196,31 @@ export class HomeService extends Service {
       this.uploadProgress = [...this.uploadProgress, progressEntry];
 
       try {
-        // Get file info using arrayBuffer (React Native fetch doesn't support blob())
-        const response = await fetch(doc.uri);
-        const arrayBuffer = await response.arrayBuffer();
-        const size = arrayBuffer.byteLength;
+        // Get file info - use FileSystem for local file URIs
+        console.log('[Upload] Step 1: Reading file from uri:', doc.uri);
+        let size = 0;
+        let arrayBuffer: ArrayBuffer;
+
+        if (doc.uri.startsWith('file://')) {
+          // Use expo-file-system to read local files
+          const base64 = await FileSystem.readAsStringAsync(doc.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          // Convert base64 to ArrayBuffer
+          const binaryString = atob(base64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          arrayBuffer = bytes.buffer;
+          size = arrayBuffer.byteLength;
+        } else {
+          // Fallback to fetch for http/https URIs
+          const response = await fetch(doc.uri);
+          arrayBuffer = await response.arrayBuffer();
+          size = arrayBuffer.byteLength;
+        }
+        console.log('[Upload] Step 2: File read, size:', size);
 
         // For files <= 10KB, send as text inline
         if (size <= 10 * 1024) {
@@ -216,6 +237,8 @@ export class HomeService extends Service {
           await this.refresh();
         } else {
           // Initialize transfer for S3 upload
+          console.log('[Upload] Step 3: Starting S3 upload for file, size > 10KB');
+          console.log('[Upload] Starting upload for:', doc.name, 'size:', size);
           const initResponse = await apiService.post<{
             sessionId: string;
             presignedUrls: string[];
@@ -228,6 +251,12 @@ export class HomeService extends Service {
             chunkCount: Math.ceil(size / (1024 * 1024)),
             sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
           });
+          console.log('[Upload] Init response:', JSON.stringify({
+            sessionId: initResponse.sessionId,
+            presignedUrlsCount: initResponse.presignedUrls?.length,
+            presignedUrlsFirst: initResponse.presignedUrls?.[0]?.substring(0, 100),
+            chunkSize: initResponse.chunkSize,
+          }));
 
           // Upload chunks with parallelization and retry
           const chunkSize = initResponse.chunkSize || 1024 * 1024;
@@ -256,13 +285,67 @@ export class HomeService extends Service {
             chunks.map(async (chunk, idx) => {
               let attempts = 0;
               let presignedUrl = initResponse.presignedUrls[idx];
+              console.log('[Upload] Chunk', idx, '- presignedUrl:', presignedUrl ? presignedUrl.substring(0, 80) + '...' : 'UNDEFINED', 'chunk size:', chunk.size);
               while (attempts < MAX_RETRIES && !uploadedChunks[idx]) {
                 try {
-                  const response = await fetch(presignedUrl, {
+                  console.log('[Upload] Chunk', idx, 'attempt', attempts + 1, '- starting upload to S3 via XHR');
+
+                  // Helper: XHR PUT promise
+                  const xhrPut = (url: string, data: ArrayBuffer, timeoutMs = 30000): Promise<XMLHttpRequest> => {
+                    return new Promise((resolve, reject) => {
+                      const xhr = new XMLHttpRequest();
+                      xhr.open('PUT', url, true);
+                      xhr.timeout = timeoutMs;
+                      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+                      xhr.onload = () => {
+                        console.log('[Upload] Chunk', idx, 'XHR load - status:', xhr.status, 'readyState:', xhr.readyState);
+                        resolve(xhr);
+                      };
+                      xhr.onerror = () => {
+                        console.log('[Upload] Chunk', idx, 'XHR error - statusText:', xhr.statusText, 'readyState:', xhr.readyState);
+                        reject(new Error(`XHR error: ${xhr.statusText}`));
+                      };
+                      xhr.ontimeout = () => {
+                        console.log('[Upload] Chunk', idx, 'XHR timeout');
+                        reject(new Error('XHR timeout'));
+                      };
+                      // Handle abort
+                      if (abortController.signal) {
+                        abortController.signal.addEventListener('abort', () => {
+                          xhr.abort();
+                          reject(new Error('Abort'));
+                        });
+                      }
+                      console.log('[Upload] Chunk', idx, 'sending XHR, data size:', data.byteLength);
+                      xhr.send(data);
+                    });
+                  };
+
+                  console.log('[Upload] Chunk', idx, 'full URL:', presignedUrl);
+                  console.log('[Upload] Chunk', idx, 'request details:', JSON.stringify({
                     method: 'PUT',
-                    body: chunk.data,
-                    signal: abortController.signal,
-                  });
+                    bodySize: chunk.data.byteLength,
+                    hasSignal: !!abortController.signal,
+                  }));
+
+                  const xhrResult = await xhrPut(presignedUrl, chunk.data);
+                  const response = {
+                    ok: xhrResult.status >= 200 && xhrResult.status < 300,
+                    status: xhrResult.status,
+                    text: () => Promise.resolve(xhrResult.responseText || ''),
+                  };
+                  console.log('[Upload] Chunk', idx, 'response status:', response.status, 'ok:', response.ok);
+
+                  // Log response body for error statuses
+                  if (!response.ok) {
+                    let errorBody = '';
+                    try {
+                      errorBody = await response.text();
+                    } catch {
+                      errorBody = '(could not read response body)';
+                    }
+                    console.log('[Upload] Chunk', idx, 'error response body:', errorBody.substring(0, 500));
+                  }
 
                   // Re-request presigned URLs on 403/401
                   if (response.status === 403 || response.status === 401) {
@@ -305,12 +388,24 @@ export class HomeService extends Service {
 
                   this.updateProgress(sessionId, progress, speed, eta, 'uploading');
                 } catch (err) {
-                  if (err instanceof Error && err.name === 'AbortError') {
+                  const error = err instanceof Error ? err : new Error(String(err));
+                  const errorDetails = {
+                    name: error.name,
+                    message: error.message,
+                    cause: error.cause ? (error.cause instanceof Error ? { name: error.cause.name, message: error.cause.message } : String(error.cause)) : undefined,
+                    stack: error.stack,
+                    url: presignedUrl?.substring(0, 200),
+                    chunkIndex: idx,
+                    attempt: attempts + 1,
+                  };
+                  console.log('[Upload] Chunk', idx, 'error details:', JSON.stringify(errorDetails, null, 2));
+                  console.error('[Upload] Chunk', idx, 'error:', error);
+                  if (error.name === 'AbortError' || error.message === 'Abort') {
                     throw err;
                   }
                   attempts++;
                   if (attempts >= MAX_RETRIES) {
-                    const err = new Error(`Chunk ${idx} failed after ${MAX_RETRIES} retries`);
+                    const err = new Error(`Chunk ${idx} failed after ${MAX_RETRIES} retries: ${error.message}`);
                     err.name = 'AbortError';
                     throw err;
                   }
@@ -332,7 +427,7 @@ export class HomeService extends Service {
           this.updateProgress(sessionId, 0, 0, 0, 'cancelled');
         } else {
           this.updateProgress(sessionId, 0, 0, 0, 'failed');
-          console.error('Upload error:', err);
+          console.error('Upload error:', err instanceof Error ? err.message : String(err), err);
         }
       } finally {
         this.abortControllers.delete(sessionId);

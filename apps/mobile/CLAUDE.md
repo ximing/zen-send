@@ -154,3 +154,33 @@ import { Ionicons } from '@expo/vector-icons';
 | 边框弱色 | `#EDEBE7` |
 | 点缀色 | `#8B9A7D` |
 | 点缀色软 | `#8B9A7D20` (12% 透明度) |
+
+## Troubleshooting
+
+### iOS 模拟器启动失败 (Invalid device)
+
+**症状**：
+```
+Error: xcrun simctl boot <UDID> exited with non-zero code: 148
+Invalid device or device pair: <UDID>
+```
+
+**原因**：`~/Library/Developer/CoreSimulator/Devices/device_set.plist` 中注册了已删除的模拟器。
+
+**修复步骤**：
+
+1. 查看 plist 内容：
+   ```bash
+   plutil -p ~/Library/Developer/CoreSimulator/Devices/device_set.plist
+   ```
+
+2. 删除失效的模拟器条目：
+   ```bash
+   # 例如删除 iOS-17-5 下的 iPhone-SE-3rd-generation
+   /usr/libexec/PlistBuddy -c "Delete :DefaultDevices:com.apple.CoreSimulator.SimRuntime.iOS-17-5:com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation" ~/Library/Developer/CoreSimulator/Devices/device_set.plist
+   ```
+
+3. 重启 Expo 开发服务器：
+   ```bash
+   pnpm --filter @zen-send/mobile dev
+   ```

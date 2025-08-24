@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { observer, useService } from '@rabjs/react';
-import { FileText, Pencil, CheckCircle, AlertCircle, Download, Eye, Copy, Link } from 'lucide-react';
+import { FileText, Pencil, CheckCircle, AlertCircle, Download, Eye, Copy, Link, Trash2 } from 'lucide-react';
 import type { TransferSession, TransferItemType, DeviceType } from '@zen-send/shared';
 import { useTransferBubble } from './hooks/use-transfer-bubble';
 import { HomeService, type UploadingFile } from '../../pages/home/home.service';
@@ -207,6 +207,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
       }
     }, [apiService, transfer.id, toastService]);
 
+    const handleDelete = useCallback(async () => {
+      if (!confirm('确定要删除这条消息吗？')) return;
+      try {
+        await apiService.deleteTransfer(transfer.id);
+        toastService.show('已删除', 'success');
+      } catch (err) {
+        console.error('Failed to delete:', err);
+        toastService.show('删除失败', 'error');
+      }
+    }, [apiService, transfer.id, toastService]);
+
     const getProgress = () => {
       if (uploadingFile) return uploadingFile.progress;
       if (transfer.status === 'completed') return 100;
@@ -249,11 +260,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
           >
             {/* Image message - full width, no gap */}
             {imageUrl && itemType !== 'text' && isImageType(effectiveContentType) ? (
-              <div className="w-full -mx-4">
+              <div className="w-full -mx-4 flex justify-center">
                 <img
                   src={imageUrl}
                   alt={transfer.originalFileName}
-                  className="w-full max-h-[300px] rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                  className="max-w-full max-h-[300px] rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity"
                   onClick={handlePreview}
                 />
               </div>
@@ -329,16 +340,28 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
                 {(isHovered || isCompleted) && !isUploading && !isPending && !isExpired && (
                   <div className={`flex gap-2 flex-shrink-0 ${isSent ? 'order-1' : 'order-3'}`}>
                     {itemType === 'text' ? (
-                      <button
-                        onClick={handleCopyText}
-                        className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-                        title="Copy"
-                      >
-                        <Copy
-                          size={16}
-                          className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
-                        />
-                      </button>
+                      <>
+                        <button
+                          onClick={handleCopyText}
+                          className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                          title="Copy"
+                        >
+                          <Copy
+                            size={16}
+                            className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                          />
+                        </button>
+                        <button
+                          onClick={handleDelete}
+                          className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2
+                            size={16}
+                            className="text-[var(--text-secondary)] hover:text-[var(--color-error)]"
+                          />
+                        </button>
+                      </>
                     ) : (
                       <>
                         <button
@@ -373,6 +396,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
                             />
                           </button>
                         )}
+                        <button
+                          onClick={handleDelete}
+                          className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2
+                            size={16}
+                            className="text-[var(--text-secondary)] hover:text-[var(--color-error)]"
+                          />
+                        </button>
                       </>
                     )}
                   </div>
