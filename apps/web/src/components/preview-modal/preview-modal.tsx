@@ -34,13 +34,16 @@ const PreviewModal = observer(() => {
     }
 
     let revoked = false;
-    apiService.getTransferFile(transfer.id).then((blob) => {
-      if (revoked) return;
-      const url = URL.createObjectURL(blob);
-      setImageUrl(url);
-    }).catch(() => {
-      if (!revoked) setImageUrl(null);
-    });
+    apiService
+      .getTransferFile(transfer.id)
+      .then((blob) => {
+        if (revoked) return;
+        const url = URL.createObjectURL(blob);
+        setImageUrl(url);
+      })
+      .catch(() => {
+        if (!revoked) setImageUrl(null);
+      });
 
     return () => {
       revoked = true;
@@ -55,11 +58,14 @@ const PreviewModal = observer(() => {
     homeService.setPreviewTransfer(null);
   }, [homeService]);
 
-  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.currentTarget === e.target) {
-      handleClose();
-    }
-  }, [handleClose]);
+  const handleBackdropClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.currentTarget === e.target) {
+        handleClose();
+      }
+    },
+    [handleClose]
+  );
 
   const handleDownload = useCallback(async () => {
     if (!transfer) return;

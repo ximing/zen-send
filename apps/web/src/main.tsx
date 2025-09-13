@@ -12,6 +12,7 @@ import { SocketService } from './services/socket.service';
 import { ConfigService } from './services/config.service';
 import { DeviceService } from './services/device.service';
 import { ToastService } from './components/toast/toast.service';
+import { HomeService } from './pages/home/home.service';
 
 // Register global Services
 register(ApiService);
@@ -21,6 +22,7 @@ register(SocketService);
 register(ConfigService);
 register(DeviceService);
 register(ToastService);
+register(HomeService);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

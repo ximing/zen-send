@@ -9,6 +9,8 @@ import RegisterPage from './pages/register';
 import SetupPage from './pages/setup';
 import DevicesPage from './pages/devices';
 import SettingsPage from './pages/settings';
+import SearchPage from './pages/search';
+import DownloadsPage from './pages/downloads';
 
 // Root redirect - checks auth before rendering HomePage
 function RootRoute() {
@@ -21,6 +23,8 @@ function RootRoute() {
 
 const routeConfig = [
   { path: '/', element: <RootRoute /> },
+  { path: '/search', element: <SearchPage /> },
+  { path: '/downloads', element: <DownloadsPage /> },
   { path: '/devices', element: <DevicesPage /> },
   { path: '/settings', element: <SettingsPage /> },
   { path: '/login', element: <LoginPage /> },

@@ -1,22 +1,25 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { observer, useService, bindServices } from '@rabjs/react';
+import { observer, useService } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
+import { Upload } from 'lucide-react';
 import { HomeService } from './home.service';
 import { AuthService } from '../../services/auth.service';
-import { SendToolbarService } from './send-toolbar.service';
 import { SocketService } from '../../services/socket.service';
-import TransferChat from '../../components/transfer-chat';
-import Sidebar from '../../components/sidebar';
+import Header from '../../components/header';
+import Drawer from '../../components/drawer';
+import FilterTabs from '../../components/filter-tabs';
+import TransferList from '../../components/transfer-list';
+import SelectedFiles from '../../components/selected-files';
+import BottomToolbar from '../../components/bottom-toolbar';
 import Toast from '../../components/toast';
-import { Upload } from 'lucide-react';
 import { getMimeTypeFromExtension } from '../../lib/zen-bridge';
 
 const HomeContent = observer(() => {
-  const service = useService(HomeService);
+  const homeService = useService(HomeService);
   const authService = useService(AuthService);
-  const sendToolbarService = useService(SendToolbarService);
   const socketService = useService(SocketService);
   const navigate = useNavigate();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   if (!authService.isAuthenticated) {
@@ -25,9 +28,9 @@ const HomeContent = observer(() => {
   }
 
   useEffect(() => {
-    service.loadTransfers();
+    homeService.loadTransfers();
     socketService.connect();
-  }, [service, socketService]);
+  }, [homeService, socketService]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -49,7 +52,6 @@ const HomeContent = observer(() => {
 
       const files: { name: string; size: number; type?: string; data?: ArrayBuffer }[] = [];
       const items = e.dataTransfer.items;
-
       const MAX_DEPTH = 10;
 
       const processEntry = async (entry: FileSystemEntry, depth: number): Promise<void> => {
@@ -64,22 +66,14 @@ const HomeContent = observer(() => {
           if (file.name.startsWith('.')) return;
 
           const buffer = await file.arrayBuffer();
-          // Fallback to inferring type from extension if file.type is empty
           const type = file.type || getMimeTypeFromExtension(file.name);
-          files.push({
-            name: file.name,
-            size: file.size,
-            type,
-            data: buffer,
-          });
+          files.push({ name: file.name, size: file.size, type, data: buffer });
         } else if (entry.isDirectory) {
           const dirEntry = entry as FileSystemDirectoryEntry;
           const reader = dirEntry.createReader();
-
           const entries = await new Promise<FileSystemEntry[]>((resolve, reject) => {
             reader.readEntries(resolve, reject);
           });
-
           for (const childEntry of entries) {
             await processEntry(childEntry, depth + 1);
           }
@@ -94,54 +88,39 @@ const HomeContent = observer(() => {
           const file = item.getAsFile();
           if (file && !file.name.startsWith('.')) {
             const buffer = await file.arrayBuffer();
-            // Fallback to inferring type from extension if file.type is empty
             const type = file.type || getMimeTypeFromExtension(file.name);
-            files.push({
-              name: file.name,
-              size: file.size,
-              type,
-              data: buffer,
-            });
+            files.push({ name: file.name, size: file.size, type, data: buffer });
           }
         }
       }
 
       if (files.length > 0) {
-        service.addFiles(files);
+        homeService.addFiles(files);
+        homeService.uploadFiles();
       }
     },
-    [service]
+    [homeService]
   );
 
   return (
     <div
-      className={`h-screen bg-[var(--bg-primary)] flex overflow-hidden ${isDragging ? 'ring-2 ring-[var(--primary)] ring-inset' : ''}`}
+      className={`h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden
+        ${isDragging ? 'ring-2 ring-[var(--accent)] ring-inset' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <Sidebar />
+      <Header onMenuPress={() => setDrawerOpen(true)} onSearchPress={() => navigate('/search')} />
 
-      <main className="flex-1 ml-16 px-2 py-2 flex flex-col min-h-0 overflow-hidden">
-        <div className="w-full flex flex-col flex-1 min-h-0 overflow-hidden">
-          <TransferChat />
+      <SelectedFiles />
+      <FilterTabs />
+      <TransferList />
+      <BottomToolbar />
 
-          {service.selectedFiles.length > 0 && (
-            <div className="shrink-0 pt-2">
-              <button
-                onClick={() => sendToolbarService.sendFiles()}
-                className="w-full py-3 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-xl
-                         font-medium tracking-wider hover:bg-[var(--primary-hover)] transition-colors"
-              >
-                SEND
-              </button>
-            </div>
-          )}
-        </div>
-      </main>
+      <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       {isDragging && (
-        <div className="fixed inset-0 bg-[var(--primary)]/10 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[var(--bg-primary)]/80 flex items-center justify-center z-50">
           <div className="rounded-2xl p-16 text-center bg-[var(--bg-surface)]">
             <Upload size={64} className="text-[var(--accent)] mx-auto mb-4" />
             <p className="text-xl text-[var(--text-primary)] font-medium">Release to upload</p>
@@ -154,4 +133,4 @@ const HomeContent = observer(() => {
   );
 });
 
-export default bindServices(HomeContent, [HomeService, SendToolbarService]);
+export default HomeContent;

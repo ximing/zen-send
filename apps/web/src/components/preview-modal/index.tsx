@@ -101,14 +101,11 @@ const PreviewModalComponent = observer(() => {
   );
 
   // Zoom handlers
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -0.1 : 0.1;
-      setScale((s) => Math.min(Math.max(s + delta, 0.5), 4));
-    },
-    []
-  );
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale((s) => Math.min(Math.max(s + delta, 0.5), 4));
+  }, []);
 
   // Pan handlers
   const handleMouseDown = useCallback(
@@ -276,9 +273,7 @@ const PreviewModalComponent = observer(() => {
         {/* Footer with scale indicator for images */}
         {canPreviewImage && (
           <div className="px-4 py-2 text-center">
-            <span className="text-xs text-[var(--text-muted)]">
-              {Math.round(scale * 100)}%
-            </span>
+            <span className="text-xs text-[var(--text-muted)]">{Math.round(scale * 100)}%</span>
           </div>
         )}
       </div>

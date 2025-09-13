@@ -87,7 +87,9 @@ export class ApiService extends Service {
   }
 
   async getTransferDownloadUrl(transferId: string): Promise<string> {
-    return this.get<{ downloadUrl: string }>(`/api/transfers/${transferId}/download`).then(res => res.downloadUrl);
+    return this.get<{ downloadUrl: string }>(`/api/transfers/${transferId}/download`).then(
+      (res) => res.downloadUrl
+    );
   }
 
   async getTransferFile(transferId: string): Promise<Blob> {
@@ -98,6 +100,8 @@ export class ApiService extends Service {
   }
 
   async getTransferExternalLink(transferId: string): Promise<{ url: string; expiresAt: number }> {
-    return this.get<{ url: string; expiresAt: number }>(`/api/transfers/${transferId}/external-link`);
+    return this.get<{ url: string; expiresAt: number }>(
+      `/api/transfers/${transferId}/external-link`
+    );
   }
 }
