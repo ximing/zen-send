@@ -92,6 +92,14 @@ const { transfers } = await this.apiService.get<{ transfers: TransferSession[] }
 const { transfers } = await this.apiService.get<{ data: { transfers: [...] } }>(...);
 ```
 
+## Web-Specific
+
+- **Tailwind CSS v4**: Uses `@tailwindcss/postcss` plugin with PostCSS
+- **Theme Tokens**: Design tokens in `src/theme/tokens.ts` are applied as CSS variables on `:root`
+- **Dark Mode**: Controlled via `dark` class on `<html>` element
+- **@rabjs/react**: Service-based state management using observer/view patterns with dependency injection
+- **Web build output**: `apps/server/public/` (served by Express in production)
+
 ## 目录结构
 
 ```
