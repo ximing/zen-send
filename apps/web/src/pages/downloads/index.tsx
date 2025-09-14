@@ -2,7 +2,7 @@ import React from 'react';
 import { observer, useService } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, CheckCircle, AlertCircle, Download, Share2, X } from 'lucide-react';
-import { HomeService, type UploadingFile } from '../home/home.service';
+import { HomeService } from '../home/home.service';
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -28,7 +28,7 @@ function DownloadsPage() {
   };
 
   return (
-    <div className="h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center px-2 py-2 shrink-0 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]">
         <button
