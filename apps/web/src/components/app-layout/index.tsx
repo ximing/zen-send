@@ -1,0 +1,53 @@
+import React, { useState, useEffect } from 'react';
+import { Outlet, useNavigate, Navigate } from 'react-router-dom';
+import { observer, useService } from '@rabjs/react';
+import { useIsWide } from '../../hooks/use-is-wide';
+import { AuthService } from '../../services/auth.service';
+import Sidebar from '../sidebar';
+import Drawer from '../drawer';
+import Header from '../header';
+
+function AppLayoutInner() {
+  const isWide = useIsWide();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
+  const authService = useService(AuthService);
+
+  // Auth guard - redirect to login if not authenticated
+  if (!authService.isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Close drawer when viewport crosses to wide
+  useEffect(() => {
+    if (isWide && drawerOpen) {
+      setDrawerOpen(false);
+    }
+  }, [isWide, drawerOpen]);
+
+  return (
+    <div className="h-screen bg-[var(--bg-primary)] flex overflow-hidden">
+      {/* Sidebar: wide screen only */}
+      {isWide && <Sidebar />}
+
+      {/* Main content area */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        {/* Header: narrow screen shows menu button */}
+        <Header
+          onMenuPress={isWide ? undefined : () => setDrawerOpen(true)}
+          onSearchPress={() => navigate('/search')}
+        />
+
+        {/* Page content */}
+        <Outlet />
+      </div>
+
+      {/* Drawer: narrow screen only */}
+      {!isWide && (
+        <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      )}
+    </div>
+  );
+}
+
+export default observer(AppLayoutInner);
