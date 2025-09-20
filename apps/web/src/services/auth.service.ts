@@ -9,7 +9,7 @@ const TOKEN_KEY = 'zen_send_tokens';
 export class AuthService extends Service {
   accessToken: string | null = null;
   refreshToken: string | null = null;
-  user: { id: string; email: string } | null = null;
+  user: { id: string; email: string; nickname?: string; avatarUrl?: string } | null = null;
 
   constructor() {
     super();
