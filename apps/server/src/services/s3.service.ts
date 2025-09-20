@@ -79,6 +79,14 @@ export class S3Service {
     return getSignedUrl(this.getClient(), command, { expiresIn });
   }
 
+  async getPresignedInlineUrl(key: string, expiresIn = 86400): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+    return getSignedUrl(this.getClient(), command, { expiresIn });
+  }
+
   async initMultipartUpload(
     sessionId: string,
     contentType: string,
