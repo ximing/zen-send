@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { Service } from 'typedi';
 import { DbService } from './db.service.js';
+import { S3Service } from './s3.service.js';
 import { users } from '../db/schema.js';
 import {
   signAccessToken,
@@ -19,6 +20,8 @@ export interface AuthTokens {
   user?: {
     id: string;
     email: string;
+    nickname?: string;
+    avatarUrl?: string;
   };
 }
 
@@ -46,7 +49,10 @@ export class AuthError extends Error {
 export class AuthService {
   private invalidatedTokens = new Set<string>();
 
-  constructor(private dbService: DbService) {}
+  constructor(
+    private dbService: DbService,
+    private s3Service: S3Service,
+  ) {}
 
   private get db() {
     return this.dbService.getDb();
@@ -60,13 +66,21 @@ export class AuthService {
     return bcrypt.compare(password, hash);
   }
 
-  private generateTokens(payload: TokenPayload, user?: { id: string; email: string }): AuthTokens {
+  private generateTokens(
+    payload: TokenPayload,
+    user?: { id: string; email: string; nickname?: string; avatarUrl?: string }
+  ): AuthTokens {
     const tokens: AuthTokens = {
       accessToken: signAccessToken(payload),
       refreshToken: signRefreshToken(payload),
     };
     if (user) {
-      tokens.user = { id: user.id, email: user.email };
+      tokens.user = {
+        id: user.id,
+        email: user.email,
+        nickname: user.nickname,
+        avatarUrl: user.avatarUrl,
+      };
     }
     return tokens;
   }
@@ -116,7 +130,15 @@ export class AuthService {
       throw new Error('Invalid credentials');
     }
 
-    return this.generateTokens({ userId: user.id }, { id: user.id, email: user.email });
+    let avatarUrl: string | undefined;
+    if (user.avatarKey) {
+      avatarUrl = await this.s3Service.getPresignedInlineUrl(user.avatarKey);
+    }
+
+    return this.generateTokens(
+      { userId: user.id },
+      { id: user.id, email: user.email, nickname: user.nickname ?? undefined, avatarUrl }
+    );
   }
 
   async refresh(refreshToken: string): Promise<AuthTokens> {
@@ -136,7 +158,15 @@ export class AuthService {
     }
     const user = result[0];
 
-    return this.generateTokens({ userId: payload.userId }, { id: user.id, email: user.email });
+    let avatarUrl: string | undefined;
+    if (user.avatarKey) {
+      avatarUrl = await this.s3Service.getPresignedInlineUrl(user.avatarKey);
+    }
+
+    return this.generateTokens(
+      { userId: payload.userId },
+      { id: user.id, email: user.email, nickname: user.nickname ?? undefined, avatarUrl }
+    );
   }
 
   logout(refreshToken: string): void {
