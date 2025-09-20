@@ -43,3 +43,30 @@ export interface UploadChunkRequest {
   chunkIndex: number;
   etag: string;
 }
+
+// User Profile DTOs
+export interface UpdateProfileRequest {
+  nickname?: string;
+  removeAvatar?: boolean;
+}
+
+export interface AvatarPresignRequest {
+  contentType: string;
+  fileSize?: number;
+}
+
+export interface AvatarPresignResponse {
+  uploadUrl: string;
+  key: string;
+}
+
+export interface AvatarConfirmRequest {
+  key: string;
+}
+
+export interface UserProfileResponse {
+  id: string;
+  email: string;
+  nickname?: string;
+  avatarUrl?: string;
+}
