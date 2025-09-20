@@ -13,7 +13,7 @@ const DEFAULT_SERVER_URL = 'http://localhost:3110';
 export class AuthService extends Service {
   accessToken: string | null = null;
   refreshToken: string | null = null;
-  user: { id: string; email: string } | null = null;
+  user: { id: string; email: string; nickname?: string; avatarUrl?: string } | null = null;
   serverUrl: string = DEFAULT_SERVER_URL;
   isLoading: boolean = true;
 
