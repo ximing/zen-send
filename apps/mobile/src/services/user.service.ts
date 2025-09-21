@@ -7,8 +7,7 @@ import type {
   UserProfileResponse,
 } from '@zen-send/dto';
 
-@Service()
-export class UserService {
+export class UserService extends Service {
   get apiService() {
     return this.resolve(ApiService);
   }
