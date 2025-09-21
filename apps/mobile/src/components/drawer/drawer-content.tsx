@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useService, observer } from '@rabjs/react';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,14 +37,24 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
   return (
     <View style={[styles.container, { backgroundColor: colors.bgSurface }]}>
       {/* User Info Section */}
-      <View style={[styles.userSection, { borderBottomColor: colors.borderSubtle }]}>
-        <View style={[styles.avatar, { backgroundColor: colors.accentSoft }]}>
-          <Text style={[styles.avatarText, { color: colors.accent }]}>
-            {user?.email?.charAt(0).toUpperCase() ?? '?'}
-          </Text>
-        </View>
+      <TouchableOpacity
+        style={[styles.userSection, { borderBottomColor: colors.borderSubtle }]}
+        onPress={() => { onClose?.(); router.push('/(main)/settings'); }}
+      >
+        {user?.avatarUrl ? (
+          <Image
+            source={{ uri: user.avatarUrl }}
+            style={styles.avatarImage}
+          />
+        ) : (
+          <View style={[styles.avatar, { backgroundColor: colors.accentSoft }]}>
+            <Text style={[styles.avatarText, { color: colors.accent }]}>
+              {user?.email?.charAt(0).toUpperCase() ?? '?'}
+            </Text>
+          </View>
+        )}
         <Text style={[styles.username, { color: colors.textPrimary }]}>
-          {user?.email?.split('@')[0] ?? 'User'}
+          {user?.nickname || user?.email?.split('@')[0] || 'User'}
         </Text>
         <Text style={[styles.email, { color: colors.textSecondary }]}>
           {user?.email ?? ''}
@@ -52,7 +62,7 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
         <Text style={[styles.serverUrl, { color: colors.textMuted }]}>
           {serverUrl}
         </Text>
-      </View>
+      </TouchableOpacity>
 
       {/* Actions Section */}
       <View style={styles.actionsSection}>
@@ -63,6 +73,16 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
           <Ionicons name="cloud-download-outline" size={20} color={colors.textPrimary} />
           <Text style={[styles.actionText, { color: colors.textPrimary }]}>
             下载
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => { onClose?.(); router.push('/(main)/settings'); }}
+        >
+          <Ionicons name="settings-outline" size={20} color={colors.textPrimary} />
+          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
+            设置
           </Text>
         </TouchableOpacity>
 
@@ -114,6 +134,12 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 12,
+  },
+  avatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     marginBottom: 12,
   },
   avatarText: {
