@@ -6,7 +6,7 @@ import type {
 } from '@zen-send/dto';
 
 const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_AVATAR_SIZE = 10 * 1024 * 1024; // 10MB
 
 export class UpdateProfileDto implements UpdateProfileRequest {
   @IsOptional()

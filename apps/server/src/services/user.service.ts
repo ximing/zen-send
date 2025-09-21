@@ -6,7 +6,7 @@ import { users } from '../db/schema.js';
 import { logger } from '@zen-send/logger';
 
 const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
+const MAX_AVATAR_SIZE = 10 * 1024 * 1024;
 const AVATAR_KEY_PREFIX = 'avatars/';
 
 @Service()

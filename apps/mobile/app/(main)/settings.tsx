@@ -45,8 +45,8 @@ function SettingsPageInner() {
     if (result.canceled || !result.assets?.[0]) return;
 
     const asset = result.assets[0];
-    if (asset.fileSize && asset.fileSize > 2 * 1024 * 1024) {
-      showToast('File size must be less than 2MB');
+    if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
+      showToast('File size must be less than 10MB');
       return;
     }
 
