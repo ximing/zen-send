@@ -4,6 +4,7 @@ import { MailOpen } from 'lucide-react';
 import { HomeService } from '../../pages/home/home.service';
 import { DeviceService } from '../../services/device.service';
 import { SocketService } from '../../services/socket.service';
+import { ToastService } from '../toast/toast.service';
 import TransferItem from '../transfer-item';
 import { PreviewModal } from '../preview-modal';
 import type { TransferSession } from '@zen-send/shared';
@@ -12,6 +13,7 @@ function TransferListInner() {
   const homeService = useService(HomeService);
   const deviceService = useService(DeviceService);
   const socketService = useService(SocketService);
+  const toastService = useService(ToastService);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,7 +78,8 @@ function TransferListInner() {
 
   const handleDelete = useCallback(
     async (transfer: TransferSession) => {
-      if (!confirm('确定要删除这条记录吗？')) return;
+      const ok = await toastService.confirm('确定要删除这条记录吗？');
+      if (!ok) return;
       try {
         await homeService.apiService.deleteTransfer(transfer.id);
         homeService.loadTransfers();
@@ -84,7 +87,7 @@ function TransferListInner() {
         console.error('Delete failed:', err);
       }
     },
-    [homeService]
+    [homeService, toastService]
   );
 
   if (homeService.isLoading && homeService.transfers.length === 0) {
