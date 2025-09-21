@@ -1,0 +1,62 @@
+import { Service } from '@rabjs/react';
+import { ApiService } from './api.service';
+import { AuthService } from './auth.service';
+import type {
+  UpdateProfileRequest,
+  AvatarPresignResponse,
+  UserProfileResponse,
+} from '@zen-send/dto';
+
+@Service()
+export class UserService {
+  get apiService() {
+    return this.resolve(ApiService);
+  }
+
+  get authService() {
+    return this.resolve(AuthService);
+  }
+
+  async getProfile(): Promise<UserProfileResponse> {
+    const profile = await this.apiService.get<UserProfileResponse>('/api/users/me');
+    this.syncLocalUser(profile);
+    return profile;
+  }
+
+  async updateProfile(data: UpdateProfileRequest): Promise<UserProfileResponse> {
+    const profile = await this.apiService.patch<UserProfileResponse>('/api/users/me', data);
+    this.syncLocalUser(profile);
+    return profile;
+  }
+
+  async uploadAvatar(file: File): Promise<UserProfileResponse> {
+    if (file.size > 2 * 1024 * 1024) {
+      throw new Error('File size must be less than 2MB');
+    }
+
+    const presignResult = await this.apiService.post<AvatarPresignResponse>(
+      '/api/users/me/avatar/presign',
+      { contentType: file.type, fileSize: file.size }
+    );
+
+    await this.apiService.uploadPresignedUrl(presignResult.uploadUrl, file);
+
+    const profile = await this.apiService.post<UserProfileResponse>(
+      '/api/users/me/avatar/confirm',
+      { key: presignResult.key }
+    );
+
+    this.syncLocalUser(profile);
+    return profile;
+  }
+
+  private syncLocalUser(profile: UserProfileResponse) {
+    if (this.authService.user) {
+      this.authService.user = {
+        ...this.authService.user,
+        nickname: profile.nickname,
+        avatarUrl: profile.avatarUrl,
+      };
+    }
+  }
+}
