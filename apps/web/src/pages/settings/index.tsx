@@ -4,11 +4,13 @@ import { observer, useService } from '@rabjs/react';
 import { ChevronLeft, Camera } from 'lucide-react';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
+import { ToastService } from '../../components/toast/toast.service';
 
 function SettingsPageInner() {
   const navigate = useNavigate();
   const authService = useService(AuthService);
   const userService = useService(UserService);
+  const toastService = useService(ToastService);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const user = authService.user;
@@ -35,7 +37,7 @@ function SettingsPageInner() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB');
+      toastService.show('File size must be less than 10MB', 'warning');
       return;
     }
     setIsUploadingAvatar(true);
