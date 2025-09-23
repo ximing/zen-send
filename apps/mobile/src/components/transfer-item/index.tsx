@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, type TextLayoutEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Clipboard from 'expo-clipboard';
@@ -29,6 +29,9 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
   const homeService = useService(HomeService);
   const colors = themeService.colors;
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [measuredLines, setMeasuredLines] = useState<number | null>(null);
+  const isTextOverflow = measuredLines !== null && measuredLines > 2;
 
   const firstItem = transfer.items?.[0];
   const isText = firstItem?.type === 'text';
@@ -120,7 +123,7 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
       overshootRight={false}
     >
       <TouchableOpacity
-        style={[styles.container, { backgroundColor: colors.bgSurface }]}
+        style={[styles.container, { backgroundColor: colors.bgSurface }, isText && styles.containerText]}
         onPress={onPress}
       >
         <View style={[styles.iconContainer, { backgroundColor: colors.bgElevated }]}>
@@ -135,12 +138,43 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
           )}
         </View>
         <View style={styles.content}>
-          <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-            {name}
-          </Text>
-          <Text style={[styles.meta, { color: colors.textSecondary }]}>
-            {size} · {timeAgo}
-          </Text>
+          {isText ? (
+            <>
+              <Text
+                style={[styles.name, { color: colors.textPrimary }]}
+                numberOfLines={measuredLines === null ? undefined : isExpanded ? undefined : 2}
+                onTextLayout={(e: TextLayoutEvent) => {
+                  if (measuredLines === null) {
+                    setMeasuredLines(e.nativeEvent.lines.length);
+                  }
+                }}
+              >
+                {firstItem?.content || 'Text'}
+              </Text>
+              {isTextOverflow && (
+                <TouchableOpacity
+                  onPress={() => setIsExpanded(!isExpanded)}
+                  hitSlop={{ top: 4, bottom: 4, left: 0, right: 0 }}
+                >
+                  <Text style={[styles.expandBtn, { color: colors.accent }]}>
+                    {isExpanded ? '收起' : '展开'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              <Text style={[styles.meta, { color: colors.textSecondary }]}>
+                {size} · {timeAgo}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+                {name}
+              </Text>
+              <Text style={[styles.meta, { color: colors.textSecondary }]}>
+                {size} · {timeAgo}
+              </Text>
+            </>
+          )}
         </View>
         <View style={styles.actions}>
           {isText ? (
@@ -193,6 +227,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderRadius: 12,
   },
+  containerText: {
+    alignItems: 'flex-start',
+  },
   iconContainer: {
     width: 42,
     height: 42,
@@ -224,6 +261,10 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     padding: 6,
+  },
+  expandBtn: {
+    fontSize: 12,
+    marginTop: 2,
   },
   deleteContainer: {
     width: 80,

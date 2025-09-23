@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { prepare, layout } from '@chenglou/pretext';
 import { observer, useService } from '@rabjs/react';
 import { FileText, PenLine, Image, Copy, Link, Download, Trash2 } from 'lucide-react';
 import { ThemeService } from '../../services/theme.service';
@@ -45,6 +46,9 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
   const toastService = useService(ToastService);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isOverflow, setIsOverflow] = useState(false);
+  const contentAreaRef = useRef<HTMLDivElement>(null);
 
   const firstItem = transfer.items?.[0];
   const isText = firstItem?.type === 'text';
@@ -83,6 +87,30 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
     };
   }, [isImage, firstItem, transfer.id, apiService]);
 
+  useEffect(() => {
+    if (!isText || !firstItem?.content || isExpanded || !contentAreaRef.current) return;
+
+    const el = contentAreaRef.current;
+    const computed = window.getComputedStyle(el);
+    const font = `${computed.fontWeight} ${computed.fontSize} ${computed.fontFamily}`;
+    const lineHeight =
+      computed.lineHeight === 'normal'
+        ? parseFloat(computed.fontSize) * 1.2
+        : parseFloat(computed.lineHeight);
+
+    const prepared = prepare(firstItem.content, font);
+    const { lineCount } = layout(prepared, el.clientWidth, lineHeight);
+    setIsOverflow(lineCount > 2);
+
+    const observer = new ResizeObserver(() => {
+      if (!contentAreaRef.current) return;
+      const { lineCount } = layout(prepared, contentAreaRef.current.clientWidth, lineHeight);
+      setIsOverflow(lineCount > 2);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isText, firstItem?.content, isExpanded]);
+
   const handleCopyText = () => {
     if (firstItem?.content) {
       navigator.clipboard.writeText(firstItem.content);
@@ -104,7 +132,7 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
 
   return (
     <div
-      className={`flex items-center p-3 mx-4 mb-2 rounded-xl bg-[var(--bg-surface)]
+      className={`flex ${isText ? 'items-start' : 'items-center'} p-3 mx-4 mb-2 rounded-xl bg-[var(--bg-surface)]
         transition-all duration-150 cursor-pointer
         ${isHovered ? 'shadow-sm' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
@@ -129,11 +157,39 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
       </div>
 
       {/* Content */}
-      <div className="flex-1 ml-3 min-w-0">
-        <div className="text-sm font-medium text-[var(--text-primary)] truncate">{name}</div>
-        <div className="text-xs text-[var(--text-secondary)] mt-0.5">
-          {size} · {timeAgo}
-        </div>
+      <div className="flex-1 ml-3 min-w-0" ref={contentAreaRef}>
+        {isText ? (
+          <>
+            <div
+              className={`text-sm font-medium text-[var(--text-primary)] whitespace-pre-wrap break-words ${
+                !isExpanded ? 'line-clamp-2' : ''
+              }`}
+            >
+              {firstItem?.content || 'Text'}
+            </div>
+            {isOverflow && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                className="text-xs text-[var(--accent)] mt-0.5 hover:underline"
+              >
+                {isExpanded ? '收起' : '展开'}
+              </button>
+            )}
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              {size} · {timeAgo}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-sm font-medium text-[var(--text-primary)] truncate">{name}</div>
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              {size} · {timeAgo}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Actions */}
