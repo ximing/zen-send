@@ -251,12 +251,15 @@ export class HomeService extends Service {
             chunkCount: Math.ceil(size / (1024 * 1024)),
             sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
           });
-          console.log('[Upload] Init response:', JSON.stringify({
-            sessionId: initResponse.sessionId,
-            presignedUrlsCount: initResponse.presignedUrls?.length,
-            presignedUrlsFirst: initResponse.presignedUrls?.[0]?.substring(0, 100),
-            chunkSize: initResponse.chunkSize,
-          }));
+          console.log(
+            '[Upload] Init response:',
+            JSON.stringify({
+              sessionId: initResponse.sessionId,
+              presignedUrlsCount: initResponse.presignedUrls?.length,
+              presignedUrlsFirst: initResponse.presignedUrls?.[0]?.substring(0, 100),
+              chunkSize: initResponse.chunkSize,
+            })
+          );
 
           // Upload chunks with parallelization and retry
           const chunkSize = initResponse.chunkSize || 1024 * 1024;
@@ -285,24 +288,55 @@ export class HomeService extends Service {
             chunks.map(async (chunk, idx) => {
               let attempts = 0;
               let presignedUrl = initResponse.presignedUrls[idx];
-              console.log('[Upload] Chunk', idx, '- presignedUrl:', presignedUrl ? presignedUrl.substring(0, 80) + '...' : 'UNDEFINED', 'chunk size:', chunk.size);
+              console.log(
+                '[Upload] Chunk',
+                idx,
+                '- presignedUrl:',
+                presignedUrl ? presignedUrl.substring(0, 80) + '...' : 'UNDEFINED',
+                'chunk size:',
+                chunk.size
+              );
               while (attempts < MAX_RETRIES && !uploadedChunks[idx]) {
                 try {
-                  console.log('[Upload] Chunk', idx, 'attempt', attempts + 1, '- starting upload to S3 via XHR');
+                  console.log(
+                    '[Upload] Chunk',
+                    idx,
+                    'attempt',
+                    attempts + 1,
+                    '- starting upload to S3 via XHR'
+                  );
 
                   // Helper: XHR PUT promise
-                  const xhrPut = (url: string, data: ArrayBuffer, timeoutMs = 30000): Promise<XMLHttpRequest> => {
+                  const xhrPut = (
+                    url: string,
+                    data: ArrayBuffer,
+                    timeoutMs = 30000
+                  ): Promise<XMLHttpRequest> => {
                     return new Promise((resolve, reject) => {
                       const xhr = new XMLHttpRequest();
                       xhr.open('PUT', url, true);
                       xhr.timeout = timeoutMs;
                       xhr.setRequestHeader('Content-Type', 'application/octet-stream');
                       xhr.onload = () => {
-                        console.log('[Upload] Chunk', idx, 'XHR load - status:', xhr.status, 'readyState:', xhr.readyState);
+                        console.log(
+                          '[Upload] Chunk',
+                          idx,
+                          'XHR load - status:',
+                          xhr.status,
+                          'readyState:',
+                          xhr.readyState
+                        );
                         resolve(xhr);
                       };
                       xhr.onerror = () => {
-                        console.log('[Upload] Chunk', idx, 'XHR error - statusText:', xhr.statusText, 'readyState:', xhr.readyState);
+                        console.log(
+                          '[Upload] Chunk',
+                          idx,
+                          'XHR error - statusText:',
+                          xhr.statusText,
+                          'readyState:',
+                          xhr.readyState
+                        );
                         reject(new Error(`XHR error: ${xhr.statusText}`));
                       };
                       xhr.ontimeout = () => {
@@ -316,17 +350,27 @@ export class HomeService extends Service {
                           reject(new Error('Abort'));
                         });
                       }
-                      console.log('[Upload] Chunk', idx, 'sending XHR, data size:', data.byteLength);
+                      console.log(
+                        '[Upload] Chunk',
+                        idx,
+                        'sending XHR, data size:',
+                        data.byteLength
+                      );
                       xhr.send(data);
                     });
                   };
 
                   console.log('[Upload] Chunk', idx, 'full URL:', presignedUrl);
-                  console.log('[Upload] Chunk', idx, 'request details:', JSON.stringify({
-                    method: 'PUT',
-                    bodySize: chunk.data.byteLength,
-                    hasSignal: !!abortController.signal,
-                  }));
+                  console.log(
+                    '[Upload] Chunk',
+                    idx,
+                    'request details:',
+                    JSON.stringify({
+                      method: 'PUT',
+                      bodySize: chunk.data.byteLength,
+                      hasSignal: !!abortController.signal,
+                    })
+                  );
 
                   const xhrResult = await xhrPut(presignedUrl, chunk.data);
                   const response = {
@@ -334,7 +378,14 @@ export class HomeService extends Service {
                     status: xhrResult.status,
                     text: () => Promise.resolve(xhrResult.responseText || ''),
                   };
-                  console.log('[Upload] Chunk', idx, 'response status:', response.status, 'ok:', response.ok);
+                  console.log(
+                    '[Upload] Chunk',
+                    idx,
+                    'response status:',
+                    response.status,
+                    'ok:',
+                    response.ok
+                  );
 
                   // Log response body for error statuses
                   if (!response.ok) {
@@ -344,7 +395,12 @@ export class HomeService extends Service {
                     } catch {
                       errorBody = '(could not read response body)';
                     }
-                    console.log('[Upload] Chunk', idx, 'error response body:', errorBody.substring(0, 500));
+                    console.log(
+                      '[Upload] Chunk',
+                      idx,
+                      'error response body:',
+                      errorBody.substring(0, 500)
+                    );
                   }
 
                   // Re-request presigned URLs on 403/401
@@ -392,20 +448,31 @@ export class HomeService extends Service {
                   const errorDetails = {
                     name: error.name,
                     message: error.message,
-                    cause: error.cause ? (error.cause instanceof Error ? { name: error.cause.name, message: error.cause.message } : String(error.cause)) : undefined,
+                    cause: error.cause
+                      ? error.cause instanceof Error
+                        ? { name: error.cause.name, message: error.cause.message }
+                        : String(error.cause)
+                      : undefined,
                     stack: error.stack,
                     url: presignedUrl?.substring(0, 200),
                     chunkIndex: idx,
                     attempt: attempts + 1,
                   };
-                  console.log('[Upload] Chunk', idx, 'error details:', JSON.stringify(errorDetails, null, 2));
+                  console.log(
+                    '[Upload] Chunk',
+                    idx,
+                    'error details:',
+                    JSON.stringify(errorDetails, null, 2)
+                  );
                   console.error('[Upload] Chunk', idx, 'error:', error);
                   if (error.name === 'AbortError' || error.message === 'Abort') {
                     throw err;
                   }
                   attempts++;
                   if (attempts >= MAX_RETRIES) {
-                    const err = new Error(`Chunk ${idx} failed after ${MAX_RETRIES} retries: ${error.message}`);
+                    const err = new Error(
+                      `Chunk ${idx} failed after ${MAX_RETRIES} retries: ${error.message}`
+                    );
                     err.name = 'AbortError';
                     throw err;
                   }
@@ -479,7 +546,14 @@ export class HomeService extends Service {
     console.log('[Download] items:', transfer.items);
 
     for (const item of transfer.items ?? []) {
-      console.log('[Download] item:', item.id, 'storageType:', item.storageType, 'hasContent:', !!item.content);
+      console.log(
+        '[Download] item:',
+        item.id,
+        'storageType:',
+        item.storageType,
+        'hasContent:',
+        !!item.content
+      );
       if (item.storageType === 'db' && item.content) {
         return item.content;
       } else if (item.storageType === 's3') {
@@ -571,7 +645,12 @@ export class HomeService extends Service {
         console.log('[Download] Downloaded URI:', downloadedUri.uri);
         if (downloadedUri.uri) {
           if (index !== -1) {
-            this.downloads[index] = { ...this.downloads[index], progress: 100, status: 'completed', localUri: downloadedUri.uri };
+            this.downloads[index] = {
+              ...this.downloads[index],
+              progress: 100,
+              status: 'completed',
+              localUri: downloadedUri.uri,
+            };
             this.downloads = [...this.downloads];
             this.saveDownloadsToStorage();
           }
@@ -585,7 +664,12 @@ export class HomeService extends Service {
         // DB content - save to file
         await FileSystem.writeAsStringAsync(fileUri, url);
         if (index !== -1) {
-          this.downloads[index] = { ...this.downloads[index], progress: 100, status: 'completed', localUri: fileUri };
+          this.downloads[index] = {
+            ...this.downloads[index],
+            progress: 100,
+            status: 'completed',
+            localUri: fileUri,
+          };
           this.downloads = [...this.downloads];
           this.saveDownloadsToStorage();
         }

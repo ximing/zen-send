@@ -1,4 +1,12 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -23,10 +31,14 @@ function isInTimeFilter(transfer: TransferSession, filter: string): boolean {
   const day = 24 * 60 * 60 * 1000;
 
   switch (filter) {
-    case 'today': return diff < day;
-    case 'week': return diff < 7 * day;
-    case 'month': return diff < 30 * day;
-    default: return true;
+    case 'today':
+      return diff < day;
+    case 'week':
+      return diff < 7 * day;
+    case 'month':
+      return diff < 30 * day;
+    default:
+      return true;
   }
 }
 

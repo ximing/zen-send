@@ -13,6 +13,7 @@
 ## Chunk 1: Simplify TransferItem UI
 
 ### Files
+
 - Modify: `apps/mobile/src/components/transfer-item/index.tsx:1-237`
 
 ### Steps
@@ -79,6 +80,7 @@ git commit -m "refactor(mobile): simplify TransferItem actions - remove inline d
 ## Chunk 2: Add Swipeable Left-Swipe Delete to TransferItem
 
 ### Files
+
 - Modify: `apps/mobile/src/components/transfer-item/index.tsx`
 
 ### Steps
@@ -165,6 +167,7 @@ git commit -m "feat(mobile): add swipeable left-swipe delete to TransferItem"
 ## Chunk 3: Enhance PreviewModal with Share and Delete Buttons
 
 ### Files
+
 - Modify: `apps/mobile/src/components/preview-modal/index.tsx`
 
 ### Steps
@@ -320,6 +323,7 @@ git commit -m "feat(mobile): enhance PreviewModal with share and delete actions"
 ## Chunk 4: Integration - Wire up onDelete to PreviewModal usage
 
 ### Files
+
 - Modify: `apps/mobile/app/(main)/index.tsx` (or wherever PreviewModal is used)
 
 ### Steps

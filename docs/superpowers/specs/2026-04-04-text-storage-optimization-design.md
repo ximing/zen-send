@@ -6,13 +6,13 @@
 
 ## 1. 内容类型分类
 
-| 内容类型 | 处理方式 |
-|---------|---------|
-| **用户在界面直接输入的文本**（≤10KB，即 `totalSize <= 10 * 1024` 字节） | 直接存数据库 |
-| **用户在界面直接输入的文本**（>10KB，即 `totalSize > 10 * 1024` 字节） | 走 S3 分片上传 |
-| **文本文件**（.txt, .md 等） | 走 S3 分片上传 |
-| **剪贴板内容** | 读取后按实际内容类型处理：文本内容 → 文本逻辑，文件内容 → 文件逻辑 |
-| **其他二进制文件**（图片、视频等） | 走 S3 分片上传 |
+| 内容类型                                                                | 处理方式                                                           |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **用户在界面直接输入的文本**（≤10KB，即 `totalSize <= 10 * 1024` 字节） | 直接存数据库                                                       |
+| **用户在界面直接输入的文本**（>10KB，即 `totalSize > 10 * 1024` 字节）  | 走 S3 分片上传                                                     |
+| **文本文件**（.txt, .md 等）                                            | 走 S3 分片上传                                                     |
+| **剪贴板内容**                                                          | 读取后按实际内容类型处理：文本内容 → 文本逻辑，文件内容 → 文件逻辑 |
+| **其他二进制文件**（图片、视频等）                                      | 走 S3 分片上传                                                     |
 
 **说明：** "剪贴板"不再作为独立的传输类型。客户端读取剪贴板后，根据内容 MIME 类型判断是文本还是文件，然后走对应的处理流程。
 
@@ -48,7 +48,7 @@ interface InitTransferRequest {
   contentType: string;
   totalSize: number;
   chunkCount?: number;
-  content?: string;  // <=10KB 的文本内容
+  content?: string; // <=10KB 的文本内容
 }
 ```
 
@@ -59,6 +59,7 @@ interface InitTransferRequest {
 **端点：** `POST /api/transfers/init`
 
 **请求体：**
+
 ```typescript
 interface InitTransferRequest {
   sourceDeviceId: string;
@@ -68,16 +69,17 @@ interface InitTransferRequest {
   contentType: string;
   totalSize: number;
   chunkCount?: number;
-  content?: string;  // <=10KB 的文本内容
+  content?: string; // <=10KB 的文本内容
 }
 ```
 
 **响应：**
+
 ```typescript
 interface InitTransferResponse {
   sessionId: string;
-  presignedUrls?: string[];  // S3 分片上传 URL 列表（文件或 >10KB 文本时返回）
-  chunkSize?: number;        // 分片大小（仅 S3 时返回）
+  presignedUrls?: string[]; // S3 分片上传 URL 列表（文件或 >10KB 文本时返回）
+  chunkSize?: number; // 分片大小（仅 S3 时返回）
 }
 ```
 
@@ -86,6 +88,7 @@ interface InitTransferResponse {
 **端点：** `DELETE /api/transfers/:id`
 
 **行为：**
+
 - 如果上传进行中（`status = 'pending'`）：服务器标记为 `status = 'cancelled'`，后台清理 S3 分片上传
 - 如果上传已完成（`status = 'completed'`）：同步删除 S3 对象
 - 最后从数据库删除 session 和关联的 chunks/items 记录
@@ -144,18 +147,19 @@ interface InitTransferResponse {
 
 ### 6.3 进度展示
 
-| 阶段 | 展示 |
-|-----|-----|
-| 初始化 | "正在准备上传..." |
+| 阶段        | 展示                                  |
+| ----------- | ------------------------------------- |
+| 初始化      | "正在准备上传..."                     |
 | S3 分片上传 | 进度条：已上传 chunk 数 / 总 chunk 数 |
-| 完成 | "上传完成" |
-| 失败 | 错误提示 + 重试按钮 |
+| 完成        | "上传完成"                            |
+| 失败        | 错误提示 + 重试按钮                   |
 
 ## 7. 下载流程（数据库文本）
 
 **端点：** `GET /api/transfers/:id`
 
 **响应：**
+
 ```typescript
 interface TransferSessionResponse {
   id: string;
@@ -166,45 +170,49 @@ interface TransferSessionResponse {
     mimeType: string;
     size: number;
     storageType: 'db' | 's3';
-    content?: string;        // storageType = 'db' 时返回
-    downloadUrl?: string;    // storageType = 's3' 时返回，预签名 URL，24 小时有效
+    content?: string; // storageType = 'db' 时返回
+    downloadUrl?: string; // storageType = 's3' 时返回，预签名 URL，24 小时有效
   }[];
 }
 ```
 
 客户端根据 `storageType` 判断：
+
 - `'db'`：直接使用 `content` 字段
 - `'s3'`：使用 `downloadUrl` 下载
 
 ## 8. 错误处理
 
 ### 8.1 预签名 URL 过期
+
 - 预签名 URL 有效期 1 小时
 - 如果上传时收到 403/401，客户端重新请求新的 presigned URLs
 
 ### 8.2 S3 上传失败
+
 - 单个 chunk 失败不影响其他 chunks
 - 重试失败的 chunk（最多 3 次）
 - 全部失败后通知服务器，标记 session 为 failed
 
 ### 8.3 网络中断恢复
+
 - 使用 S3 multipart upload，已上传的 chunks 不会丢失
 - 客户端重新连接后，从最后一个成功的 chunk 继续
 
 ## 9. 变更文件清单
 
-| 文件 | 变更内容 |
-|-----|---------|
-| `apps/server/src/db/schema.ts` | `transferItems` 表加 `storageType` 字段 |
-| `packages/dto/src/index.ts` | 移除 `clipboard` 类型 |
-| `apps/server/src/validators/transfer.validator.ts` | 移除 `clipboard` 验证 |
-| `apps/server/src/services/transfer.service.ts` | 增加文本直存逻辑、删除传输时清理 S3 |
-| `apps/server/src/controllers/transfer.controller.ts` | API 适配、增加 DELETE 端点 |
-| `apps/server/src/services/s3.service.ts` | 增加 `AbortMultipartUpload` 和 `DeleteObject` 方法 |
-| `apps/web/src/services/api.service.ts` | 类型更新，增加取消和删除逻辑 |
-| `apps/web/src/components/send-toolbar/index.tsx` | 多选文件、拖拽区域 UI |
-| `apps/web/src/components/send-toolbar/send-toolbar.service.ts` | 多文件状态管理、取消逻辑 |
-| `apps/web/src/pages/home/index.tsx` | 页面级拖拽支持 |
+| 文件                                                           | 变更内容                                           |
+| -------------------------------------------------------------- | -------------------------------------------------- |
+| `apps/server/src/db/schema.ts`                                 | `transferItems` 表加 `storageType` 字段            |
+| `packages/dto/src/index.ts`                                    | 移除 `clipboard` 类型                              |
+| `apps/server/src/validators/transfer.validator.ts`             | 移除 `clipboard` 验证                              |
+| `apps/server/src/services/transfer.service.ts`                 | 增加文本直存逻辑、删除传输时清理 S3                |
+| `apps/server/src/controllers/transfer.controller.ts`           | API 适配、增加 DELETE 端点                         |
+| `apps/server/src/services/s3.service.ts`                       | 增加 `AbortMultipartUpload` 和 `DeleteObject` 方法 |
+| `apps/web/src/services/api.service.ts`                         | 类型更新，增加取消和删除逻辑                       |
+| `apps/web/src/components/send-toolbar/index.tsx`               | 多选文件、拖拽区域 UI                              |
+| `apps/web/src/components/send-toolbar/send-toolbar.service.ts` | 多文件状态管理、取消逻辑                           |
+| `apps/web/src/pages/home/index.tsx`                            | 页面级拖拽支持                                     |
 
 ## 10. S3 分片上传逻辑（保持不变）
 
@@ -215,6 +223,6 @@ interface TransferSessionResponse {
 
 ## 11. 配置参数
 
-| 参数 | 默认值 | 说明 |
-|-----|-------|-----|
-| `TEXT_INLINE_MAX_SIZE` | 10KB | 文本直接存数据库的大小阈值 |
+| 参数                   | 默认值 | 说明                       |
+| ---------------------- | ------ | -------------------------- |
+| `TEXT_INLINE_MAX_SIZE` | 10KB   | 文本直接存数据库的大小阈值 |

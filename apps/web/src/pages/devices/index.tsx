@@ -1,17 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { observer, useService } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
-import QRCode from 'qrcode';
-import {
-  RefreshCw,
-  Trash2,
-  X,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  ChevronLeft,
-  Check,
-} from 'lucide-react';
+import { RefreshCw, Trash2, X, CheckCircle, XCircle, AlertCircle, ChevronLeft } from 'lucide-react';
 import { DeviceService } from '../../services/device.service';
 import { ThemeService } from '../../services/theme.service';
 import { SocketService } from '../../services/socket.service';
@@ -23,73 +13,13 @@ const DevicesPage = observer(() => {
   const deviceService = useService(DeviceService);
   const themeService = useService(ThemeService);
   const socketService = useService(SocketService);
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [deviceToRemove, setDeviceToRemove] = useState<Device | null>(null);
   const [removing, setRemoving] = useState(false);
-  const [qrExpiry, setQrExpiry] = useState<number>(0);
   const isDarkTheme = themeService.resolvedTheme === 'dark';
 
   useEffect(() => {
     deviceService.registerCurrentDevice();
     deviceService.loadDevices();
-    generateQRCode();
-
-    return () => {
-      deviceService.stopQrLoginPolling();
-    };
-  }, []);
-
-  // Listen for QR login success via socket
-  useEffect(() => {
-    const handleQrLoginSuccess = (data: { token: string }) => {
-      if (deviceService.qrToken === data.token) {
-        deviceService.onQrLoginSuccess();
-      }
-    };
-
-    socketService.onQrLoginSuccess(handleQrLoginSuccess);
-
-    return () => {
-      socketService.offQrLoginSuccess(handleQrLoginSuccess);
-    };
-  }, [socketService, deviceService.qrToken]);
-
-  // QR code expiry countdown
-  useEffect(() => {
-    if (!deviceService.qrToken) return;
-
-    const startTime = Date.now();
-    const ttl = deviceService.qrTokenExpiresIn * 1000;
-
-    const timer = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, Math.ceil((ttl - elapsed) / 1000));
-      setQrExpiry(remaining);
-
-      if (remaining <= 0) {
-        clearInterval(timer);
-        setQrCodeUrl('');
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [deviceService.qrToken]);
-
-  // Generate QR code image when token changes
-  useEffect(() => {
-    if (!deviceService.qrToken) {
-      setQrCodeUrl('');
-      return;
-    }
-
-    const url = deviceService.getQrCodeUrl();
-    QRCode.toDataURL(url, { width: 200, margin: 2 })
-      .then((qr) => setQrCodeUrl(qr))
-      .catch(() => setQrCodeUrl(''));
-  }, [deviceService.qrToken]);
-
-  const generateQRCode = useCallback(async () => {
-    await deviceService.generateQrLoginToken();
   }, []);
 
   const handleRemoveDevice = async () => {
@@ -146,12 +76,6 @@ const DevicesPage = observer(() => {
     return date.toLocaleDateString();
   };
 
-  const formatExpiry = (seconds: number) => {
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
-    return `${min}:${sec.toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* Header */}
@@ -170,81 +94,8 @@ const DevicesPage = observer(() => {
       {/* Content */}
       <div className="flex-1 min-h-0 overflow-y-auto p-6">
         <div className="max-w-2xl mx-auto">
-          {/* QR Code Section */}
-          <div className="bg-[var(--bg-surface)] rounded-xl p-6">
-            <h2 className="text-lg font-medium text-[var(--text-primary)]">扫码添加设备</h2>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              在移动设备上打开 Zen Send，扫描此二维码即可登录
-            </p>
-
-            {deviceService.qrLoginSuccess ? (
-              <div className="mt-4 flex flex-col items-center py-6">
-                <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-3">
-                  <Check className="w-8 h-8 text-green-500" />
-                </div>
-                <p className="text-base font-medium text-[var(--text-primary)]">登录成功</p>
-                <p className="text-sm text-[var(--text-secondary)] mt-1">新设备已添加到您的账号</p>
-                <button
-                  onClick={generateQRCode}
-                  className="mt-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80 rounded-xl transition-colors"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  继续添加
-                </button>
-              </div>
-            ) : (
-              <div className="mt-4 flex flex-col items-center">
-                {qrCodeUrl ? (
-                  <>
-                    <img src={qrCodeUrl} alt="Pairing QR Code" className="rounded-lg" />
-                    <div className="mt-2 flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
-                      <div
-                        className={`w-2 h-2 rounded-full ${qrExpiry > 30 ? 'bg-green-500' : qrExpiry > 0 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                      />
-                      <span>有效期 {formatExpiry(qrExpiry)}</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="w-[200px] h-[200px] flex items-center justify-center bg-[var(--bg-elevated)] rounded-lg">
-                    <RefreshCw className="w-8 h-8 animate-spin text-[var(--text-secondary)]" />
-                  </div>
-                )}
-                <button
-                  onClick={generateQRCode}
-                  className="mt-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80 rounded-xl transition-colors"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  刷新二维码
-                </button>
-              </div>
-            )}
-
-            <div className="mt-6 pt-6 border-t border-[var(--border-subtle)]">
-              <ol className="space-y-2 text-sm text-[var(--text-secondary)]">
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">
-                    1
-                  </span>
-                  <span>在移动设备上打开 Zen Send</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">
-                    2
-                  </span>
-                  <span>点击「扫码登录」扫描此二维码</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">
-                    3
-                  </span>
-                  <span>自动登录，无需输入密码</span>
-                </li>
-              </ol>
-            </div>
-          </div>
-
           {/* Device List Section */}
-          <div className="mt-6 bg-[var(--bg-surface)] rounded-xl p-6">
+          <div className="bg-[var(--bg-surface)] rounded-xl p-6">
             <h2 className="text-lg font-medium text-[var(--text-primary)]">已注册设备</h2>
             <div className="mt-4 space-y-3">
               {deviceService.loading ? (

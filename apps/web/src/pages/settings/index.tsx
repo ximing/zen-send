@@ -79,7 +79,11 @@ function SettingsPageInner() {
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
             {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="Avatar" className="w-24 h-24 rounded-full object-cover" />
+              <img
+                src={user.avatarUrl}
+                alt="Avatar"
+                className="w-24 h-24 rounded-full object-cover"
+              />
             ) : (
               <div className="w-24 h-24 rounded-full bg-[var(--accent-soft)] flex items-center justify-center">
                 <span className="text-4xl font-semibold text-[var(--accent)]">
@@ -117,9 +121,7 @@ function SettingsPageInner() {
 
         {/* Nickname Section */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--text-secondary)]">
-            Nickname
-          </label>
+          <label className="block text-sm font-medium text-[var(--text-secondary)]">Nickname</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -141,9 +143,7 @@ function SettingsPageInner() {
 
         {/* Email (read-only) */}
         <div className="mt-6 space-y-2">
-          <label className="block text-sm font-medium text-[var(--text-secondary)]">
-            Email
-          </label>
+          <label className="block text-sm font-medium text-[var(--text-secondary)]">Email</label>
           <div className="px-3 py-2 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-muted)] text-sm">
             {user?.email ?? ''}
           </div>

@@ -41,11 +41,13 @@ Transform the mobile app's main layout from the current header-based navigation 
 ### 1. Header Component (`apps/mobile/src/components/header/index.tsx`)
 
 **Changes:**
+
 - Replace current theme toggle and logout buttons with hamburger menu icon
 - Add search icon on the right (existing behavior)
 - Hamburger icon triggers drawer open
 
 **New Props:**
+
 - `onMenuPress: () => void` - Opens the drawer
 
 ### 2. Drawer Component (New)
@@ -53,6 +55,7 @@ Transform the mobile app's main layout from the current header-based navigation 
 **Location:** `apps/mobile/src/components/drawer/index.tsx`
 
 **Content:**
+
 - User avatar (placeholder image or initials)
 - Username and email from `AuthService.user`
 - Server URL from `AuthService.serverUrl`
@@ -60,6 +63,7 @@ Transform the mobile app's main layout from the current header-based navigation 
 - Logout button
 
 **Behavior:**
+
 - Slides in from left
 - Semi-transparent backdrop overlay
 - Close on backdrop tap
@@ -97,7 +101,7 @@ import Drawer from 'react-native-drawer';
   tapToClose={true}
 >
   <MainContent />
-</Drawer>
+</Drawer>;
 ```
 
 ## File Changes

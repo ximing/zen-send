@@ -34,7 +34,10 @@ export class ThemeService extends Service {
   }
 
   getDeviceColor(deviceType: string): string {
-    return tokens.deviceColors[deviceType as keyof typeof tokens.deviceColors] ?? tokens.deviceColors.unknown;
+    return (
+      tokens.deviceColors[deviceType as keyof typeof tokens.deviceColors] ??
+      tokens.deviceColors.unknown
+    );
   }
 
   private async loadTheme() {

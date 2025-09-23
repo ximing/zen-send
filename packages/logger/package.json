@@ -18,8 +18,8 @@
     "build": "tsx build.config.ts",
     "dev": "tsx build.config.ts --watch",
     "clean": "rm -rf lib build dist coverage",
-    "lint": "eslint . --ext .ts,.js",
-    "lint:fix": "eslint . --ext .ts,.js --fix --fix-type problem",
+    "lint": "eslint src/ --ext .ts",
+    "lint:fix": "eslint src/ --ext .ts --fix --fix-type problem",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [

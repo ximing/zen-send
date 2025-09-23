@@ -43,15 +43,15 @@
 
 ### 技术栈
 
-| 层级 | 技术 |
-|------|------|
-| Web 前端 | React 19 + Vite + Tailwind CSS v4 + @rabjs/react |
-| 移动端 | React Native + Expo |
-| 桌面端 | Electron 40 + Vite |
-| 后端 | Express.js + routing-controllers + Socket.io + typedi |
-| 数据库 | Drizzle ORM + MySQL |
-| 文件存储 | AWS S3 (预签名 URL 直传) |
-| 包管理 | pnpm + Turbo |
+| 层级     | 技术                                                  |
+| -------- | ----------------------------------------------------- |
+| Web 前端 | React 19 + Vite + Tailwind CSS v4 + @rabjs/react      |
+| 移动端   | React Native + Expo                                   |
+| 桌面端   | Electron 40 + Vite                                    |
+| 后端     | Express.js + routing-controllers + Socket.io + typedi |
+| 数据库   | Drizzle ORM + MySQL                                   |
+| 文件存储 | AWS S3 (预签名 URL 直传)                              |
+| 包管理   | pnpm + Turbo                                          |
 
 ## 快速开始
 

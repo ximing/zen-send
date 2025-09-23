@@ -4,9 +4,9 @@
 
 ### 1. Service 注册规则
 
-| 类型 | 注册方式 | 位置 |
-|------|---------|------|
-| 全局 Service | `register()` | `main.tsx` |
+| 类型           | 注册方式         | 位置       |
+| -------------- | ---------------- | ---------- |
+| 全局 Service   | `register()`     | `main.tsx` |
 | 页面级 Service | `bindServices()` | 组件导出处 |
 
 ```typescript
@@ -156,33 +156,33 @@ src/
 
 **Accent - Sage Green**: `#8B9A7D`
 
-| 用途 | 颜色 |
-|------|------|
-| 背景 | `#F7F5F2` (暖灰) / `#FFFFFF` |
-| 文字主色 | `#2C2C2C` |
-| 文字次色 | `#9A958F` |
-| 文字弱色 | `#B5AFA8` |
-| 边框默认 | `#DDD8D0` |
-| 边框弱色 | `#EDEBE7` |
-| 点缀色 | `#8B9A7D` |
-| 点缀色软 | `#8B9A7D20` (12% 透明度) |
+| 用途     | 颜色                         |
+| -------- | ---------------------------- |
+| 背景     | `#F7F5F2` (暖灰) / `#FFFFFF` |
+| 文字主色 | `#2C2C2C`                    |
+| 文字次色 | `#9A958F`                    |
+| 文字弱色 | `#B5AFA8`                    |
+| 边框默认 | `#DDD8D0`                    |
+| 边框弱色 | `#EDEBE7`                    |
+| 点缀色   | `#8B9A7D`                    |
+| 点缀色软 | `#8B9A7D20` (12% 透明度)     |
 
 ### 图标
 
 使用 `lucide-react` 图标库，与 Mobile 的 Ionicons 保持视觉一致：
 
 | Mobile (Ionicons) | Web (lucide-react) |
-|-------------------|-------------------|
-| menu | Menu |
-| search | Search |
-| chevron-back | ChevronLeft |
-| folder-outline | FolderOpen |
-| image-outline | Image |
-| clipboard-outline | Clipboard |
-| send | ArrowUp / Send |
-| create-outline | PenLine |
-| document-outline | FileText |
-| copy-outline | Copy |
-| download-outline | Download |
-| link-outline | Link |
-| trash-outline | Trash2 |
+| ----------------- | ------------------ |
+| menu              | Menu               |
+| search            | Search             |
+| chevron-back      | ChevronLeft        |
+| folder-outline    | FolderOpen         |
+| image-outline     | Image              |
+| clipboard-outline | Clipboard          |
+| send              | ArrowUp / Send     |
+| create-outline    | PenLine            |
+| document-outline  | FileText           |
+| copy-outline      | Copy               |
+| download-outline  | Download           |
+| link-outline      | Link               |
+| trash-outline     | Trash2             |

@@ -15,6 +15,7 @@
 ### Task 1: Add DTO interfaces
 
 **Files:**
+
 - Modify: `packages/dto/src/index.ts`
 
 - [ ] **Step 1: Add new DTO interfaces to packages/dto/src/index.ts**
@@ -65,6 +66,7 @@ git commit -m "feat(dto): add user profile DTOs for avatar and nickname"
 ### Task 2: Update shared types
 
 **Files:**
+
 - Modify: `packages/shared/src/index.ts`
 
 - [ ] **Step 1: Update AuthTokens.user type to include nickname and avatarUrl**
@@ -113,6 +115,7 @@ git commit -m "feat(shared): add nickname and avatarUrl to AuthTokens, re-export
 ### Task 3: Update database schema
 
 **Files:**
+
 - Modify: `apps/server/src/db/schema.ts`
 
 - [ ] **Step 1: Add avatarKey and nickname columns to users table**
@@ -155,6 +158,7 @@ git commit -m "feat(server): add avatarKey and nickname columns to users table"
 ### Task 4: Add getPresignedInlineUrl to S3Service
 
 **Files:**
+
 - Modify: `apps/server/src/services/s3.service.ts`
 
 - [ ] **Step 1: Add getPresignedInlineUrl method after getPresignedDownloadUrl (after line 80)**
@@ -181,6 +185,7 @@ git commit -m "feat(server): add getPresignedInlineUrl to S3Service for avatar d
 ### Task 5: Add user validator
 
 **Files:**
+
 - Create: `apps/server/src/validators/user.validator.ts`
 
 - [ ] **Step 1: Create user.validator.ts**
@@ -234,6 +239,7 @@ git commit -m "feat(server): add user profile validators"
 ### Task 6: Create UserService
 
 **Files:**
+
 - Create: `apps/server/src/services/user.service.ts`
 
 - [ ] **Step 1: Create user.service.ts with proper TypeDI constructor injection**
@@ -254,7 +260,7 @@ const AVATAR_KEY_PREFIX = 'avatars/';
 export class UserService {
   constructor(
     private dbService: DbService,
-    private s3Service: S3Service,
+    private s3Service: S3Service
   ) {}
 
   private get db() {
@@ -288,13 +294,17 @@ export class UserService {
     }
 
     if (data.removeAvatar) {
-      const result = await this.db.select({ avatarKey: users.avatarKey }).from(users).where(eq(users.id, userId)).limit(1);
+      const result = await this.db
+        .select({ avatarKey: users.avatarKey })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       const oldKey = result[0]?.avatarKey;
       updates.avatarKey = null;
       if (oldKey) {
-        await this.s3Service.deleteObject(oldKey).catch((err: Error) =>
-          logger.warn({ err, key: oldKey }, 'Failed to delete old avatar')
-        );
+        await this.s3Service
+          .deleteObject(oldKey)
+          .catch((err: Error) => logger.warn({ err, key: oldKey }, 'Failed to delete old avatar'));
       }
     }
 
@@ -304,7 +314,9 @@ export class UserService {
 
   async presignAvatar(userId: string, contentType: string, fileSize?: number) {
     if (!ALLOWED_AVATAR_TYPES.includes(contentType)) {
-      throw new Error(`Invalid content type: ${contentType}. Allowed: ${ALLOWED_AVATAR_TYPES.join(', ')}`);
+      throw new Error(
+        `Invalid content type: ${contentType}. Allowed: ${ALLOWED_AVATAR_TYPES.join(', ')}`
+      );
     }
     if (fileSize && fileSize > MAX_AVATAR_SIZE) {
       throw new Error(`File size ${fileSize} exceeds maximum ${MAX_AVATAR_SIZE} bytes`);
@@ -324,16 +336,20 @@ export class UserService {
       throw new Error('Invalid avatar key');
     }
 
-    const result = await this.db.select({ avatarKey: users.avatarKey }).from(users).where(eq(users.id, userId)).limit(1);
+    const result = await this.db
+      .select({ avatarKey: users.avatarKey })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
     const oldKey = result[0]?.avatarKey;
 
     const now = Math.floor(Date.now() / 1000);
     await this.db.update(users).set({ avatarKey: key, updatedAt: now }).where(eq(users.id, userId));
 
     if (oldKey && oldKey !== key) {
-      await this.s3Service.deleteObject(oldKey).catch((err: Error) =>
-        logger.warn({ err, key: oldKey }, 'Failed to delete old avatar')
-      );
+      await this.s3Service
+        .deleteObject(oldKey)
+        .catch((err: Error) => logger.warn({ err, key: oldKey }, 'Failed to delete old avatar'));
     }
 
     return this.getProfile(userId);
@@ -351,6 +367,7 @@ git commit -m "feat(server): add UserService for profile and avatar operations"
 ### Task 7: Create UserController
 
 **Files:**
+
 - Create: `apps/server/src/controllers/user.controller.ts`
 - Modify: `apps/server/src/controllers/index.ts`
 
@@ -471,6 +488,7 @@ git commit -m "feat(server): add UserController with profile and avatar endpoint
 ### Task 8: Update AuthService to include nickname/avatarUrl in auth response
 
 **Files:**
+
 - Modify: `apps/server/src/services/auth.service.ts`
 
 - [ ] **Step 1: Add S3Service import**
@@ -625,6 +643,7 @@ Expected: Build succeeds
 ### Task 10: Update web AuthService user type
 
 **Files:**
+
 - Modify: `apps/web/src/services/auth.service.ts`
 
 - [ ] **Step 1: Update user type to include nickname and avatarUrl**
@@ -645,6 +664,7 @@ git commit -m "feat(web): add nickname and avatarUrl to AuthService user type"
 ### Task 11: Add upload method to web ApiService
 
 **Files:**
+
 - Modify: `apps/web/src/services/api.service.ts`
 
 - [ ] **Step 1: Add uploadPresignedUrl method to ApiService**
@@ -676,6 +696,7 @@ git commit -m "feat(web): add uploadPresignedUrl method to ApiService"
 ### Task 12: Create web UserService
 
 **Files:**
+
 - Create: `apps/web/src/services/user.service.ts`
 - Modify: `apps/web/src/main.tsx`
 
@@ -768,6 +789,7 @@ git commit -m "feat(web): add UserService for profile and avatar operations"
 ### Task 13: Update web NavContent for avatar and nickname display
 
 **Files:**
+
 - Modify: `apps/web/src/components/nav-content/index.tsx`
 
 - [ ] **Step 1: Add Settings icon to imports**
@@ -825,6 +847,7 @@ git commit -m "feat(web): show avatar image and nickname in NavContent"
 ### Task 14: Build web settings page
 
 **Files:**
+
 - Modify: `apps/web/src/pages/settings/index.tsx`
 
 - [ ] **Step 1: Replace stub with full settings page**
@@ -954,9 +977,7 @@ function SettingsPageInner() {
 
         {/* Nickname Section */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--text-secondary)]">
-            Nickname
-          </label>
+          <label className="block text-sm font-medium text-[var(--text-secondary)]">Nickname</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -978,9 +999,7 @@ function SettingsPageInner() {
 
         {/* Email (read-only) */}
         <div className="mt-6 space-y-2">
-          <label className="block text-sm font-medium text-[var(--text-secondary)]">
-            Email
-          </label>
+          <label className="block text-sm font-medium text-[var(--text-secondary)]">Email</label>
           <div className="px-3 py-2 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-muted)] text-sm">
             {user?.email ?? ''}
           </div>
@@ -1016,6 +1035,7 @@ Expected: No type errors
 ### Task 16: Update mobile AuthService user type
 
 **Files:**
+
 - Modify: `apps/mobile/src/services/auth.service.ts`
 
 - [ ] **Step 1: Update user type to include nickname and avatarUrl**
@@ -1036,6 +1056,7 @@ git commit -m "feat(mobile): add nickname and avatarUrl to AuthService user type
 ### Task 17: Add upload method to mobile ApiService
 
 **Files:**
+
 - Modify: `apps/mobile/src/services/api.service.ts`
 
 - [ ] **Step 1: Add uploadPresignedUrl method after the patch method**
@@ -1069,6 +1090,7 @@ git commit -m "feat(mobile): add uploadPresignedUrl method to ApiService"
 ### Task 18: Create mobile UserService
 
 **Files:**
+
 - Create: `apps/mobile/src/services/user.service.ts`
 - Modify: `apps/mobile/app/_layout.tsx`
 
@@ -1106,7 +1128,11 @@ export class UserService {
     return profile;
   }
 
-  async uploadAvatar(fileUri: string, contentType: string, fileSize: number): Promise<UserProfileResponse> {
+  async uploadAvatar(
+    fileUri: string,
+    contentType: string,
+    fileSize: number
+  ): Promise<UserProfileResponse> {
     if (fileSize > 2 * 1024 * 1024) {
       throw new Error('File size must be less than 2MB');
     }
@@ -1139,7 +1165,7 @@ export class UserService {
 }
 ```
 
-- [ ] **Step 2: Register UserService in _layout.tsx**
+- [ ] **Step 2: Register UserService in \_layout.tsx**
 
 In `apps/mobile/app/_layout.tsx`, add:
 
@@ -1159,6 +1185,7 @@ git commit -m "feat(mobile): add UserService for profile and avatar operations"
 ### Task 19: Update mobile DrawerContent for avatar and nickname display
 
 **Files:**
+
 - Modify: `apps/mobile/src/components/drawer/drawer-content.tsx`
 
 - [ ] **Step 1: Update imports — add Image**
@@ -1172,16 +1199,18 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 Replace the user info section (the `<View style={[styles.userSection, ...]}>` block) with:
 
 ```tsx
-{/* User Info Section */}
+{
+  /* User Info Section */
+}
 <TouchableOpacity
   style={[styles.userSection, { borderBottomColor: colors.borderSubtle }]}
-  onPress={() => { onClose?.(); router.push('/(main)/settings'); }}
+  onPress={() => {
+    onClose?.();
+    router.push('/(main)/settings');
+  }}
 >
   {user?.avatarUrl ? (
-    <Image
-      source={{ uri: user.avatarUrl }}
-      style={styles.avatarImage}
-    />
+    <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
   ) : (
     <View style={[styles.avatar, { backgroundColor: colors.accentSoft }]}>
       <Text style={[styles.avatarText, { color: colors.accent }]}>
@@ -1192,13 +1221,9 @@ Replace the user info section (the `<View style={[styles.userSection, ...]}>` bl
   <Text style={[styles.username, { color: colors.textPrimary }]}>
     {user?.nickname || user?.email?.split('@')[0] || 'User'}
   </Text>
-  <Text style={[styles.email, { color: colors.textSecondary }]}>
-    {user?.email ?? ''}
-  </Text>
-  <Text style={[styles.serverUrl, { color: colors.textMuted }]}>
-    {serverUrl}
-  </Text>
-</TouchableOpacity>
+  <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email ?? ''}</Text>
+  <Text style={[styles.serverUrl, { color: colors.textMuted }]}>{serverUrl}</Text>
+</TouchableOpacity>;
 ```
 
 - [ ] **Step 3: Add avatarImage style to StyleSheet**
@@ -1219,12 +1244,13 @@ Add after the downloads action button:
 ```tsx
 <TouchableOpacity
   style={styles.actionButton}
-  onPress={() => { onClose?.(); router.push('/(main)/settings'); }}
+  onPress={() => {
+    onClose?.();
+    router.push('/(main)/settings');
+  }}
 >
   <Ionicons name="settings-outline" size={20} color={colors.textPrimary} />
-  <Text style={[styles.actionText, { color: colors.textPrimary }]}>
-    设置
-  </Text>
+  <Text style={[styles.actionText, { color: colors.textPrimary }]}>设置</Text>
 </TouchableOpacity>
 ```
 
@@ -1238,6 +1264,7 @@ git commit -m "feat(mobile): show avatar image, nickname, and settings in Drawer
 ### Task 20: Create mobile settings page
 
 **Files:**
+
 - Create: `apps/mobile/app/(main)/settings.tsx`
 - Modify: `apps/mobile/app/(main)/_layout.tsx`
 
@@ -1508,7 +1535,7 @@ const styles = StyleSheet.create({
 export default observer(SettingsPageInner);
 ```
 
-- [ ] **Step 2: Register settings screen in (main)/_layout.tsx**
+- [ ] **Step 2: Register settings screen in (main)/\_layout.tsx**
 
 In `apps/mobile/app/(main)/_layout.tsx`, add `<Stack.Screen name="settings" />` inside the `Stack` component:
 

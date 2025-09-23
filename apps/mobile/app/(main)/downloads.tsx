@@ -72,7 +72,13 @@ function DownloadsScreenInner() {
       <View style={[styles.item, { backgroundColor: colors.bgSurface }]}>
         <View style={styles.itemIcon}>
           <Ionicons
-            name={isCompleted ? 'checkmark-circle' : item.status === 'failed' ? 'alert-circle' : 'cloud-download'}
+            name={
+              isCompleted
+                ? 'checkmark-circle'
+                : item.status === 'failed'
+                  ? 'alert-circle'
+                  : 'cloud-download'
+            }
             size={24}
             color={isCompleted ? '#22C55E' : item.status === 'failed' ? '#EF4444' : colors.accent}
           />
@@ -88,7 +94,10 @@ function DownloadsScreenInner() {
           </Text>
         </View>
         {isCompleted && Platform.OS === 'android' && (
-          <TouchableOpacity style={styles.actionButton} onPress={() => handleOpenInFileManager(item)}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => handleOpenInFileManager(item)}
+          >
             <Ionicons name="folder-outline" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
         )}

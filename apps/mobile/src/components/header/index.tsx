@@ -15,13 +15,23 @@ function HeaderInner({ onMenuPress, onSearchPress }: HeaderProps) {
   const colors = themeService.colors;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderSubtle }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderSubtle },
+      ]}
+    >
       <TouchableOpacity style={styles.menuButton} onPress={onMenuPress}>
         <Ionicons name="menu" size={24} color={colors.textPrimary} />
       </TouchableOpacity>
       <View style={styles.center}>
         <Text style={[styles.logo, { color: colors.textPrimary }]}>ZEN_SEND</Text>
-        <View style={[styles.statusDot, { backgroundColor: socketService.connected ? '#22C55E' : '#EF4444' }]} />
+        <View
+          style={[
+            styles.statusDot,
+            { backgroundColor: socketService.connected ? '#22C55E' : '#EF4444' },
+          ]}
+        />
       </View>
       <TouchableOpacity style={styles.searchButton} onPress={onSearchPress}>
         <Ionicons name="search" size={22} color={colors.textPrimary} />

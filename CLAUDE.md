@@ -5,17 +5,20 @@ Zen Send - Cross-platform clipboard, text, and file transfer tool (like LocalSen
 ## Architecture
 
 ### Apps
+
 - **apps/server**: Express.js backend with Socket.io for real-time communication
 - **apps/web**: React 19 frontend with Vite (port 5274, proxies API to server)
 - **apps/mobile**: React Native (Expo) for Android and iOS
 - **apps/electron**: Electron desktop app for Windows/macOS/Linux
 
 ### Packages
+
 - **packages/dto**: Shared TypeScript interface types for request/response DTOs
 - **packages/shared**: Re-exports from `@zen-send/dto` plus domain types (Device, TransferSession, Socket events)
 - **packages/logger**: Pino-based logging utility
 
 ### Config
+
 - **config/eslint-config**: Shared ESLint configuration
 - **config/typescript-config**: Shared TypeScript configurations
 
@@ -60,7 +63,7 @@ cd apps/electron && pnpm dist:linux  # Build Linux AppImage
 - **Validators**: `*.validator.ts` suffix (e.g., `auth.validator.ts`)
 - **Controllers**: `*.controller.ts` suffix
 
-### Component Organization (for pages/*/components/)
+### Component Organization (for pages/\*/components/)
 
 ```
 components/
@@ -97,6 +100,7 @@ components/
 ### Environment Variables
 
 **Server (`apps/server/.env`):**
+
 ```
 PORT=3110
 NODE_ENV=development
@@ -115,12 +119,14 @@ TRANSFER_TTL_DAYS=30
 ```
 
 ### Git Hooks
+
 - **commitlint** validates commit messages (Conventional Commits format) on commit
 - **changesets** manages versioning and changelogs (run `pnpm changeset` to create)
 
 ## Subsystem-Specific Rules
 
 Detailed rules for each subsystem live in their own directories:
+
 - `apps/server/CLAUDE.md` — Server architecture, IOC, DTO, database, Socket.io, transfer module
 - `apps/web/CLAUDE.md` — Web @rabjs/react rules, design system, directory structure
 - `apps/mobile/CLAUDE.md` — Mobile @rabjs/react rules, design system, platform specifics

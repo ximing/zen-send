@@ -42,6 +42,7 @@ Modified:
 ### Task 1.1: Create bottom-toolbar component
 
 **Files:**
+
 - Create: `apps/web/src/components/transfer-chat/bottom-toolbar/index.ts`
 - Create: `apps/web/src/components/transfer-chat/bottom-toolbar/bottom-toolbar.tsx`
 - Modify: `apps/web/src/pages/home/home.service.ts` # 添加 sendText 方法
@@ -92,32 +93,35 @@ const BottomToolbar = observer(() => {
   const [inputText, setInputText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
 
-    const fileData = files.map((file) => ({
-      name: file.name,
-      size: file.size,
-      data: undefined as ArrayBuffer | undefined,
-    }));
+      const fileData = files.map((file) => ({
+        name: file.name,
+        size: file.size,
+        data: undefined as ArrayBuffer | undefined,
+      }));
 
-    // Read file data
-    fileData.forEach((file, index) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        fileData[index].data = reader.result as ArrayBuffer;
-        homeService.addFiles(fileData);
-        homeService.uploadFiles();
-      };
-      reader.readAsArrayBuffer(files[index]);
-    });
+      // Read file data
+      fileData.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          fileData[index].data = reader.result as ArrayBuffer;
+          homeService.addFiles(fileData);
+          homeService.uploadFiles();
+        };
+        reader.readAsArrayBuffer(files[index]);
+      });
 
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, [homeService]);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+    [homeService]
+  );
 
   const handleSendText = useCallback(async () => {
     const text = inputText.trim();
@@ -131,12 +135,15 @@ const BottomToolbar = observer(() => {
     }
   }, [homeService, inputText]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendText();
-    }
-  }, [handleSendText]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendText();
+      }
+    },
+    [handleSendText]
+  );
 
   const openSearchModal = useCallback(() => {
     // Trigger search modal - will be implemented in Chunk 4
@@ -193,9 +200,10 @@ const BottomToolbar = observer(() => {
           onClick={handleSendText}
           disabled={!canSend}
           className={`p-2.5 rounded-xl transition-colors
-            ${canSend
-              ? 'bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90'
-              : 'bg-[var(--bg-surface)] text-[var(--text-muted)] cursor-not-allowed'
+            ${
+              canSend
+                ? 'bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90'
+                : 'bg-[var(--bg-surface)] text-[var(--text-muted)] cursor-not-allowed'
             }`}
           title="发送"
         >
@@ -223,6 +231,7 @@ git commit -m "feat(web): add BottomToolbar component with file select and text 
 ### Task 1.2: Integrate BottomToolbar into TransferChat
 
 **Files:**
+
 - Modify: `apps/web/src/components/transfer-chat/transfer-chat.tsx`
 
 - [ ] **Step 1: Update transfer-chat.tsx to add BottomToolbar and remove SearchBarComponent**
@@ -238,6 +247,7 @@ import BottomToolbar from './bottom-toolbar';
 ```
 
 In the return statement, replace:
+
 ```tsx
 // Change from:
 <div className="space-y-3">
@@ -249,6 +259,7 @@ In the return statement, replace:
 ```
 
 And add BottomToolbar at the bottom:
+
 ```tsx
     {/* Transfer list content */}
     {dateGroups.length === 0 ? (
@@ -275,6 +286,7 @@ git commit -m "feat(web): integrate BottomToolbar into TransferChat"
 ### Task 2.1: Add drag & drop upload to TransferChatContent
 
 **Files:**
+
 - Modify: `apps/web/src/components/transfer-chat/transfer-chat.tsx`
 
 - [ ] **Step 1: Add drag state and handlers**
@@ -298,32 +310,35 @@ const handleDragLeave = useCallback((e: React.DragEvent) => {
   setIsDragging(false);
 }, []);
 
-const handleDrop = useCallback(async (e: React.DragEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-  setIsDragging(false);
+const handleDrop = useCallback(
+  async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
 
-  const files = Array.from(e.dataTransfer.files);
-  if (files.length === 0) return;
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
 
-  const fileData = files.map((file) => ({
-    name: file.name,
-    size: file.size,
-    data: undefined as ArrayBuffer | undefined,
-  }));
+    const fileData = files.map((file) => ({
+      name: file.name,
+      size: file.size,
+      data: undefined as ArrayBuffer | undefined,
+    }));
 
-  // Read and upload
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const reader = new FileReader();
-    reader.onload = () => {
-      fileData[i].data = reader.result as ArrayBuffer;
-      homeService.addFiles([fileData[i]]);
-      homeService.uploadFiles();
-    };
-    reader.readAsArrayBuffer(file);
-  }
-}, [homeService]);
+    // Read and upload
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = () => {
+        fileData[i].data = reader.result as ArrayBuffer;
+        homeService.addFiles([fileData[i]]);
+        homeService.uploadFiles();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  },
+  [homeService]
+);
 ```
 
 - [ ] **Step 2: Add drag handlers to the message list container**
@@ -372,6 +387,7 @@ git commit -m "feat(web): add drag & drop file upload to TransferChat"
 ### Task 3.1: Create search-modal component
 
 **Files:**
+
 - Create: `apps/web/src/components/transfer-chat/search-modal/index.ts`
 - Create: `apps/web/src/components/transfer-chat/search-modal/search-modal.tsx`
 
@@ -442,24 +458,26 @@ const SearchModal = observer(() => {
     setIsOpen(false);
   }, []);
 
-  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === dialogRef.current) {
-      handleClose();
-    }
-  }, [handleClose]);
-
-  // Get filtered results
-  const results = chatService.filterTransfers(
-    homeService.transfers,
-    query,
-    timeFilter
+  const handleBackdropClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === dialogRef.current) {
+        handleClose();
+      }
+    },
+    [handleClose]
   );
 
-  const handleResultClick = useCallback((transfer: TransferSession) => {
-    // TODO: Scroll to message in list
-    homeService.setPreviewTransfer(transfer);
-    handleClose();
-  }, [homeService, handleClose]);
+  // Get filtered results
+  const results = chatService.filterTransfers(homeService.transfers, query, timeFilter);
+
+  const handleResultClick = useCallback(
+    (transfer: TransferSession) => {
+      // TODO: Scroll to message in list
+      homeService.setPreviewTransfer(transfer);
+      handleClose();
+    },
+    [homeService, handleClose]
+  );
 
   return (
     <dialog
@@ -494,9 +512,10 @@ const SearchModal = observer(() => {
               key={filter.value}
               onClick={() => setTimeFilter(filter.value)}
               className={`px-3 py-1.5 text-sm rounded-lg transition-colors
-                ${timeFilter === filter.value
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]/80'
+                ${
+                  timeFilter === filter.value
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]/80'
                 }`}
             >
               {filter.label}
@@ -569,6 +588,7 @@ git commit -m "feat(web): add SearchModal component"
 ### Task 4.1: Update message-bubble to trigger PreviewModal
 
 **Files:**
+
 - Modify: `apps/web/src/components/transfer-chat/message-bubble.tsx`
 
 - [ ] **Step 1: Verify PreviewModal is triggered**
@@ -586,6 +606,7 @@ find apps/web/src/components -name "*preview*" -o -name "*modal*"
 If no PreviewModal exists, create one:
 
 **Files:**
+
 - Create: `apps/web/src/components/preview-modal/index.ts`
 - Create: `apps/web/src/components/preview-modal/preview-modal.tsx`
 
@@ -741,6 +762,7 @@ git commit -m "feat(web): add PreviewModal with preview and download actions"
 ### Task 5.1: Remove search-bar component
 
 **Files:**
+
 - Remove: `apps/web/src/components/search-bar/` (entire directory)
 
 - [ ] **Step 1: Remove search-bar directory**

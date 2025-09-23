@@ -33,7 +33,13 @@ function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showQrScanner, setShowQrScanner] = useState(false);
 
-  const handleQrScan = async ({ tokens, serverUrl }: { tokens: { accessToken: string; refreshToken: string; user: { id: string; email: string } }; serverUrl: string }) => {
+  const handleQrScan = async ({
+    tokens,
+    serverUrl,
+  }: {
+    tokens: { accessToken: string; refreshToken: string; user: { id: string; email: string } };
+    serverUrl: string;
+  }) => {
     setShowQrScanner(false);
     setIsLoading(true);
     setError(null);
@@ -76,9 +82,7 @@ function LoginScreen() {
     >
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.textPrimary }]}>Zen Send</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Sign in to continue
-        </Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign in to continue</Text>
 
         {error && (
           <View style={[styles.errorContainer, { backgroundColor: colors.accentSoft }]}>

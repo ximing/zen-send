@@ -39,13 +39,13 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
       {/* User Info Section */}
       <TouchableOpacity
         style={[styles.userSection, { borderBottomColor: colors.borderSubtle }]}
-        onPress={() => { onClose?.(); router.push('/(main)/settings'); }}
+        onPress={() => {
+          onClose?.();
+          router.push('/(main)/settings');
+        }}
       >
         {user?.avatarUrl ? (
-          <Image
-            source={{ uri: user.avatarUrl }}
-            style={styles.avatarImage}
-          />
+          <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
         ) : (
           <View style={[styles.avatar, { backgroundColor: colors.accentSoft }]}>
             <Text style={[styles.avatarText, { color: colors.accent }]}>
@@ -56,40 +56,29 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
         <Text style={[styles.username, { color: colors.textPrimary }]}>
           {user?.nickname || user?.email?.split('@')[0] || 'User'}
         </Text>
-        <Text style={[styles.email, { color: colors.textSecondary }]}>
-          {user?.email ?? ''}
-        </Text>
-        <Text style={[styles.serverUrl, { color: colors.textMuted }]}>
-          {serverUrl}
-        </Text>
+        <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email ?? ''}</Text>
+        <Text style={[styles.serverUrl, { color: colors.textMuted }]}>{serverUrl}</Text>
       </TouchableOpacity>
 
       {/* Actions Section */}
       <View style={styles.actionsSection}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleDownloads}
-        >
+        <TouchableOpacity style={styles.actionButton} onPress={handleDownloads}>
           <Ionicons name="cloud-download-outline" size={20} color={colors.textPrimary} />
-          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
-            下载
-          </Text>
+          <Text style={[styles.actionText, { color: colors.textPrimary }]}>下载</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => { onClose?.(); router.push('/(main)/settings'); }}
+          onPress={() => {
+            onClose?.();
+            router.push('/(main)/settings');
+          }}
         >
           <Ionicons name="settings-outline" size={20} color={colors.textPrimary} />
-          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
-            设置
-          </Text>
+          <Text style={[styles.actionText, { color: colors.textPrimary }]}>设置</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleThemeToggle}
-        >
+        <TouchableOpacity style={styles.actionButton} onPress={handleThemeToggle}>
           <Ionicons
             name={themeService.isDark ? 'sunny' : 'moon-outline'}
             size={20}
@@ -100,14 +89,9 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={styles.actionButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color={colors.textPrimary} />
-          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
-            Logout
-          </Text>
+          <Text style={[styles.actionText, { color: colors.textPrimary }]}>Logout</Text>
         </TouchableOpacity>
       </View>
     </View>

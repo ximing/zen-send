@@ -61,9 +61,7 @@ export class Log {
    * pino 风格: logger.info(meta, message)
    * winston 风格: logger.info(message, meta)
    */
-  private parseArgs(
-    ...args: LogMetadata[]
-  ): { message: string; meta: Record<string, unknown> } {
+  private parseArgs(...args: LogMetadata[]): { message: string; meta: Record<string, unknown> } {
     if (args.length === 0) {
       return { message: '', meta: {} };
     }
@@ -86,20 +84,26 @@ export class Log {
     const [first, second, ...rest] = args;
 
     // pino 风格: (meta, message)
-    if (typeof first === 'object' && first !== null && !(first instanceof Error) && typeof second === 'string') {
+    if (
+      typeof first === 'object' &&
+      first !== null &&
+      !(first instanceof Error) &&
+      typeof second === 'string'
+    ) {
       const restMeta = rest.reduce<Record<string, unknown>>((acc, r) => {
         if (typeof r === 'object' && r !== null) {
-          return { ...acc, ...r as Record<string, unknown> };
+          return { ...acc, ...(r as Record<string, unknown>) };
         }
         return acc;
       }, {});
-      return { message: second, meta: { ...first as Record<string, unknown>, ...restMeta } };
+      return { message: second, meta: { ...(first as Record<string, unknown>), ...restMeta } };
     }
 
     // winston 风格: (message, meta, ...)
     if (typeof first === 'string') {
-      const metaArgs = [second, ...rest].filter((m): m is Record<string, unknown> =>
-        typeof m === 'object' && m !== null && !(m instanceof Error)
+      const metaArgs = [second, ...rest].filter(
+        (m): m is Record<string, unknown> =>
+          typeof m === 'object' && m !== null && !(m instanceof Error)
       );
       const errorArgs = [second, ...rest].filter((m): m is Error => m instanceof Error);
       return {

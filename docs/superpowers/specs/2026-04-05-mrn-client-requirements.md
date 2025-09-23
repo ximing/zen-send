@@ -20,13 +20,13 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 
 ### 1.2 技术栈
 
-| 层级 | 技术 |
-|------|------|
-| 框架 | React Native (Expo) |
+| 层级     | 技术                                 |
+| -------- | ------------------------------------ |
+| 框架     | React Native (Expo)                  |
 | 状态管理 | @rabjs/react (observer/Service 模式) |
-| 实时通信 | Socket.io client |
-| 文件传输 | S3 分片上传 (1MB chunks) |
-| API | REST + Socket.io |
+| 实时通信 | Socket.io client                     |
+| 文件传输 | S3 分片上传 (1MB chunks)             |
+| API      | REST + Socket.io                     |
 
 ---
 
@@ -47,6 +47,7 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
    - 二维码包含临时登录 token，扫码后自动登录
 
 **状态管理：**
+
 - Token 存储在安全存储 (Expo SecureStore)
 - Axios 拦截器自动附加 Token
 - Token 过期时自动刷新
@@ -56,6 +57,7 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 ### 2.2 发送模块
 
 **文件选择：**
+
 - 调用 Expo DocumentPicker 选择文件
 - 支持多选文件
 - 显示选中文件列表（名称、大小）
@@ -64,6 +66,7 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 
 **上传进度展示：**
 每个上传中的文件显示：
+
 - 文件名
 - 进度条 + 百分比
 - 上传速度（bytes/second，滚动平均计算）
@@ -71,16 +74,19 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 - 取消按钮（调用 DELETE /api/transfers/:id）
 
 **文本发送：**
+
 - 文本输入框
 - 点击"发送"调用 API
 - 支持回车发送
 
 **剪贴板：**
+
 - 读取剪贴板内容
 - 自动识别内容类型（文本/文件）
 - 根据内容类型走对应处理流程
 
 **发送流程：**
+
 1. 调用 `POST /api/transfers/init` 初始化会话
 2. 如果是文本且 ≤10KB (`TEXT_INLINE_MAX_SIZE`): 直接上传 content，服务器直接存数据库 (`storageType='db'`)
 3. 如果是文件或文本 >10KB: 获取 presigned upload URLs (`storageType='s3'`)
@@ -90,6 +96,7 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 7. Socket.io 发送 `transfer:notify` 到所有在线设备
 
 **错误处理：**
+
 - 单个 chunk 失败不影响其他 chunks，重试失败的 chunk（最多 3 次）
 - 如果上传时收到 403/401，客户端重新请求新的 presigned URLs
 - 维护 AbortController 用于取消上传
@@ -97,6 +104,7 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 ### 2.3 接收模块
 
 **云端文件列表：**
+
 - 调用 `GET /api/transfers?limit=50&offset=0` 获取历史
 - 按时间倒序排列
 - 显示类型图标、名称、大小、相对时间
@@ -104,11 +112,13 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 - 分页加载：初始加载 50 条，点击"加载更多"时 offset = currentItems.length
 
 **搜索功能：**
+
 - SearchModal 组件
 - 按文件名搜索（模糊匹配，客户端过滤）
 - 时间筛选：全部/今天/本周/本月
 
 **下载：**
+
 - 调用 `GET /api/transfers/:id` 获取传输详情
 - 根据 `storageType` 判断处理方式：
   - `storageType='db'`：直接读取 `content` 字段（文本内容）
@@ -116,11 +126,13 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 - 下载完成后调用下载记录接口
 
 **删除传输：**
+
 - 调用 `DELETE /api/transfers/:id`
 - 如果上传进行中：服务器标记为 `cancelled`，后台清理 S3 分片上传
 - 如果上传已完成：服务器同步删除 S3 对象
 
 **新传输通知：**
+
 - Socket.io 监听 `transfer:new`
 - 显示本地通知
 - 实时更新列表
@@ -129,15 +141,15 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 
 **Socket.io 事件：**
 
-| 事件 | 方向 | 说明 |
-|------|------|------|
-| `device:register` | client→server | 设备上线 |
-| `device:heartbeat` | client→server | 心跳保活 |
-| `transfer:notify` | client→server | 通知目标设备（不填 targetDeviceId 则广播） |
-| `transfer:complete` | client→server | 传输完成 |
-| `transfer:new` | server→client | 新传输通知 |
-| `transfer:progress` | server→client | 传输进度 |
-| `transfer:complete` | server→client | 传输完成确认 |
+| 事件                | 方向          | 说明                                       |
+| ------------------- | ------------- | ------------------------------------------ |
+| `device:register`   | client→server | 设备上线                                   |
+| `device:heartbeat`  | client→server | 心跳保活                                   |
+| `transfer:notify`   | client→server | 通知目标设备（不填 targetDeviceId 则广播） |
+| `transfer:complete` | client→server | 传输完成                                   |
+| `transfer:new`      | server→client | 新传输通知                                 |
+| `transfer:progress` | server→client | 传输进度                                   |
+| `transfer:complete` | server→client | 传输完成确认                               |
 
 **说明：** 移除了 `device:list` 事件，不再需要显示设备列表。
 
@@ -158,6 +170,7 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 ### 3.2 HomeScreen 布局
 
 **布局结构（参照 Bottom Toolbar 设计）：**
+
 ```
 ┌─────────────────────────────────┐
 │  Header: Logo + Theme Toggle     │
@@ -187,6 +200,7 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 ```
 
 **BottomToolbar 组件：**
+
 - 固定在页面底部
 - 图标行：文件选择 + 搜索按钮
 - 输入行：文本输入框 + 发送按钮
@@ -206,41 +220,45 @@ Zen Send MRN 客户端是跨平台剪贴板、文本和文件传输工具的移�
 **颜色系统** (与 Web 端一致):
 
 Light Mode:
+
 - `--bg-primary`: #F7F5F2 (页面背景)
 - `--bg-surface`: #FFFFFF (卡片背景)
 - `--accent`: #8B9A7D (Sage Green)
 
 Dark Mode:
+
 - `--bg-primary`: #1C1C1E
 - `--bg-surface`: #242426
 - `--accent`: #8B9A7D
 
 **字体：**
+
 - 使用系统字体
 - 标题: 18-20px, Medium
 - 正文: 14-16px, Regular
 - 辅助文字: 12px
 
 **间距：**
+
 - 页面边距: 16px
 - 卡片间距: 12px
 - 内边距: 16px
 
 ### 3.4 组件清单
 
-| 组件 | 说明 |
-|------|------|
-| Header | Logo、主题切换 |
-| BottomToolbar | 底部输入工具栏（文件选择、搜索、文本输入、发送） |
-| SearchModal | 搜索弹窗（按文件名搜索 + 时间筛选） |
-| PreviewModal | 预览弹窗（图片预览、文本查看、文件信息） |
-| FileSelector | 文件选择区 |
-| SelectedFiles | 已选文件列表（含进度条、速度、ETA） |
-| TransferList / TransferChat | 传输历史列表（对话式时间线） |
-| TransferItem / MessageBubble | 单个传输项/消息气泡 |
-| FilterTabs | 筛选标签 |
-| OnlineDevices | 在线设备显示 |
-| EmptyState | 空状态提示 |
+| 组件                         | 说明                                             |
+| ---------------------------- | ------------------------------------------------ |
+| Header                       | Logo、主题切换                                   |
+| BottomToolbar                | 底部输入工具栏（文件选择、搜索、文本输入、发送） |
+| SearchModal                  | 搜索弹窗（按文件名搜索 + 时间筛选）              |
+| PreviewModal                 | 预览弹窗（图片预览、文本查看、文件信息）         |
+| FileSelector                 | 文件选择区                                       |
+| SelectedFiles                | 已选文件列表（含进度条、速度、ETA）              |
+| TransferList / TransferChat  | 传输历史列表（对话式时间线）                     |
+| TransferItem / MessageBubble | 单个传输项/消息气泡                              |
+| FilterTabs                   | 筛选标签                                         |
+| OnlineDevices                | 在线设备显示                                     |
+| EmptyState                   | 空状态提示                                       |
 
 ---
 
@@ -248,39 +266,42 @@ Dark Mode:
 
 ### 4.1 认证
 
-| Method | Path | 说明 |
-|--------|------|------|
-| POST | `/api/auth/register` | 注册 |
-| POST | `/api/auth/login` | 登录 |
-| POST | `/api/auth/refresh` | 刷新 Token |
-| POST | `/api/auth/logout` | 登出 |
+| Method | Path                 | 说明       |
+| ------ | -------------------- | ---------- |
+| POST   | `/api/auth/register` | 注册       |
+| POST   | `/api/auth/login`    | 登录       |
+| POST   | `/api/auth/refresh`  | 刷新 Token |
+| POST   | `/api/auth/logout`   | 登出       |
 
 ### 4.2 传输
 
 **InitTransferRequest:**
+
 ```typescript
 interface InitTransferRequest {
   sourceDeviceId: string;
   targetDeviceId: string;
-  type: 'file' | 'text';  // 注意：已移除 'clipboard' 类型
+  type: 'file' | 'text'; // 注意：已移除 'clipboard' 类型
   fileName?: string;
   contentType: string;
   totalSize: number;
   chunkCount?: number;
-  content?: string;  // <=10KB 的文本内容
+  content?: string; // <=10KB 的文本内容
 }
 ```
 
 **InitTransferResponse:**
+
 ```typescript
 interface InitTransferResponse {
   sessionId: string;
-  presignedUrls?: string[];  // S3 分片上传 URL 列表（文件或 >10KB 文本时返回）
-  chunkSize?: number;        // 分片大小（仅 S3 时返回）
+  presignedUrls?: string[]; // S3 分片上传 URL 列表（文件或 >10KB 文本时返回）
+  chunkSize?: number; // 分片大小（仅 S3 时返回）
 }
 ```
 
 **TransferSessionResponse (GET /api/transfers/:id):**
+
 ```typescript
 interface TransferSessionResponse {
   id: string;
@@ -291,29 +312,29 @@ interface TransferSessionResponse {
     mimeType: string;
     size: number;
     storageType: 'db' | 's3';
-    content?: string;        // storageType = 'db' 时返回
-    downloadUrl?: string;    // storageType = 's3' 时返回，预签名 URL，24 小时有效
+    content?: string; // storageType = 'db' 时返回
+    downloadUrl?: string; // storageType = 's3' 时返回，预签名 URL，24 小时有效
   }[];
 }
 ```
 
-| Method | Path | 说明 |
-|--------|------|------|
-| POST | `/api/transfers/init` | 初始化传输 |
-| POST | `/api/transfers/:id/chunks` | 上报 chunk |
-| POST | `/api/transfers/:id/complete` | 完成传输 |
-| GET | `/api/transfers` | 获取传输列表，支持 `?type=file\|text&limit=50&offset=0` |
-| GET | `/api/transfers/:id` | 获取传输详情（含 storageType 判断） |
-| GET | `/api/transfers/:id/download` | 获取下载链接（仅 storageType='s3'） |
-| DELETE | `/api/transfers/:id` | 删除传输 |
+| Method | Path                          | 说明                                                    |
+| ------ | ----------------------------- | ------------------------------------------------------- |
+| POST   | `/api/transfers/init`         | 初始化传输                                              |
+| POST   | `/api/transfers/:id/chunks`   | 上报 chunk                                              |
+| POST   | `/api/transfers/:id/complete` | 完成传输                                                |
+| GET    | `/api/transfers`              | 获取传输列表，支持 `?type=file\|text&limit=50&offset=0` |
+| GET    | `/api/transfers/:id`          | 获取传输详情（含 storageType 判断）                     |
+| GET    | `/api/transfers/:id/download` | 获取下载链接（仅 storageType='s3'）                     |
+| DELETE | `/api/transfers/:id`          | 删除传输                                                |
 
 ### 4.3 设备
 
-| Method | Path | 说明 |
-|--------|------|------|
-| POST | `/api/devices` | 注册设备 |
-| PATCH | `/api/devices/:id/heartbeat` | 心跳保活 |
-| DELETE | `/api/devices/:id` | 解绑设备 |
+| Method | Path                         | 说明     |
+| ------ | ---------------------------- | -------- |
+| POST   | `/api/devices`               | 注册设备 |
+| PATCH  | `/api/devices/:id/heartbeat` | 心跳保活 |
+| DELETE | `/api/devices/:id`           | 解绑设备 |
 
 **说明：** 移动端不需要设备列表查询和解绑功能。
 
@@ -323,17 +344,17 @@ interface TransferSessionResponse {
 
 ### 5.1 全局 Services
 
-| Service | 说明 | 生命周期 |
-|---------|------|----------|
-| AuthService | 用户认证状态、Token 管理 | 应用级 |
-| ApiService | API 请求封装、拦截器 | 应用级 |
-| ThemeService | 主题模式管理 | 应用级 |
-| SocketService | Socket.io 连接管理 | 应用级 |
+| Service       | 说明                     | 生命周期 |
+| ------------- | ------------------------ | -------- |
+| AuthService   | 用户认证状态、Token 管理 | 应用级   |
+| ApiService    | API 请求封装、拦截器     | 应用级   |
+| ThemeService  | 主题模式管理             | 应用级   |
+| SocketService | Socket.io 连接管理       | 应用级   |
 
 ### 5.2 页面级 Services
 
-| Service | 说明 | 绑定页面 |
-|---------|------|----------|
+| Service     | 说明               | 绑定页面   |
+| ----------- | ------------------ | ---------- |
 | HomeService | 传输列表、发送逻辑 | HomeScreen |
 
 ---
@@ -342,12 +363,12 @@ interface TransferSessionResponse {
 
 ### 6.1 交互差异
 
-| 功能 | Web | Mobile |
-|------|-----|--------|
+| 功能     | Web              | Mobile              |
+| -------- | ---------------- | ------------------- |
 | 文件选择 | input[type=file] | Expo DocumentPicker |
-| 文件下载 | 浏览器下载 | Expo FileSystem |
-| 主题切换 | Header 按钮 | Header 下拉菜单 |
-| 文本输入 | 回车发送 | 回车发送 |
+| 文件下载 | 浏览器下载       | Expo FileSystem     |
+| 主题切换 | Header 按钮      | Header 下拉菜单     |
+| 文本输入 | 回车发送         | 回车发送            |
 
 ### 6.2 移动端特有功能
 
@@ -376,23 +397,27 @@ interface TransferSessionResponse {
 ## 7. 实现优先级
 
 ### Phase 1: 基础功能
+
 1. 项目脚手架 (Expo + Navigation)
 2. 认证模块 (登录/注册)
 3. API 和 Socket.io 基础连接
 4. 传输列表基础展示
 
 ### Phase 2: 核心功能
+
 1. 文件选择和上传
 2. 文本发送
 3. 文件下载
 4. 设备注册和心跳
 
 ### Phase 3: 增强功能
+
 1. 二维码扫描登录
 2. 本地通知
 3. 主题切换
 
 ### Phase 4: UI/UX 优化
+
 1. 设计规范实施
 2. 加载状态和错误处理
 3. 空状态设计
@@ -464,6 +489,7 @@ apps/mobile/
 ### 10.1 storageType 字段
 
 服务端在 `transferItems` 表新增 `storageType` 字段：
+
 - `'db'`: 文本内容直接存数据库（≤10KB）
 - `'s3'`: 内容存 S3（文件或 >10KB 文本）
 

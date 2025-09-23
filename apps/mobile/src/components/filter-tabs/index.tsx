@@ -28,10 +28,7 @@ function FilterTabsInner() {
             onPress={() => homeService.setFilter(f.value)}
           >
             <Text
-              style={[
-                styles.tabText,
-                { color: isActive ? colors.accent : colors.textSecondary },
-              ]}
+              style={[styles.tabText, { color: isActive ? colors.accent : colors.textSecondary }]}
             >
               {f.label}
             </Text>

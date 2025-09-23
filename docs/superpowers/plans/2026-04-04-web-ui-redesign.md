@@ -14,19 +14,19 @@
 
 ### Files to Modify
 
-| File | Purpose |
-|------|---------|
-| `apps/web/src/index.css` | Global styles, font import, base resets |
-| `apps/web/src/theme/tokens.ts` | Theme token definitions |
-| `apps/web/src/theme/theme-provider.tsx` | Theme provider (minor updates) |
-| `apps/web/src/components/header/index.tsx` | Header with logo + user info + theme toggle |
-| `apps/web/src/components/send-toolbar/index.tsx` | Send toolbar with 3 action buttons |
-| `apps/web/src/components/transfer-list/index.tsx` | Transfer history list with filters |
-| `apps/web/src/components/toast/index.tsx` | Toast notifications |
-| `apps/web/src/pages/home/index.tsx` | Home page layout |
-| `apps/web/src/pages/login/index.tsx` | Login form |
-| `apps/web/src/pages/register/index.tsx` | Registration form |
-| `apps/web/src/pages/setup/index.tsx` | Setup/connection form |
+| File                                              | Purpose                                     |
+| ------------------------------------------------- | ------------------------------------------- |
+| `apps/web/src/index.css`                          | Global styles, font import, base resets     |
+| `apps/web/src/theme/tokens.ts`                    | Theme token definitions                     |
+| `apps/web/src/theme/theme-provider.tsx`           | Theme provider (minor updates)              |
+| `apps/web/src/components/header/index.tsx`        | Header with logo + user info + theme toggle |
+| `apps/web/src/components/send-toolbar/index.tsx`  | Send toolbar with 3 action buttons          |
+| `apps/web/src/components/transfer-list/index.tsx` | Transfer history list with filters          |
+| `apps/web/src/components/toast/index.tsx`         | Toast notifications                         |
+| `apps/web/src/pages/home/index.tsx`               | Home page layout                            |
+| `apps/web/src/pages/login/index.tsx`              | Login form                                  |
+| `apps/web/src/pages/register/index.tsx`           | Registration form                           |
+| `apps/web/src/pages/setup/index.tsx`              | Setup/connection form                       |
 
 ---
 
@@ -37,7 +37,7 @@
 **File:** `apps/web/src/index.css`
 
 ```css
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Google Font: Fira Code */
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
@@ -154,7 +154,9 @@ body {
 }
 
 /* Smooth transitions */
-button, input, .card {
+button,
+input,
+.card {
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -328,11 +330,11 @@ const HeaderContent = observer(() => {
 
         {/* User info */}
         <div className="flex items-center gap-3">
-          <span className="text-sm text-[var(--text-secondary)]">
-            {service.userEmail}
-          </span>
-          <div className="w-8 h-8 rounded-md bg-[var(--primary)] text-[var(--on-primary)]
-                          flex items-center justify-center text-xs font-semibold">
+          <span className="text-sm text-[var(--text-secondary)]">{service.userEmail}</span>
+          <div
+            className="w-8 h-8 rounded-md bg-[var(--primary)] text-[var(--on-primary)]
+                          flex items-center justify-center text-xs font-semibold"
+          >
             {service.userEmail.charAt(0).toUpperCase()}
           </div>
         </div>
@@ -405,7 +407,9 @@ const LoginContent = observer(() => {
             <input
               type="email"
               value={service.email}
-              onChange={(e) => { service.email = e.target.value; }}
+              onChange={(e) => {
+                service.email = e.target.value;
+              }}
               placeholder="email@example.com"
               autoComplete="email"
               className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
@@ -421,7 +425,9 @@ const LoginContent = observer(() => {
             <input
               type="password"
               value={service.password}
-              onChange={(e) => { service.password = e.target.value; }}
+              onChange={(e) => {
+                service.password = e.target.value;
+              }}
               placeholder="••••••••"
               autoComplete="current-password"
               className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
@@ -432,9 +438,7 @@ const LoginContent = observer(() => {
           </div>
 
           {/* Error */}
-          {service.error && (
-            <p className="text-xs text-[var(--color-error)]">{service.error}</p>
-          )}
+          {service.error && <p className="text-xs text-[var(--color-error)]">{service.error}</p>}
 
           {/* Submit */}
           <button
@@ -513,7 +517,9 @@ const RegisterContent = observer(() => {
             <input
               type="email"
               value={service.email}
-              onChange={(e) => { service.email = e.target.value; }}
+              onChange={(e) => {
+                service.email = e.target.value;
+              }}
               placeholder="email@example.com"
               autoComplete="email"
               className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
@@ -529,7 +535,9 @@ const RegisterContent = observer(() => {
             <input
               type="password"
               value={service.password}
-              onChange={(e) => { service.password = e.target.value; }}
+              onChange={(e) => {
+                service.password = e.target.value;
+              }}
               placeholder="••••••••"
               autoComplete="new-password"
               className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
@@ -545,7 +553,9 @@ const RegisterContent = observer(() => {
             <input
               type="password"
               value={service.confirmPassword}
-              onChange={(e) => { service.confirmPassword = e.target.value; }}
+              onChange={(e) => {
+                service.confirmPassword = e.target.value;
+              }}
               placeholder="••••••••"
               autoComplete="new-password"
               className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
@@ -556,9 +566,7 @@ const RegisterContent = observer(() => {
           </div>
 
           {/* Error */}
-          {service.error && (
-            <p className="text-xs text-[var(--color-error)]">{service.error}</p>
-          )}
+          {service.error && <p className="text-xs text-[var(--color-error)]">{service.error}</p>}
 
           {/* Submit */}
           <button
@@ -648,7 +656,9 @@ const SetupContent = observer(() => {
             <input
               type="url"
               value={service.serverUrl}
-              onChange={(e) => { service.serverUrl = e.target.value; }}
+              onChange={(e) => {
+                service.serverUrl = e.target.value;
+              }}
               placeholder="https://zensend.example.com"
               className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
                          rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
@@ -658,9 +668,7 @@ const SetupContent = observer(() => {
           </div>
 
           {/* Error */}
-          {service.error && (
-            <p className="text-xs text-[var(--color-error)]">{service.error}</p>
-          )}
+          {service.error && <p className="text-xs text-[var(--color-error)]">{service.error}</p>}
 
           {/* Submit */}
           <button
@@ -736,8 +744,10 @@ const SendToolbarContent = observer(() => {
 
   return (
     <>
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)]
-                      rounded-xl p-6 mb-8">
+      <div
+        className="bg-[var(--bg-surface)] border border-[var(--border-default)]
+                      rounded-xl p-6 mb-8"
+      >
         {/* Action buttons grid */}
         <div className="grid grid-cols-3 gap-3 mb-5">
           {/* Select File */}
@@ -778,7 +788,8 @@ const SendToolbarContent = observer(() => {
         {homeService.selectedFiles.length > 0 && (
           <div className="border-t border-[var(--border-default)] pt-5">
             <div className="label mb-3">
-              SELECTED — {homeService.selectedFiles.length} {homeService.selectedFiles.length === 1 ? 'FILE' : 'FILES'}
+              SELECTED — {homeService.selectedFiles.length}{' '}
+              {homeService.selectedFiles.length === 1 ? 'FILE' : 'FILES'}
             </div>
             <div className="flex flex-wrap gap-2">
               {homeService.selectedFiles.map((file, index) => (
@@ -818,8 +829,10 @@ const SendToolbarContent = observer(() => {
       {/* Text Modal */}
       {service.modalType === 'text' && (
         <div className="fixed inset-0 bg-[var(--bg-overlay)] flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-default)]
-                          rounded-xl shadow-xl w-full max-w-md">
+          <div
+            className="bg-[var(--bg-surface)] border border-[var(--border-default)]
+                          rounded-xl shadow-xl w-full max-w-md"
+          >
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
               <h3 className="text-sm font-medium tracking-wider text-[var(--text-primary)]">
                 ENTER_TEXT
@@ -868,8 +881,10 @@ const SendToolbarContent = observer(() => {
       {/* Clipboard Modal */}
       {service.modalType === 'clipboard' && (
         <div className="fixed inset-0 bg-[var(--bg-overlay)] flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-default)]
-                          rounded-xl shadow-xl w-full max-w-md">
+          <div
+            className="bg-[var(--bg-surface)] border border-[var(--border-default)]
+                          rounded-xl shadow-xl w-full max-w-md"
+          >
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
               <h3 className="text-sm font-medium tracking-wider text-[var(--text-primary)]">
                 CLIPBOARD_CONTENT
@@ -999,9 +1014,10 @@ const FilterTabsComponent = observer(() => {
           key={f.value}
           onClick={() => service.setFilter(f.value)}
           className={`px-4 py-2 rounded-md text-xs tracking-wider transition-colors
-            ${service.filter === f.value
-              ? 'bg-[var(--primary)] text-[var(--on-primary)]'
-              : 'bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
+            ${
+              service.filter === f.value
+                ? 'bg-[var(--primary)] text-[var(--on-primary)]'
+                : 'bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
             }`}
         >
           {f.label}
@@ -1019,8 +1035,10 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
   const time = formatRelativeTime(transfer.createdAt);
 
   return (
-    <div className="p-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
-                    rounded-lg hover:border-[var(--border-subtle)] transition-colors cursor-pointer">
+    <div
+      className="p-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
+                    rounded-lg hover:border-[var(--border-subtle)] transition-colors cursor-pointer"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-lg">{icon}</span>
@@ -1043,9 +1061,7 @@ const EmptyStateComponent = observer(() => {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <span className="text-4xl mb-4">📭</span>
-      <p className="text-[var(--text-muted)]">
-        NO_{filterLabel}_TRANSFERS_YET
-      </p>
+      <p className="text-[var(--text-muted)]">NO_{filterLabel}_TRANSFERS_YET</p>
     </div>
   );
 });
@@ -1165,13 +1181,14 @@ const ToastContent = observer(() => {
         <div
           key={toast.id}
           className={`px-4 py-3 rounded-lg border shadow-lg text-sm
-            ${toast.type === 'success'
-              ? 'bg-[var(--bg-surface)] border-[var(--color-success)] text-[var(--color-success)]'
-              : toast.type === 'error'
-              ? 'bg-[var(--bg-surface)] border-[var(--color-error)] text-[var(--color-error)]'
-              : toast.type === 'warning'
-              ? 'bg-[var(--bg-surface)] border-[var(--color-warning)] text-[var(--color-warning)]'
-              : 'bg-[var(--bg-surface)] border-[var(--color-info)] text-[var(--color-info)]'
+            ${
+              toast.type === 'success'
+                ? 'bg-[var(--bg-surface)] border-[var(--color-success)] text-[var(--color-success)]'
+                : toast.type === 'error'
+                  ? 'bg-[var(--bg-surface)] border-[var(--color-error)] text-[var(--color-error)]'
+                  : toast.type === 'warning'
+                    ? 'bg-[var(--bg-surface)] border-[var(--color-warning)] text-[var(--color-warning)]'
+                    : 'bg-[var(--bg-surface)] border-[var(--color-info)] text-[var(--color-info)]'
             }`}
         >
           {toast.message}
@@ -1214,13 +1231,13 @@ export default bindServices(ToastContent, [ToastService]);
 
 ## Summary
 
-| Chunk | Tasks | Files |
-|-------|-------|-------|
-| 1 | 1-2 | `index.css`, `tokens.ts` |
-| 2 | 3 | `header/index.tsx` |
-| 3 | 4-6 | `login/index.tsx`, `register/index.tsx`, `setup/index.tsx` |
-| 4 | 7-9 | `send-toolbar/index.tsx`, `transfer-list/index.tsx`, `home/index.tsx` |
-| 5 | 10 | `toast/index.tsx` |
-| 6 | 11-12 | Verification |
+| Chunk | Tasks | Files                                                                 |
+| ----- | ----- | --------------------------------------------------------------------- |
+| 1     | 1-2   | `index.css`, `tokens.ts`                                              |
+| 2     | 3     | `header/index.tsx`                                                    |
+| 3     | 4-6   | `login/index.tsx`, `register/index.tsx`, `setup/index.tsx`            |
+| 4     | 7-9   | `send-toolbar/index.tsx`, `transfer-list/index.tsx`, `home/index.tsx` |
+| 5     | 10    | `toast/index.tsx`                                                     |
+| 6     | 11-12 | Verification                                                          |
 
 **Total: 12 tasks across 6 chunks**

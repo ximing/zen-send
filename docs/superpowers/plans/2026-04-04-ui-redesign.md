@@ -14,17 +14,17 @@
 
 ### Files to Modify
 
-| File | Changes |
-|------|---------|
-| `apps/web/src/theme/tokens.ts` | Update color tokens for light/dark mode |
-| `apps/web/src/index.css` | Update CSS variables, font family, transitions |
-| `apps/web/src/components/send-toolbar/index.tsx` | Update upload zone, button styles |
-| `apps/web/src/components/transfer-list/index.tsx` | Update card styles, filter tabs |
-| `apps/web/src/components/sidebar/index.tsx` | Update sidebar styling |
-| `apps/web/src/pages/home/index.tsx` | Update layout spacing, progress bar |
-| `apps/web/src/components/preview-modal/index.tsx` | Update modal styling |
-| `apps/web/src/components/toast/index.tsx` | Update toast styling |
-| `apps/web/src/components/search-bar/index.tsx` | Update input styles |
+| File                                              | Changes                                        |
+| ------------------------------------------------- | ---------------------------------------------- |
+| `apps/web/src/theme/tokens.ts`                    | Update color tokens for light/dark mode        |
+| `apps/web/src/index.css`                          | Update CSS variables, font family, transitions |
+| `apps/web/src/components/send-toolbar/index.tsx`  | Update upload zone, button styles              |
+| `apps/web/src/components/transfer-list/index.tsx` | Update card styles, filter tabs                |
+| `apps/web/src/components/sidebar/index.tsx`       | Update sidebar styling                         |
+| `apps/web/src/pages/home/index.tsx`               | Update layout spacing, progress bar            |
+| `apps/web/src/components/preview-modal/index.tsx` | Update modal styling                           |
+| `apps/web/src/components/toast/index.tsx`         | Update toast styling                           |
+| `apps/web/src/components/search-bar/index.tsx`    | Update input styles                            |
 
 ### Implementation Order
 
@@ -41,6 +41,7 @@
 ### Task 1.1: Update tokens.ts
 
 **Files:**
+
 - Modify: `apps/web/src/theme/tokens.ts`
 
 - [ ] **Step 1: Read current tokens.ts**
@@ -53,16 +54,16 @@
 
 ```typescript
 export const lightTokens = {
-  bgPrimary: '#F7F5F2',      // 暖灰页面背景
-  bgSurface: '#FFFFFF',       // 卡片背景
-  bgElevated: '#F5F5F5',      // 次级背景
-  textPrimary: '#2C2C2C',     // 主文字
-  textSecondary: '#9A958F',   // 次级文字
-  textMuted: '#B5AFA8',       // 辅助文字
-  borderDefault: '#DDD8D0',   // 默认边框
-  borderSubtle: '#EDEBE7',    // 卡片边框
-  accent: '#8B9A7D',          // 鼠尾草绿点缀
-  accentSoft: '#8B9A7D20',    // 点缀色12%透明
+  bgPrimary: '#F7F5F2', // 暖灰页面背景
+  bgSurface: '#FFFFFF', // 卡片背景
+  bgElevated: '#F5F5F5', // 次级背景
+  textPrimary: '#2C2C2C', // 主文字
+  textSecondary: '#9A958F', // 次级文字
+  textMuted: '#B5AFA8', // 辅助文字
+  borderDefault: '#DDD8D0', // 默认边框
+  borderSubtle: '#EDEBE7', // 卡片边框
+  accent: '#8B9A7D', // 鼠尾草绿点缀
+  accentSoft: '#8B9A7D20', // 点缀色12%透明
   // ... 其他必要token
 };
 ```
@@ -71,18 +72,18 @@ export const lightTokens = {
 
 ```typescript
 export const darkTokens = {
-  bgPrimary: '#1C1C1E',       // 柔和暗色背景
-  bgSurface: '#242426',       // 卡片背景
-  bgElevated: '#2C2C2E',      // 次级背景
-  bgHeader: '#3A3A3C',       // 头部背景
-  textPrimary: '#E5E2DC',     // 主文字
-  textSecondary: '#8A8880',   // 次级文字
-  textMuted: '#6B6860',       // 辅助文字
-  textFaint: '#4A4A4C',       // 微弱文字
-  borderDefault: '#3A3A3C',   // 默认边框
-  borderSubtle: '#2E2E30',    // 卡片边框
-  accent: '#8B9A7D',          // 鼠尾草绿点缀
-  accentSoft: '#8B9A7D20',    // 点缀色12%透明
+  bgPrimary: '#1C1C1E', // 柔和暗色背景
+  bgSurface: '#242426', // 卡片背景
+  bgElevated: '#2C2C2E', // 次级背景
+  bgHeader: '#3A3A3C', // 头部背景
+  textPrimary: '#E5E2DC', // 主文字
+  textSecondary: '#8A8880', // 次级文字
+  textMuted: '#6B6860', // 辅助文字
+  textFaint: '#4A4A4C', // 微弱文字
+  borderDefault: '#3A3A3C', // 默认边框
+  borderSubtle: '#2E2E30', // 卡片边框
+  accent: '#8B9A7D', // 鼠尾草绿点缀
+  accentSoft: '#8B9A7D20', // 点缀色12%透明
   // ... 其他必要token
 };
 ```
@@ -131,6 +132,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 1.2: Update index.css
 
 **Files:**
+
 - Modify: `apps/web/src/index.css`
 
 - [ ] **Step 1: Read current index.css**
@@ -153,41 +155,41 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```css
 :root {
   /* Background */
-  --bg-primary: #F7F5F2;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #F5F5F5;
+  --bg-primary: #f7f5f2;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f5f5f5;
 
   /* Text */
-  --text-primary: #2C2C2C;
-  --text-secondary: #9A958F;
-  --text-muted: #B5AFA8;
+  --text-primary: #2c2c2c;
+  --text-secondary: #9a958f;
+  --text-muted: #b5afa8;
 
   /* Border */
-  --border-default: #DDD8D0;
-  --border-subtle: #EDEBE7;
+  --border-default: #ddd8d0;
+  --border-subtle: #edebe7;
 
   /* Accent */
-  --accent: #8B9A7D;
+  --accent: #8b9a7d;
   --accent-soft: rgba(139, 154, 125, 0.12);
 }
 
 .dark {
   /* Background */
-  --bg-primary: #1C1C1E;
+  --bg-primary: #1c1c1e;
   --bg-surface: #242426;
-  --bg-elevated: #2C2C2E;
+  --bg-elevated: #2c2c2e;
 
   /* Text */
-  --text-primary: #E5E2DC;
-  --text-secondary: #8A8880;
-  --text-muted: #6B6860;
+  --text-primary: #e5e2dc;
+  --text-secondary: #8a8880;
+  --text-muted: #6b6860;
 
   /* Border */
-  --border-default: #3A3A3C;
-  --border-subtle: #2E2E30;
+  --border-default: #3a3a3c;
+  --border-subtle: #2e2e30;
 
   /* Accent - same as light */
-  --accent: #8B9A7D;
+  --accent: #8b9a7d;
   --accent-soft: rgba(139, 154, 125, 0.12);
 }
 ```
@@ -237,6 +239,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 2.1: Update Button Component Styles
 
 **Files:**
+
 - Read: `apps/web/src/components/send-toolbar/index.tsx` (for button styles)
 - Read: `apps/web/src/components/sidebar/index.tsx` (for icon button styles)
 
@@ -259,9 +262,10 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```tsx
 <button
   className={`w-10 h-10 flex items-center justify-center rounded-[var(--radius-md)]
-              transition-colors ${isActive
-                ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
-                : 'hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)]'
+              transition-colors ${
+                isActive
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
+                  : 'hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)]'
               }`}
 >
   <Icon size={20} />
@@ -286,6 +290,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 2.2: Update Card Component Styles
 
 **Files:**
+
 - Read: `apps/web/src/components/transfer-list/index.tsx`
 
 - [ ] **Step 1: Update transfer card styles**
@@ -313,9 +318,10 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```tsx
 <button
   className={`px-4 py-2 rounded-[var(--radius-sm)] text-xs transition-colors
-    ${active
-      ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
-      : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-subtle)]'
+    ${
+      active
+        ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
+        : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-subtle)]'
     }`}
 >
   {label}
@@ -340,6 +346,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 2.3: Update Input Styles
 
 **Files:**
+
 - Read: `apps/web/src/components/search-bar/index.tsx`
 - Read: `apps/web/src/components/send-toolbar/index.tsx` (textarea)
 
@@ -387,6 +394,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 3.1: Update Home/Transfer Page
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/index.tsx`
 - Read: `apps/web/src/pages/home/home.service.ts`
 
@@ -397,16 +405,20 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
   {/* Header with logo and actions */}
   <div className="flex justify-between items-center mb-10">
     {/* Logo */}
-    <div className="w-9 h-9 bg-[var(--bg-header)] rounded-[var(--radius-logo)]
-                    flex items-center justify-center">
+    <div
+      className="w-9 h-9 bg-[var(--bg-header)] rounded-[var(--radius-logo)]
+                    flex items-center justify-center"
+    >
       <span className="text-xs font-semibold text-[var(--accent)]">ZS</span>
     </div>
   </div>
 
   {/* Page title */}
   <div className="mb-8">
-    <h1 className="text-[28px] font-medium text-[var(--text-primary)]
-                   tracking-[-0.5px] mb-1">
+    <h1
+      className="text-[28px] font-medium text-[var(--text-primary)]
+                   tracking-[-0.5px] mb-1"
+    >
       Transfer
     </h1>
     <p className="text-[13px] text-[var(--text-secondary)]">April 4, 2026</p>
@@ -417,13 +429,17 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 - [ ] **Step 2: Update upload zone**
 
 ```tsx
-<div className="border border-dashed border-[var(--border-default)]
+<div
+  className="border border-dashed border-[var(--border-default)]
                 rounded-[var(--radius-2xl)] p-10 text-center
                 bg-[var(--bg-surface)] mb-6
-                hover:border-[var(--text-muted)] transition-colors">
-  <div className="w-11 h-11 border border-[var(--border-default)]
+                hover:border-[var(--text-muted)] transition-colors"
+>
+  <div
+    className="w-11 h-11 border border-[var(--border-default)]
                   rounded-[var(--radius-lg)] mx-auto mb-3
-                  flex items-center justify-center">
+                  flex items-center justify-center"
+  >
     <div className="w-5 h-5 border border-[var(--text-muted)] rounded" />
   </div>
   <p className="text-[14px] text-[var(--text-secondary)]">
@@ -446,9 +462,11 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 - [ ] **Step 4: Update Send button**
 
 ```tsx
-<div className="h-12 bg-[var(--bg-elevated)] rounded-[var(--radius-lg)]
+<div
+  className="h-12 bg-[var(--bg-elevated)] rounded-[var(--radius-lg)]
                 flex items-center justify-center text-[var(--text-primary)]
-                font-medium tracking-wide mb-12">
+                font-medium tracking-wide mb-12"
+>
   SEND
 </div>
 ```
@@ -457,8 +475,10 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 
 ```tsx
 <div className="mb-4">
-  <span className="text-[10px] font-semibold text-[var(--text-muted)]
-                   tracking-[1px] uppercase">
+  <span
+    className="text-[10px] font-semibold text-[var(--text-muted)]
+                   tracking-[1px] uppercase"
+  >
     Recent
   </span>
 </div>
@@ -484,6 +504,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 3.2: Update Preview Modal
 
 **Files:**
+
 - Modify: `apps/web/src/components/preview-modal/index.tsx`
 
 - [ ] **Step 1: Update modal overlay**
@@ -518,6 +539,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 3.3: Update Toast Notifications
 
 **Files:**
+
 - Modify: `apps/web/src/components/toast/index.tsx`
 
 - [ ] **Step 1: Update toast styles**
@@ -553,6 +575,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 - [ ] **Step 1: Verify all interactive elements have hover states**
 
 Check each component:
+
 - Buttons: hover brightness change
 - Cards: hover border change
 - Tabs: hover background change
@@ -600,6 +623,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 - [ ] **Step 1: Review all changed files**
 
 Ensure consistency:
+
 - Color variables used correctly
 - Border radius consistent
 - Spacing follows design spec
@@ -624,12 +648,12 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 
 ## Summary
 
-| Chunk | Tasks | Files |
-|-------|-------|-------|
-| 1 | Theme Foundation | tokens.ts, index.css |
-| 2 | Core Components | buttons, cards, inputs |
-| 3 | Page Components | home page, modal, toast |
-| 4 | Polish | hover states, build |
+| Chunk | Tasks            | Files                   |
+| ----- | ---------------- | ----------------------- |
+| 1     | Theme Foundation | tokens.ts, index.css    |
+| 2     | Core Components  | buttons, cards, inputs  |
+| 3     | Page Components  | home page, modal, toast |
+| 4     | Polish           | hover states, build     |
 
 Total: ~12 commits, incremental implementation
 

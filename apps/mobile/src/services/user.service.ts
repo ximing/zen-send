@@ -28,7 +28,11 @@ export class UserService extends Service {
     return profile;
   }
 
-  async uploadAvatar(fileUri: string, contentType: string, fileSize: number): Promise<UserProfileResponse> {
+  async uploadAvatar(
+    fileUri: string,
+    contentType: string,
+    fileSize: number
+  ): Promise<UserProfileResponse> {
     if (fileSize > 10 * 1024 * 1024) {
       throw new Error('File size must be less than 10MB');
     }

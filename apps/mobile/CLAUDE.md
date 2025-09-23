@@ -6,8 +6,8 @@
 
 **所有 Service 都是全局单例**，在应用入口统一注册：
 
-| 类型 | 注册方式 | 位置 |
-|------|---------|------|
+| 类型         | 注册方式     | 位置              |
+| ------------ | ------------ | ----------------- |
 | 所有 Service | `register()` | `app/_layout.tsx` |
 
 ```typescript
@@ -110,11 +110,13 @@ const showToast = (msg: string) => {
 ```
 
 **原因**：
+
 - 全局 Toast 使用 Modal 渲染，可以正确显示在所有其他 Modal 之上
 - 局部 Toast 在 Modal 内部会被遮罩层覆盖
 - 统一管理，避免重复代码
 
 **使用位置**：
+
 - `app/_layout.tsx` 中渲染 `<ToastInner />`
 - 其他地方只导入 `showToast` 函数调用
 
@@ -174,22 +176,23 @@ import { Ionicons } from '@expo/vector-icons';
 
 **Accent - Sage Green**: `#8B9A7D`
 
-| 用途 | 颜色 |
-|------|------|
-| 背景 | `#F7F5F2` (暖灰) / `#FFFFFF` |
-| 文字主色 | `#2C2C2C` |
-| 文字次色 | `#9A958F` |
-| 文字弱色 | `#B5AFA8` |
-| 边框默认 | `#DDD8D0` |
-| 边框弱色 | `#EDEBE7` |
-| 点缀色 | `#8B9A7D` |
-| 点缀色软 | `#8B9A7D20` (12% 透明度) |
+| 用途     | 颜色                         |
+| -------- | ---------------------------- |
+| 背景     | `#F7F5F2` (暖灰) / `#FFFFFF` |
+| 文字主色 | `#2C2C2C`                    |
+| 文字次色 | `#9A958F`                    |
+| 文字弱色 | `#B5AFA8`                    |
+| 边框默认 | `#DDD8D0`                    |
+| 边框弱色 | `#EDEBE7`                    |
+| 点缀色   | `#8B9A7D`                    |
+| 点缀色软 | `#8B9A7D20` (12% 透明度)     |
 
 ## Troubleshooting
 
 ### iOS 模拟器启动失败 (Invalid device)
 
 **症状**：
+
 ```
 Error: xcrun simctl boot <UDID> exited with non-zero code: 148
 Invalid device or device pair: <UDID>
@@ -200,11 +203,13 @@ Invalid device or device pair: <UDID>
 **修复步骤**：
 
 1. 查看 plist 内容：
+
    ```bash
    plutil -p ~/Library/Developer/CoreSimulator/Devices/device_set.plist
    ```
 
 2. 删除失效的模拟器条目：
+
    ```bash
    # 例如删除 iOS-17-5 下的 iPhone-SE-3rd-generation
    /usr/libexec/PlistBuddy -c "Delete :DefaultDevices:com.apple.CoreSimulator.SimRuntime.iOS-17-5:com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation" ~/Library/Developer/CoreSimulator/Devices/device_set.plist

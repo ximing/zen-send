@@ -16,16 +16,16 @@ Zen Send is a cross-device clipboard and file transfer tool with server relay, i
 
 ## 2. Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Backend | Node.js + Express + Socket.io |
-| Database | MySQL2 + Drizzle ORM |
-| File Storage | AWS S3 (private bucket, signed URLs) |
-| Authentication | JWT (access + refresh tokens) |
-| Real-time | Socket.io (device discovery, push notifications) |
-| Web Client | Electron |
-| Mobile Client | React Native (Expo) |
-| Package Manager | pnpm (monorepo with Turbo) |
+| Layer           | Technology                                       |
+| --------------- | ------------------------------------------------ |
+| Backend         | Node.js + Express + Socket.io                    |
+| Database        | MySQL2 + Drizzle ORM                             |
+| File Storage    | AWS S3 (private bucket, signed URLs)             |
+| Authentication  | JWT (access + refresh tokens)                    |
+| Real-time       | Socket.io (device discovery, push notifications) |
+| Web Client      | Electron                                         |
+| Mobile Client   | React Native (Expo)                              |
+| Package Manager | pnpm (monorepo with Turbo)                       |
 
 ## 3. ID Generation
 
@@ -42,13 +42,13 @@ const typeid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 22);
 
 **Prefix Convention:**
 
-| Entity | Prefix | Example |
-|--------|--------|---------|
-| User | `u` | `u3KkL9mW2XyPqRsTuVwY` |
-| Device | `d` | `d4LlMnO5PqRsTuVwXyZa` |
-| Transfer Session | `s` | `s5MmNoO6QrStUvWxYbZc` |
-| Transfer Item | `i` | `i6NnOpP7RsTuVwXyZcAd` |
-| Download History | `h` | `h7OoPqQ8StUvWxYzAdBe` |
+| Entity           | Prefix | Example                |
+| ---------------- | ------ | ---------------------- |
+| User             | `u`    | `u3KkL9mW2XyPqRsTuVwY` |
+| Device           | `d`    | `d4LlMnO5PqRsTuVwXyZa` |
+| Transfer Session | `s`    | `s5MmNoO6QrStUvWxYbZc` |
+| Transfer Item    | `i`    | `i6NnOpP7RsTuVwXyZcAd` |
+| Download History | `h`    | `h7OoPqQ8StUvWxYzAdBe` |
 
 ## 4. Database Schema
 
@@ -94,7 +94,9 @@ export const transferSessions = mysqlTable('transfer_sessions', {
   totalSize: bigint('total_size', { mode: 'number' }).notNull().default(0),
   chunkCount: int('chunk_count').notNull().default(0),
   receivedChunks: int('received_chunks').notNull().default(0), // Number of chunks received
-  contentType: varchar('content_type', { length: 100 }).notNull().default('application/octet-stream'),
+  contentType: varchar('content_type', { length: 100 })
+    .notNull()
+    .default('application/octet-stream'),
   ttlExpiresAt: int('ttl_expires_at').notNull(), // Unix timestamp
   createdAt: int('created_at').notNull(),
   completedAt: int('completed_at'),
@@ -148,44 +150,44 @@ export const chunkUploads = mysqlTable('chunk_uploads', {
 
 ### 5.1 Authentication
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login, returns tokens |
-| POST | `/api/auth/refresh` | Refresh access token |
-| POST | `/api/auth/logout` | Invalidate refresh token |
+| Method | Path                 | Description              |
+| ------ | -------------------- | ------------------------ |
+| POST   | `/api/auth/register` | Register new user        |
+| POST   | `/api/auth/login`    | Login, returns tokens    |
+| POST   | `/api/auth/refresh`  | Refresh access token     |
+| POST   | `/api/auth/logout`   | Invalidate refresh token |
 
 ### 5.2 Devices
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/devices` | List user's devices |
-| POST | `/api/devices` | Bind new device |
-| DELETE | `/api/devices/:id` | Unbind device |
-| PATCH | `/api/devices/:id/heartbeat` | Device heartbeat |
+| Method | Path                         | Description         |
+| ------ | ---------------------------- | ------------------- |
+| GET    | `/api/devices`               | List user's devices |
+| POST   | `/api/devices`               | Bind new device     |
+| DELETE | `/api/devices/:id`           | Unbind device       |
+| PATCH  | `/api/devices/:id/heartbeat` | Device heartbeat    |
 
 ### 5.3 Transfers
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/transfers/init` | Initialize transfer session |
-| POST | `/api/transfers/:id/chunks` | Upload chunk(s) |
-| POST | `/api/transfers/:id/complete` | Mark upload complete, trigger merge |
-| GET | `/api/transfers` | List transfer history |
-| GET | `/api/transfers/:id` | Get transfer details |
-| GET | `/api/transfers/:id/download` | Get signed download URL |
-| DELETE | `/api/transfers/:id` | Delete transfer record |
+| Method | Path                          | Description                         |
+| ------ | ----------------------------- | ----------------------------------- |
+| POST   | `/api/transfers/init`         | Initialize transfer session         |
+| POST   | `/api/transfers/:id/chunks`   | Upload chunk(s)                     |
+| POST   | `/api/transfers/:id/complete` | Mark upload complete, trigger merge |
+| GET    | `/api/transfers`              | List transfer history               |
+| GET    | `/api/transfers/:id`          | Get transfer details                |
+| GET    | `/api/transfers/:id/download` | Get signed download URL             |
+| DELETE | `/api/transfers/:id`          | Delete transfer record              |
 
 ### 5.4 Socket.io Events
 
-| Event | Direction | Description |
-|-------|------------|-------------|
-| `device:register` | client→server | Device goes online |
-| `device:heartbeat` | client→server | Keep device online |
-| `device:list` | server→client | Push device list |
-| `transfer:new` | server→client | New transfer notification |
-| `transfer:progress` | server→client | Upload progress update |
-| `transfer:complete` | server→client | Transfer completed |
+| Event               | Direction     | Description               |
+| ------------------- | ------------- | ------------------------- |
+| `device:register`   | client→server | Device goes online        |
+| `device:heartbeat`  | client→server | Keep device online        |
+| `device:list`       | server→client | Push device list          |
+| `transfer:new`      | server→client | New transfer notification |
+| `transfer:progress` | server→client | Upload progress update    |
+| `transfer:complete` | server→client | Transfer completed        |
 
 ## 6. Transfer Flow
 
@@ -333,7 +335,7 @@ const theme = {
     // Shadows
     shadow: 'rgba(0, 0, 0, 0.3)',
     shadowStrong: 'rgba(0, 0, 0, 0.5)',
-  }
+  },
 };
 ```
 
@@ -372,7 +374,7 @@ const theme = {
 
 ```typescript
 // Server config (env)
-TRANSFER_TTL_DAYS=30
-S3_BUCKET=zen-send-transfers
-S3_REGION=us-east-1
+TRANSFER_TTL_DAYS = 30;
+S3_BUCKET = zen - send - transfers;
+S3_REGION = us - east - 1;
 ```

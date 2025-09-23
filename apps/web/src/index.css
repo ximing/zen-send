@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ============================================
    CSS Custom Properties — Light Mode (default)
@@ -8,37 +8,37 @@
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 
   /* Backgrounds */
-  --bg-primary: #F7F5F2;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #F5F5F5;
+  --bg-primary: #f7f5f2;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f5f5f5;
   --bg-overlay: rgba(0, 0, 0, 0.5);
 
   /* Borders */
-  --border-subtle: #E8E5E0;
-  --border-focus: #8B9A7D;
+  --border-subtle: #e8e5e0;
+  --border-focus: #8b9a7d;
 
   /* Text — Light */
-  --text-primary: #2C2C2C;
-  --text-secondary: #9A958F;
-  --text-muted: #B5AFA8;
-  --text-disabled: #DDD8D0;
-  --on-surface: #2C2C2C;
+  --text-primary: #2c2c2c;
+  --text-secondary: #9a958f;
+  --text-muted: #b5afa8;
+  --text-disabled: #ddd8d0;
+  --on-surface: #2c2c2c;
 
   /* Accent — Sage Green */
-  --accent: #8B9A7D;
+  --accent: #8b9a7d;
   --accent-soft: rgba(139, 154, 125, 0.12);
 
   /* Semantic */
   --color-error: #dc2626;
-  --color-success: #8B9A7D;
+  --color-success: #8b9a7d;
   --color-warning: #ca8a04;
   --color-info: #2563eb;
 
   /* Primary button (dark) */
-  --on-primary: #F7F5F2;
-  --primary: #2C2C2C;
-  --primary-hover: #3C3C3C;
-  --primary-pressed: #1C1C1C;
+  --on-primary: #f7f5f2;
+  --primary: #2c2c2c;
+  --primary-hover: #3c3c3c;
+  --primary-pressed: #1c1c1c;
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -59,39 +59,39 @@
    ============================================ */
 .dark {
   /* Backgrounds */
-  --bg-primary: #1C1C1E;
+  --bg-primary: #1c1c1e;
   --bg-surface: #242426;
-  --bg-elevated: #2C2C2E;
-  --bg-header: #3A3A3C;
+  --bg-elevated: #2c2c2e;
+  --bg-header: #3a3a3c;
   --bg-overlay: rgba(0, 0, 0, 0.7);
 
   /* Borders */
-  --border-subtle: #2E2E30;
-  --border-focus: #8B9A7D;
+  --border-subtle: #2e2e30;
+  --border-focus: #8b9a7d;
 
   /* Text — Dark */
-  --text-primary: #E5E2DC;
-  --text-secondary: #8A8880;
-  --text-muted: #6B6860;
-  --text-faint: #4A4A4C;
-  --text-disabled: #5A5A5C;
-  --on-surface: #E5E2DC;
+  --text-primary: #e5e2dc;
+  --text-secondary: #8a8880;
+  --text-muted: #6b6860;
+  --text-faint: #4a4a4c;
+  --text-disabled: #5a5a5c;
+  --on-surface: #e5e2dc;
 
   /* Accent — Sage Green */
-  --accent: #8B9A7D;
+  --accent: #8b9a7d;
   --accent-soft: rgba(139, 154, 125, 0.12);
 
   /* Semantic */
   --color-error: #f87171;
-  --color-success: #8B9A7D;
+  --color-success: #8b9a7d;
   --color-warning: #fbbf24;
   --color-info: #60a5fa;
 
   /* Primary button */
-  --on-primary: #E5E2DC;
-  --primary: #3A3A3C;
-  --primary-hover: #4A4A4C;
-  --primary-pressed: #2A2A2C;
+  --on-primary: #e5e2dc;
+  --primary: #3a3a3c;
+  --primary-hover: #4a4a4c;
+  --primary-pressed: #2a2a2c;
 }
 
 /* ============================================
@@ -124,10 +124,13 @@ body {
 }
 
 /* Smooth transitions */
-button, input, .card {
-  transition: background-color var(--transition-fast),
-              color var(--transition-fast),
-              box-shadow var(--transition-fast);
+button,
+input,
+.card {
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 /* Scrollbar styling */

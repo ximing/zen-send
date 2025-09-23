@@ -5,6 +5,7 @@
 **Goal:** 简化传输系统，统一内容类型（移除 clipboard），小文本直接存数据库，大文本和文件走 S3 上传。
 
 **Architecture:**
+
 - 后端：数据库增加 `storageType` 字段区分存储方式，文本 ≤10KB 存 `content` 字段，`>10KB` 和文件走 S3 multipart upload
 - 前端：移除 clipboard 类型，添加多选文件、拖拽上传、上传进度和取消功能
 - API：增加 `content` 字段用于内联文本，增加 DELETE 端点清理 S3
@@ -18,6 +19,7 @@
 ### Task 1.1: 更新 packages/dto 类型定义
 
 **Files:**
+
 - Modify: `packages/dto/src/index.ts`
 
 - [ ] **Step 1: 修改 TransferType 定义**
@@ -35,7 +37,7 @@ export interface InitTransferRequest {
   contentType?: string;
   totalSize: number;
   chunkCount?: number;
-  content?: string;  // 新增：<=10KB 的文本内容
+  content?: string; // 新增：<=10KB 的文本内容
 }
 
 // 新增 InitTransferResponse
@@ -58,6 +60,7 @@ git commit -m "feat(dto): remove clipboard type, add content and InitTransferRes
 ### Task 1.2: 更新 packages/shared 类型定义
 
 **Files:**
+
 - Modify: `packages/shared/src/index.ts`
 
 - [ ] **Step 1: 移除 TransferItemType 中的 clipboard**
@@ -72,7 +75,7 @@ export type TransferItemType = 'file' | 'text';
 // TransferItem 增加 storageType
 export interface TransferItem {
   // ... existing fields
-  storageType?: 'db' | 's3';  // 新增
+  storageType?: 'db' | 's3'; // 新增
 }
 ```
 
@@ -90,6 +93,7 @@ git commit -m "feat(shared): remove clipboard from TransferItemType, add storage
 ### Task 2.1: 更新数据库 Schema
 
 **Files:**
+
 - Modify: `apps/server/src/db/schema.ts`
 
 - [ ] **Step 1: 在 transferItems 表添加 storageType 字段**
@@ -104,7 +108,7 @@ export const transferItems = mysqlTable('transferItems', {
   size: bigint('size', { mode: 'number' }).notNull(),
   content: text('content'),
   thumbnailKey: varchar('thumbnailKey', { length: 500 }),
-  storageType: varchar('storageType', { length: 10 }).$type<'db' | 's3'>().notNull(),  // 新增
+  storageType: varchar('storageType', { length: 10 }).$type<'db' | 's3'>().notNull(), // 新增
   createdAt: int('createdAt').notNull(),
 });
 ```
@@ -123,6 +127,7 @@ git commit -m "feat(server): add storageType field to transferItems table"
 ### Task 3.1: 更新 transfer.validator.ts
 
 **Files:**
+
 - Modify: `apps/server/src/validators/transfer.validator.ts`
 
 - [ ] **Step 1: 移除 clipboard 验证，添加 content 字段**
@@ -149,7 +154,7 @@ export class InitTransferDto implements InitTransferRequest {
   @IsString()
   targetDeviceId?: string;
 
-  @IsEnum(['file', 'text'])  // 移除 'clipboard'
+  @IsEnum(['file', 'text']) // 移除 'clipboard'
   type!: 'file' | 'text';
 
   @IsOptional()
@@ -173,7 +178,7 @@ export class InitTransferDto implements InitTransferRequest {
 
   @IsOptional()
   @IsString()
-  @MaxLength(10 * 1024)  // 10KB limit
+  @MaxLength(10 * 1024) // 10KB limit
   content?: string;
 }
 
@@ -201,6 +206,7 @@ git commit -m "feat(server): remove clipboard validation, add content field with
 ### Task 3.2: 更新 S3Service 添加 DeleteObject
 
 **Files:**
+
 - Modify: `apps/server/src/services/s3.service.ts`
 
 - [ ] **Step 1: 添加 DeleteObjectCommand 导入和方法**
@@ -239,6 +245,7 @@ git commit -m "feat(server): add deleteObject method to S3Service"
 ### Task 3.3: 更新 TransferService
 
 **Files:**
+
 - Modify: `apps/server/src/services/transfer.service.ts`
 
 - [ ] **Step 1: 修改 InitTransferInput 和相关类型**
@@ -249,12 +256,12 @@ export interface InitTransferInput {
   userId: string;
   sourceDeviceId: string;
   targetDeviceId?: string;
-  type: 'file' | 'text';  // 移除 'clipboard'
+  type: 'file' | 'text'; // 移除 'clipboard'
   fileName?: string;
   contentType?: string;
   totalSize: number;
   chunkCount?: number;
-  content?: string;  // 新增：内联文本
+  content?: string; // 新增：内联文本
 }
 
 // 修改 InitTransferOutput
@@ -478,6 +485,7 @@ git commit -m "feat(server): support inline text storage and S3 cleanup on delet
 ### Task 4.1: 更新 TransferController
 
 **Files:**
+
 - Modify: `apps/server/src/controllers/transfer.controller.ts`
 
 - [ ] **Step 1: 修改 init 方法处理内联文本**
@@ -572,6 +580,7 @@ git commit -m "feat(server): handle inline text in init, return items with stora
 ### Task 5.1: 更新 ApiService
 
 **Files:**
+
 - Modify: `apps/web/src/services/api.service.ts`
 
 - [ ] **Step 1: 添加取消和删除方法**
@@ -601,6 +610,7 @@ git commit -m "feat(web): add cancelUpload and deleteTransfer to ApiService"
 ### Task 6.1: 更新 HomeService
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/home.service.ts`
 
 - [ ] **Step 1: 移除 clipboard 过滤，添加上传状态管理**
@@ -612,13 +622,13 @@ import { ApiService } from '../../services/api.service';
 import { SocketService } from '../../services/socket.service';
 import type { TransferSession } from '@zen-send/shared';
 
-export type TransferFilter = 'all' | 'file' | 'text';  // 移除 clipboard
+export type TransferFilter = 'all' | 'file' | 'text'; // 移除 clipboard
 
 export interface UploadingFile {
   id: string;
   name: string;
   size: number;
-  progress: number;  // 0-100
+  progress: number; // 0-100
   status: 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled';
   sessionId?: string;
   error?: string;
@@ -630,15 +640,13 @@ export class HomeService extends Service {
   filter: TransferFilter = 'all';
   isLoading = false;
   error: string | null = null;
-  uploadingFiles: UploadingFile[] = [];  // 新增
+  uploadingFiles: UploadingFile[] = []; // 新增
 
   // ... existing code ...
 
   get filteredTransfers() {
     if (this.filter === 'all') return this.transfers;
-    return this.transfers.filter((t) =>
-      t.items?.some((item) => item.type === this.filter)
-    );
+    return this.transfers.filter((t) => t.items?.some((item) => item.type === this.filter));
   }
 
   setFilter(filter: TransferFilter) {
@@ -826,6 +834,7 @@ git commit -m "feat(web): add upload progress tracking and cancel support to Hom
 ### Task 7.1: 更新 SendToolbar UI
 
 **Files:**
+
 - Modify: `apps/web/src/components/send-toolbar/index.tsx`
 
 - [ ] **Step 1: 移除 Clipboard 按钮，保留 File 和 Text**
@@ -873,6 +882,7 @@ git commit -m "feat(web): remove clipboard button from SendToolbar"
 ### Task 7.2: 更新 SendToolbarService
 
 **Files:**
+
 - Modify: `apps/web/src/components/send-toolbar/send-toolbar.service.ts`
 
 - [ ] **Step 1: 移除 clipboard 相关逻辑**
@@ -882,7 +892,7 @@ import { Service } from '@rabjs/react';
 import { HomeService } from '../../pages/home/home.service';
 import type { ZenBridgeFile } from '../../lib/zen-bridge';
 
-export type SendToolbarModalType = 'text' | null;  // 移除 clipboard
+export type SendToolbarModalType = 'text' | null; // 移除 clipboard
 
 export class SendToolbarService extends Service {
   modalType: SendToolbarModalType = null;
@@ -944,6 +954,7 @@ git commit -m "feat(web): remove clipboard from SendToolbarService"
 ### Task 8.1: 更新 Home 页面添加拖拽和进度
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/index.tsx`
 
 - [ ] **Step 1: 添加拖拽和上传进度 UI**
@@ -991,78 +1002,88 @@ const HomeContent = observer(() => {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
 
-    const files: { name: string; size: number; data?: ArrayBuffer }[] = [];
-    const items = e.dataTransfer.items;
+      const files: { name: string; size: number; data?: ArrayBuffer }[] = [];
+      const items = e.dataTransfer.items;
 
-    const MAX_DEPTH = 10;
+      const MAX_DEPTH = 10;
 
-    const processEntry = async (entry: FileSystemEntry, depth: number): Promise<void> => {
-      if (depth > MAX_DEPTH) return;
+      const processEntry = async (entry: FileSystemEntry, depth: number): Promise<void> => {
+        if (depth > MAX_DEPTH) return;
 
-      if (entry.isFile) {
-        const fileEntry = entry as FileSystemFileEntry;
-        const file = await new Promise<File>((resolve, reject) => {
-          fileEntry.file(resolve, reject);
-        });
+        if (entry.isFile) {
+          const fileEntry = entry as FileSystemFileEntry;
+          const file = await new Promise<File>((resolve, reject) => {
+            fileEntry.file(resolve, reject);
+          });
 
-        // 跳过隐藏文件
-        if (file.name.startsWith('.')) return;
+          // 跳过隐藏文件
+          if (file.name.startsWith('.')) return;
 
-        const buffer = await file.arrayBuffer();
-        files.push({
-          name: file.name,
-          size: file.size,
-          data: buffer,
-        });
-      } else if (entry.isDirectory) {
-        const dirEntry = entry as FileSystemDirectoryEntry;
-        const reader = dirEntry.createReader();
-
-        const entries = await new Promise<FileSystemEntry[]>((resolve, reject) => {
-          reader.readEntries(resolve, reject);
-        });
-
-        for (const childEntry of entries) {
-          await processEntry(childEntry, depth + 1);
-        }
-      }
-    };
-
-    for (const item of Array.from(items)) {
-      const entry = item.webkitGetAsEntry?.();
-      if (entry) {
-        await processEntry(entry, 0);
-      } else {
-        // 浏览器原生 File 对象
-        const file = item.getAsFile();
-        if (file && !file.name.startsWith('.')) {
           const buffer = await file.arrayBuffer();
           files.push({
             name: file.name,
             size: file.size,
             data: buffer,
           });
+        } else if (entry.isDirectory) {
+          const dirEntry = entry as FileSystemDirectoryEntry;
+          const reader = dirEntry.createReader();
+
+          const entries = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+            reader.readEntries(resolve, reject);
+          });
+
+          for (const childEntry of entries) {
+            await processEntry(childEntry, depth + 1);
+          }
+        }
+      };
+
+      for (const item of Array.from(items)) {
+        const entry = item.webkitGetAsEntry?.();
+        if (entry) {
+          await processEntry(entry, 0);
+        } else {
+          // 浏览器原生 File 对象
+          const file = item.getAsFile();
+          if (file && !file.name.startsWith('.')) {
+            const buffer = await file.arrayBuffer();
+            files.push({
+              name: file.name,
+              size: file.size,
+              data: buffer,
+            });
+          }
         }
       }
-    }
 
-    if (files.length > 0) {
-      service.addFiles(files);
-    }
-  }, [service]);
+      if (files.length > 0) {
+        service.addFiles(files);
+      }
+    },
+    [service]
+  );
 
   // 上传进度渲染
   const renderUploadProgress = (upload: UploadingFile) => {
-    const icon = upload.status === 'completed' ? CheckCircle :
-                 upload.status === 'failed' ? AlertCircle : Upload;
-    const iconColor = upload.status === 'completed' ? 'text-[var(--color-success)]' :
-                      upload.status === 'failed' ? 'text-[var(--color-error)]' :
-                      'text-[var(--text-secondary)]';
+    const icon =
+      upload.status === 'completed'
+        ? CheckCircle
+        : upload.status === 'failed'
+          ? AlertCircle
+          : Upload;
+    const iconColor =
+      upload.status === 'completed'
+        ? 'text-[var(--color-success)]'
+        : upload.status === 'failed'
+          ? 'text-[var(--color-error)]'
+          : 'text-[var(--text-secondary)]';
 
     return (
       <div
@@ -1092,7 +1113,9 @@ const HomeContent = observer(() => {
             <X size={16} />
           </button>
         )}
-        {(upload.status === 'completed' || upload.status === 'cancelled' || upload.status === 'failed') && (
+        {(upload.status === 'completed' ||
+          upload.status === 'cancelled' ||
+          upload.status === 'failed') && (
           <button
             onClick={() => service.removeUpload(upload.id)}
             className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
@@ -1120,9 +1143,7 @@ const HomeContent = observer(() => {
         {service.uploadingFiles.length > 0 && (
           <div className="mb-8">
             <div className="label mb-3">UPLOADING</div>
-            <div className="space-y-2">
-              {service.uploadingFiles.map(renderUploadProgress)}
-            </div>
+            <div className="space-y-2">{service.uploadingFiles.map(renderUploadProgress)}</div>
           </div>
         )}
 
@@ -1167,6 +1188,7 @@ git commit -m "feat(web): add drag-drop support and upload progress UI"
 ### Task 9.1: 更新 TransferList
 
 **Files:**
+
 - Modify: `apps/web/src/components/transfer-list/index.tsx`
 
 - [ ] **Step 1: 移除 clipboard 过滤选项**

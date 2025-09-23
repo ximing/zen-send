@@ -35,7 +35,12 @@ function TransferListInner({ onItemPress, onDownload }: TransferListProps) {
 
   const renderEmpty = () => (
     <View style={styles.empty}>
-      <Ionicons name="mail-open-outline" size={48} color={colors.textSecondary} style={styles.emptyIcon} />
+      <Ionicons
+        name="mail-open-outline"
+        size={48}
+        color={colors.textSecondary}
+        style={styles.emptyIcon}
+      />
       <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No transfers yet</Text>
     </View>
   );

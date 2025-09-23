@@ -47,7 +47,8 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
 
     // For images stored in S3, get the download URL using ApiService
     if (firstItem.storageType === 's3') {
-      apiService.getTransferDownloadUrl(transfer.id)
+      apiService
+        .getTransferDownloadUrl(transfer.id)
         .then((url) => {
           setThumbnailUrl(url);
         })
@@ -122,48 +123,44 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
         style={[styles.container, { backgroundColor: colors.bgSurface }]}
         onPress={onPress}
       >
-      <View style={[styles.iconContainer, { backgroundColor: colors.bgElevated }]}>
-        {isImage && thumbnailUrl ? (
-          <Image
-            source={{ uri: thumbnailUrl }}
-            style={styles.thumbnail}
-            resizeMode="cover"
-          />
-        ) : (
-          <Ionicons
-            name={isText ? 'create-outline' : isImage ? 'image-outline' : 'document-outline'}
-            size={20}
-            color={colors.textSecondary}
-          />
-        )}
-      </View>
-      <View style={styles.content}>
-        <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-          {name}
-        </Text>
-        <Text style={[styles.meta, { color: colors.textSecondary }]}>
-          {size} · {timeAgo}
-        </Text>
-      </View>
-      <View style={styles.actions}>
-        {isText ? (
-          <TouchableOpacity style={styles.actionBtn} onPress={handleCopy}>
-            <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
-        ) : (
-          <>
-            {firstItem?.storageType === 's3' && (
-              <TouchableOpacity style={styles.actionBtn} onPress={handleCopyLink}>
-                <Ionicons name="link-outline" size={18} color={colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
-              <Ionicons name="download-outline" size={18} color={colors.textSecondary} />
+        <View style={[styles.iconContainer, { backgroundColor: colors.bgElevated }]}>
+          {isImage && thumbnailUrl ? (
+            <Image source={{ uri: thumbnailUrl }} style={styles.thumbnail} resizeMode="cover" />
+          ) : (
+            <Ionicons
+              name={isText ? 'create-outline' : isImage ? 'image-outline' : 'document-outline'}
+              size={20}
+              color={colors.textSecondary}
+            />
+          )}
+        </View>
+        <View style={styles.content}>
+          <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+            {name}
+          </Text>
+          <Text style={[styles.meta, { color: colors.textSecondary }]}>
+            {size} · {timeAgo}
+          </Text>
+        </View>
+        <View style={styles.actions}>
+          {isText ? (
+            <TouchableOpacity style={styles.actionBtn} onPress={handleCopy}>
+              <Ionicons name="copy-outline" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
-          </>
-        )}
-      </View>
-    </TouchableOpacity>
+          ) : (
+            <>
+              {firstItem?.storageType === 's3' && (
+                <TouchableOpacity style={styles.actionBtn} onPress={handleCopyLink}>
+                  <Ionicons name="link-outline" size={18} color={colors.textSecondary} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
+                <Ionicons name="download-outline" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </TouchableOpacity>
     </Swipeable>
   );
 }

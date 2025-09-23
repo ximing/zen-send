@@ -41,11 +41,14 @@ export class ApiService extends Service {
     // Handle 401 with token refresh (avoid infinite loops)
     if (response.status === 401 && !this.isRefreshing && !path.includes('/auth/refresh')) {
       this.isRefreshing = true;
-      this.refreshPromise = this.authService.doRefreshToken().then(() => {
-        this.refreshPromise = null;
-      }).catch(() => {
-        this.refreshPromise = null;
-      });
+      this.refreshPromise = this.authService
+        .doRefreshToken()
+        .then(() => {
+          this.refreshPromise = null;
+        })
+        .catch(() => {
+          this.refreshPromise = null;
+        });
       try {
         await this.refreshPromise;
         response = await makeRequest();
@@ -58,7 +61,12 @@ export class ApiService extends Service {
     }
 
     // If another request is already refreshing tokens, wait for it and retry
-    if (response.status === 401 && this.isRefreshing && this.refreshPromise && !path.includes('/auth/refresh')) {
+    if (
+      response.status === 401 &&
+      this.isRefreshing &&
+      this.refreshPromise &&
+      !path.includes('/auth/refresh')
+    ) {
       try {
         await this.refreshPromise;
         response = await makeRequest();
@@ -73,7 +81,15 @@ export class ApiService extends Service {
     }
 
     const result: ApiResponse<T> = await response.json();
-    console.log('[API] Response:', options.method || 'GET', url, 'status:', response.status, 'success:', result.success);
+    console.log(
+      '[API] Response:',
+      options.method || 'GET',
+      url,
+      'status:',
+      response.status,
+      'success:',
+      result.success
+    );
 
     if (!result.success) {
       const errorMessage = typeof result.data === 'string' ? result.data : 'Request failed';
@@ -105,7 +121,11 @@ export class ApiService extends Service {
     });
   }
 
-  async uploadPresignedUrl(presignedUrl: string, fileUri: string, contentType: string): Promise<void> {
+  async uploadPresignedUrl(
+    presignedUrl: string,
+    fileUri: string,
+    contentType: string
+  ): Promise<void> {
     const response = await fetch(presignedUrl, {
       method: 'PUT',
       headers: {
@@ -132,7 +152,7 @@ export class ApiService extends Service {
 
   async getTransferDownloadUrl(transferId: string): Promise<string> {
     return this.get<{ downloadUrl: string }>(`/api/transfers/${transferId}/download`).then(
-      (res) => res.downloadUrl,
+      (res) => res.downloadUrl
     );
   }
 
@@ -144,6 +164,8 @@ export class ApiService extends Service {
   }
 
   async getTransferExternalLink(transferId: string): Promise<{ url: string; expiresAt: number }> {
-    return this.get<{ url: string; expiresAt: number }>(`/api/transfers/${transferId}/external-link`);
+    return this.get<{ url: string; expiresAt: number }>(
+      `/api/transfers/${transferId}/external-link`
+    );
   }
 }

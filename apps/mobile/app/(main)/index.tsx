@@ -70,17 +70,17 @@ function HomeContentInner() {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]} edges={['top', 'left', 'right', 'bottom']}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]}
+        edges={['top', 'left', 'right', 'bottom']}
+      >
         <Header
           onMenuPress={() => setDrawerVisible(true)}
           onSearchPress={() => router.push('/(main)/search')}
         />
         <SelectedFiles />
         <FilterTabs />
-        <TransferList
-          onItemPress={setPreviewTransfer}
-          onDownload={(t) => handleDownload(t)}
-        />
+        <TransferList onItemPress={setPreviewTransfer} onDownload={(t) => handleDownload(t)} />
         <BottomToolbar />
         <PreviewModal
           transfer={previewTransfer}
@@ -103,7 +103,10 @@ function HomeContentInner() {
           <Animated.View
             style={[
               styles.drawerContainer,
-              { backgroundColor: themeService.colors.bgSurface, transform: [{ translateX: drawerTranslateX }] },
+              {
+                backgroundColor: themeService.colors.bgSurface,
+                transform: [{ translateX: drawerTranslateX }],
+              },
             ]}
           >
             <DrawerContent onClose={() => setDrawerVisible(false)} />

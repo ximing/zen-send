@@ -70,7 +70,9 @@ export class SocketService extends Service {
     });
 
     this.socket.on('transfer:new', (data: unknown) => {
-      const payload = data as { session?: { sourceDeviceName?: string; items?: Array<{ name?: string }> } };
+      const payload = data as {
+        session?: { sourceDeviceName?: string; items?: Array<{ name?: string }> };
+      };
       const title = payload.session?.sourceDeviceName ?? 'New Transfer';
       const body = payload.session?.items?.[0]?.name ?? 'You have a new incoming transfer';
       this.notificationService.showTransferNotification(title, body);

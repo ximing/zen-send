@@ -5,6 +5,7 @@
 Zen Send 客户端（Web + Electron）用于设备间的内容传输（文件、文本、剪贴板），通过 WebSocket 实时推送，文件存储在 S3。
 
 ### 设计原则
+
 - **广播模式**：内容发送到所有在线设备，无需选择目标
 - **云端优先**：进入页面即显示云端历史文件列表
 - **跨平台一致**：Web 和 Electron 共用同一套 React 代码，通过桥接 API 差异化处理
@@ -186,18 +187,21 @@ const isElectron = typeof window !== 'undefined' && !!(window as any).zenBridge?
 ### 4.1 认证模块
 
 **登录页：**
+
 - 邮箱 + 密码输入
 - 登录按钮
 - 跳转注册链接
 - 错误提示
 
 **注册页：**
+
 - 邮箱 + 密码 + 确认密码
 - 注册按钮
 - 跳转登录链接
 - 错误提示
 
 **状态管理：**
+
 - Token 存储在 localStorage
 - Axios 拦截器自动附加 Token
 - Token 过期时自动刷新
@@ -205,21 +209,25 @@ const isElectron = typeof window !== 'undefined' && !!(window as any).zenBridge?
 ### 4.2 发送模块
 
 **文件选择：**
+
 - Electron：调用 `zenBridge.openFileDialog()`
 - 浏览器：`<input type="file" multiple>`
 - 显示选中文件列表（名称、大小）
 - 支持移除单个文件
 
 **文本发送：**
+
 - 点击"文本"按钮打开 Modal
 - Textarea 输入框
 - 点击"发送"调用 API
 
 **剪贴板：**
+
 - 点击"剪贴板"读取剪贴板内容
 - 自动填充到文本发送 Modal
 
 **发送流程：**
+
 1. 调用 `POST /api/transfers/init` 初始化会话，返回 presigned upload URLs
 2. 文件分块（1MB）直接 PUT 到 S3 presigned URL
 3. 每个 chunk 上传后调用 `POST /api/transfers/:id/chunks` 上报 etag
@@ -229,17 +237,20 @@ const isElectron = typeof window !== 'undefined' && !!(window as any).zenBridge?
 ### 4.3 接收模块
 
 **云端文件列表：**
+
 - 调用 `GET /api/transfers` 获取历史
 - 按时间倒序排列
 - 显示类型图标、名称、大小、相对时间
 - 支持筛选（全部/文件/文本/剪贴板）
 
 **下载：**
+
 - Electron：调用 `zenBridge.saveFileDialog()` 选择保存位置，然后下载
 - 浏览器：直接触发下载
 - 下载完成后调用下载记录接口
 
 **新传输通知：**
+
 - Socket.io 监听 `transfer:new`
 - 显示 Toast 通知
 - 实时更新列表
@@ -247,11 +258,13 @@ const isElectron = typeof window !== 'undefined' && !!(window as any).zenBridge?
 ### 4.4 设备在线状态
 
 **Socket.io 监听：**
+
 - `device:list` - 更新设备列表
 - `device:register` - 注册设备
 - `device:heartbeat` - 心跳保活
 
 **显示：**
+
 - 底部显示在线设备数量
 - 用户点击可展开设备列表
 
@@ -261,45 +274,45 @@ const isElectron = typeof window !== 'undefined' && !!(window as any).zenBridge?
 
 ### 5.1 布局组件
 
-| 组件 | 说明 |
-|------|------|
-| `Header` | Logo、主题切换、用户菜单 |
-| `Container` | 页面容器，最大宽度限制 |
+| 组件        | 说明                     |
+| ----------- | ------------------------ |
+| `Header`    | Logo、主题切换、用户菜单 |
+| `Container` | 页面容器，最大宽度限制   |
 
 ### 5.2 认证组件
 
-| 组件 | 说明 |
-|------|------|
-| `LoginForm` | 登录表单 |
-| `RegisterForm` | 注册表单 |
-| `SetupForm` | 服务器配置表单 |
+| 组件           | 说明           |
+| -------------- | -------------- |
+| `LoginForm`    | 登录表单       |
+| `RegisterForm` | 注册表单       |
+| `SetupForm`    | 服务器配置表单 |
 
 ### 5.3 发送组件
 
-| 组件 | 说明 |
-|------|------|
-| `SendToolbar` | 文件/文本/剪贴板按钮工具栏 |
-| `FileSelector` | 文件选择区（Electron 特有） |
-| `SelectedFiles` | 已选文件列表 |
-| `TextSendModal` | 文本发送弹窗 |
-| `SendButton` | 发送按钮，带加载状态 |
+| 组件            | 说明                        |
+| --------------- | --------------------------- |
+| `SendToolbar`   | 文件/文本/剪贴板按钮工具栏  |
+| `FileSelector`  | 文件选择区（Electron 特有） |
+| `SelectedFiles` | 已选文件列表                |
+| `TextSendModal` | 文本发送弹窗                |
+| `SendButton`    | 发送按钮，带加载状态        |
 
 ### 5.4 列表组件
 
-| 组件 | 说明 |
-|------|------|
-| `TransferList` | 传输历史列表 |
-| `TransferItem` | 单个传输项 |
-| `FilterTabs` | 筛选标签（全部/文件/文本/剪贴板） |
-| `EmptyState` | 空状态提示 |
+| 组件           | 说明                              |
+| -------------- | --------------------------------- |
+| `TransferList` | 传输历史列表                      |
+| `TransferItem` | 单个传输项                        |
+| `FilterTabs`   | 筛选标签（全部/文件/文本/剪贴板） |
+| `EmptyState`   | 空状态提示                        |
 
 ### 5.5 状态组件
 
-| 组件 | 说明 |
-|------|------|
-| `OnlineDevices` | 在线设备显示 |
+| 组件               | 说明               |
+| ------------------ | ------------------ |
+| `OnlineDevices`    | 在线设备显示       |
 | `ConnectionStatus` | WebSocket 连接状态 |
-| `Toast` | 通知提示 |
+| `Toast`            | 通知提示           |
 
 ---
 
@@ -307,33 +320,33 @@ const isElectron = typeof window !== 'undefined' && !!(window as any).zenBridge?
 
 ### 6.1 认证
 
-| Method | Path | 说明 |
-|--------|------|------|
-| POST | `/api/auth/register` | 注册 |
-| POST | `/api/auth/login` | 登录 |
-| POST | `/api/auth/refresh` | 刷新 Token |
-| POST | `/api/auth/logout` | 登出 |
+| Method | Path                 | 说明       |
+| ------ | -------------------- | ---------- |
+| POST   | `/api/auth/register` | 注册       |
+| POST   | `/api/auth/login`    | 登录       |
+| POST   | `/api/auth/refresh`  | 刷新 Token |
+| POST   | `/api/auth/logout`   | 登出       |
 
 ### 6.2 传输
 
-| Method | Path | 说明 |
-|--------|------|------|
-| POST | `/api/transfers/init` | 初始化传输，返回 presigned upload URLs |
-| POST | `/api/transfers/:id/chunks` | 上报 chunk 上传结果（etag） |
-| POST | `/api/transfers/:id/complete` | 完成传输，触发 merge |
-| GET | `/api/transfers` | 获取传输列表，支持 `?type=file\|text\|clipboard` 筛选 |
-| GET | `/api/transfers/:id` | 获取传输详情 |
-| GET | `/api/transfers/:id/download` | 获取下载链接（presigned GET URL） |
-| DELETE | `/api/transfers/:id` | 删除传输 |
+| Method | Path                          | 说明                                                  |
+| ------ | ----------------------------- | ----------------------------------------------------- |
+| POST   | `/api/transfers/init`         | 初始化传输，返回 presigned upload URLs                |
+| POST   | `/api/transfers/:id/chunks`   | 上报 chunk 上传结果（etag）                           |
+| POST   | `/api/transfers/:id/complete` | 完成传输，触发 merge                                  |
+| GET    | `/api/transfers`              | 获取传输列表，支持 `?type=file\|text\|clipboard` 筛选 |
+| GET    | `/api/transfers/:id`          | 获取传输详情                                          |
+| GET    | `/api/transfers/:id/download` | 获取下载链接（presigned GET URL）                     |
+| DELETE | `/api/transfers/:id`          | 删除传输                                              |
 
 ### 6.3 设备
 
-| Method | Path | 说明 |
-|--------|------|------|
-| POST | `/api/devices` | 注册设备 |
-| GET | `/api/devices` | 获取设备列表 |
-| PATCH | `/api/devices/:id/heartbeat` | 心跳 |
-| DELETE | `/api/devices/:id` | 解绑设备 |
+| Method | Path                         | 说明         |
+| ------ | ---------------------------- | ------------ |
+| POST   | `/api/devices`               | 注册设备     |
+| GET    | `/api/devices`               | 获取设备列表 |
+| PATCH  | `/api/devices/:id/heartbeat` | 心跳         |
+| DELETE | `/api/devices/:id`           | 解绑设备     |
 
 ---
 
@@ -341,21 +354,21 @@ const isElectron = typeof window !== 'undefined' && !!(window as any).zenBridge?
 
 ### 客户端发送
 
-| Event | Payload | 说明 |
-|-------|---------|------|
-| `device:register` | `{ name, type }` | 注册设备 |
-| `device:heartbeat` | - | 心跳保活 |
-| `transfer:notify` | `{ targetDeviceId?, sessionId }` | 通知目标设备（可选 targetDeviceId 表示单播，不填则广播） |
-| `transfer:complete` | `{ sessionId }` | 传输完成 |
+| Event               | Payload                          | 说明                                                     |
+| ------------------- | -------------------------------- | -------------------------------------------------------- |
+| `device:register`   | `{ name, type }`                 | 注册设备                                                 |
+| `device:heartbeat`  | -                                | 心跳保活                                                 |
+| `transfer:notify`   | `{ targetDeviceId?, sessionId }` | 通知目标设备（可选 targetDeviceId 表示单播，不填则广播） |
+| `transfer:complete` | `{ sessionId }`                  | 传输完成                                                 |
 
 ### 服务端推送
 
-| Event | Payload | 说明 |
-|-------|---------|------|
-| `device:list` | `{ devices }` | 设备列表更新 |
-| `transfer:new` | `{ session }` | 新传输通知 |
-| `transfer:progress` | `{ sessionId, progress }` | 传输进度 |
-| `transfer:complete` | `{ sessionId }` | 传输完成确认 |
+| Event               | Payload                   | 说明         |
+| ------------------- | ------------------------- | ------------ |
+| `device:list`       | `{ devices }`             | 设备列表更新 |
+| `transfer:new`      | `{ session }`             | 新传输通知   |
+| `transfer:progress` | `{ sessionId, progress }` | 传输进度     |
+| `transfer:complete` | `{ sessionId }`           | 传输完成确认 |
 
 ---
 
@@ -372,6 +385,7 @@ const isElectron = typeof window !== 'undefined' && !!(window as any).zenBridge?
 ### 8.2 服务器地址配置
 
 **首次启动流程：**
+
 ```
 Electron 启动
   ↓
@@ -383,6 +397,7 @@ Electron 启动
 ```
 
 **服务器地址规则：**
+
 - **开发模式**：`http://localhost:5274`（默认，可修改）
 - **生产模式**：用户配置的服务器地址（如 `https://zensend.aimo.plus`）
 - 地址保存后，后续启动直接加载，不再显示配置页面
@@ -441,21 +456,21 @@ export default defineConfig({
       main: {
         entry: 'src/main/index.ts',
         vite: {
-          build: { outDir: 'dist/main' }
-        }
+          build: { outDir: 'dist/main' },
+        },
       },
       preload: {
         input: 'src/preload/index.ts',
         vite: {
           build: {
             outDir: 'dist/preload',
-            rollupOptions: { output: { format: 'cjs', entryFileNames: '[name].cjs' } }
-          }
-        }
-      }
+            rollupOptions: { output: { format: 'cjs', entryFileNames: '[name].cjs' } },
+          },
+        },
+      },
     }),
-    renderer()
-  ]
+    renderer(),
+  ],
 });
 ```
 
@@ -467,30 +482,30 @@ export default defineConfig({
 
 ### 9.1 全局 Services（main.tsx 中 register）
 
-| Service | 说明 | 生命周期 |
-|---------|------|----------|
-| `AuthService` | 用户认证状态、Token 管理 | 应用级 |
-| `ApiService` | API 请求封装、拦截器 | 应用级 |
-| `ThemeService` | 主题模式管理 | 应用级 |
-| `SocketService` | Socket.io 连接管理 | 应用级 |
-| `ConfigService` | 服务器地址配置（Electron 特有） | 应用级 |
+| Service         | 说明                            | 生命周期 |
+| --------------- | ------------------------------- | -------- |
+| `AuthService`   | 用户认证状态、Token 管理        | 应用级   |
+| `ApiService`    | API 请求封装、拦截器            | 应用级   |
+| `ThemeService`  | 主题模式管理                    | 应用级   |
+| `SocketService` | Socket.io 连接管理              | 应用级   |
+| `ConfigService` | 服务器地址配置（Electron 特有） | 应用级   |
 
 ### 9.2 页面级 Services（bindServices）
 
-| Service | 说明 | 绑定页面 |
-|---------|------|----------|
-| `HomeService` | 传输列表、发送逻辑 | 主页 |
-| `LoginService` | 登录表单逻辑 | 登录页 |
-| `RegisterService` | 注册表单逻辑 | 注册页 |
-| `SetupService` | 服务器地址配置逻辑 | 服务器配置页 |
+| Service           | 说明               | 绑定页面     |
+| ----------------- | ------------------ | ------------ |
+| `HomeService`     | 传输列表、发送逻辑 | 主页         |
+| `LoginService`    | 登录表单逻辑       | 登录页       |
+| `RegisterService` | 注册表单逻辑       | 注册页       |
+| `SetupService`    | 服务器地址配置逻辑 | 服务器配置页 |
 
 ### 9.3 组件级 Services
 
-| Service | 说明 | 绑定组件 |
-|---------|------|----------|
-| `SendToolbarService` | 发送工具栏状态 | SendToolbar |
-| `TransferListService` | 传输列表状态 | TransferList |
-| `ToastService` | Toast 通知状态 | Toast |
+| Service               | 说明           | 绑定组件     |
+| --------------------- | -------------- | ------------ |
+| `SendToolbarService`  | 发送工具栏状态 | SendToolbar  |
+| `TransferListService` | 传输列表状态   | TransferList |
+| `ToastService`        | Toast 通知状态 | Toast        |
 
 ### 9.4 Service 结构示例
 
@@ -568,12 +583,12 @@ async function determineStartPage() {
     // Electron 模式：检查服务器地址是否已配置
     const serverUrl = await window.zenBridge.getServerUrl();
     if (serverUrl) {
-      return '/';  // 已配置，跳转主页
+      return '/'; // 已配置，跳转主页
     } else {
-      return '/setup';  // 未配置，显示设置页
+      return '/setup'; // 未配置，显示设置页
     }
   } else {
-    return '/';  // 浏览器模式直接跳转主页
+    return '/'; // 浏览器模式直接跳转主页
   }
 }
 ```

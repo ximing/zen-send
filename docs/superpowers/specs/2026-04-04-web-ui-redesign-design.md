@@ -4,7 +4,7 @@
 
 **Zen Send** is a cross-device content transfer tool. The redesign transforms the web interface from a generic admin-dashboard aesthetic to a **Minimal Luxury** experience with a distinctive monospace identity.
 
-The design communicates: *professional tool, premium feel, zero distraction*. Every pixel serves a purpose. The interface should feel like a well-crafted developer tool — the kind of app engineers actually want to use.
+The design communicates: _professional tool, premium feel, zero distraction_. Every pixel serves a purpose. The interface should feel like a well-crafted developer tool — the kind of app engineers actually want to use.
 
 **Aesthetic Direction:** Minimal Luxury · Monospace · Neutral Palette
 **Design Father:** Terminal aesthetics meets Swiss minimalism
@@ -22,6 +22,7 @@ The design communicates: *professional tool, premium feel, zero distraction*. Ev
 ```
 
 **Type Scale:**
+
 - Display/Logo: 16px, weight 600, letter-spacing 1px
 - Section Labels: 11px, weight 400, letter-spacing 0.5px, uppercase
 - Body: 13px, weight 400
@@ -32,30 +33,32 @@ The design communicates: *professional tool, premium feel, zero distraction*. Ev
 ### Color Palette
 
 #### Light Mode
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `--bg-primary` | `#fafafa` | Page background |
-| `--bg-surface` | `#ffffff` | Card/panel background |
-| `--bg-elevated` | `#f5f5f5` | Input backgrounds, hover states |
-| `--border-default` | `#e5e5e5` | Default borders |
-| `--border-subtle` | `#f0f0f0` | Subtle dividers |
-| `--text-primary` | `#1a1a1a` | Headlines, primary text |
-| `--text-secondary` | `#666666` | Body text, labels |
-| `--text-muted` | `#999999` | Meta text, timestamps |
-| `--text-disabled` | `#cccccc` | Disabled states |
+
+| Token              | Hex       | Usage                           |
+| ------------------ | --------- | ------------------------------- |
+| `--bg-primary`     | `#fafafa` | Page background                 |
+| `--bg-surface`     | `#ffffff` | Card/panel background           |
+| `--bg-elevated`    | `#f5f5f5` | Input backgrounds, hover states |
+| `--border-default` | `#e5e5e5` | Default borders                 |
+| `--border-subtle`  | `#f0f0f0` | Subtle dividers                 |
+| `--text-primary`   | `#1a1a1a` | Headlines, primary text         |
+| `--text-secondary` | `#666666` | Body text, labels               |
+| `--text-muted`     | `#999999` | Meta text, timestamps           |
+| `--text-disabled`  | `#cccccc` | Disabled states                 |
 
 #### Dark Mode
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `--bg-primary` | `#0f0f0f` | Page background |
-| `--bg-surface` | `#141414` | Card/panel background |
-| `--bg-elevated` | `#1a1a1a` | Input backgrounds, hover states |
-| `--border-default` | `#2a2a2a` | Default borders |
-| `--border-subtle` | `#1f1f1f` | Subtle dividers |
-| `--text-primary` | `#e5e5e5` | Headlines, primary text |
-| `--text-secondary` | `#888888` | Body text, labels |
-| `--text-muted` | `#555555` | Meta text, timestamps |
-| `--text-disabled` | `#333333` | Disabled states |
+
+| Token              | Hex       | Usage                           |
+| ------------------ | --------- | ------------------------------- |
+| `--bg-primary`     | `#0f0f0f` | Page background                 |
+| `--bg-surface`     | `#141414` | Card/panel background           |
+| `--bg-elevated`    | `#1a1a1a` | Input backgrounds, hover states |
+| `--border-default` | `#2a2a2a` | Default borders                 |
+| `--border-subtle`  | `#1f1f1f` | Subtle dividers                 |
+| `--text-primary`   | `#e5e5e5` | Headlines, primary text         |
+| `--text-secondary` | `#888888` | Body text, labels               |
+| `--text-muted`     | `#555555` | Meta text, timestamps           |
+| `--text-disabled`  | `#333333` | Disabled states                 |
 
 **No colored accents** — the palette is strictly neutral. The only "color" comes from user content (emojis, file icons).
 
@@ -152,12 +155,14 @@ All pages follow a single-column, centered layout:
 ```
 
 **States:**
+
 - Default: Gray border
 - Focus: Darker border, 2px outline offset
 - Error: Border becomes `--color-error`, message below in red
 - Loading: Button shows "SIGNING_IN..." with reduced opacity
 
 **Input fields:**
+
 - Height: 48px
 - Background: `--bg-surface`
 - Border: 1px `--border-default`
@@ -176,6 +181,7 @@ Same structure as Login with "SERVER_ADDRESS" field and "CONNECT" button.
 ### 4. Home Page (`/`)
 
 **Layout:**
+
 ```
 ┌─────────────────────────────────────────┐
 │  HEADER: ZEN_SEND   user@email  [U]    │
@@ -216,12 +222,14 @@ Same structure as Login with "SERVER_ADDRESS" field and "CONNECT" button.
 ```
 
 **Send Toolbar:**
+
 - 3-column grid of action buttons
 - Each button: Icon + label (uppercase, letter-spaced)
 - Hover: Background shifts to `--bg-elevated`
 - Selected files display below with remove button
 
 **Transfer List:**
+
 - Filter tabs: ALL / FILES / TEXT / CLIPBOARD
 - Active tab: Solid background (inverted)
 - Transfer cards: Icon + name + meta info + timestamp
@@ -231,17 +239,20 @@ Same structure as Login with "SERVER_ADDRESS" field and "CONNECT" button.
 ### 5. Header Component
 
 **Light mode:**
+
 - Background: `--bg-surface`
 - Border-bottom: 1px `--border-default`
 - Logo: "ZEN_SEND" in primary text color
 - User info: Email in muted color + avatar circle
 
 **Dark mode:**
+
 - Background: `--bg-surface` (#141414)
 - Border-bottom: 1px `--border-default` (#2a2a2a)
 - Avatar: Light background, dark text
 
 **Theme Toggle:**
+
 - Simple icon button (no label)
 - ☀️ / 🌙 icon based on current mode
 
@@ -251,36 +262,37 @@ Same structure as Login with "SERVER_ADDRESS" field and "CONNECT" button.
 
 ### Button
 
-| State | Style |
-|-------|-------|
-| Default | `--bg-elevated` bg, `--text-primary` text, 1px border |
-| Hover | `--border-default` becomes darker |
-| Active | `--bg-primary` bg |
-| Disabled | 50% opacity, no pointer events |
-| Primary | `--text-primary` bg (inverted), `--bg-primary` text |
-| Loading | Text replaced with "LOADING...", 50% opacity |
+| State    | Style                                                 |
+| -------- | ----------------------------------------------------- |
+| Default  | `--bg-elevated` bg, `--text-primary` text, 1px border |
+| Hover    | `--border-default` becomes darker                     |
+| Active   | `--bg-primary` bg                                     |
+| Disabled | 50% opacity, no pointer events                        |
+| Primary  | `--text-primary` bg (inverted), `--bg-primary` text   |
+| Loading  | Text replaced with "LOADING...", 50% opacity          |
 
 ### Input
 
-| State | Style |
-|-------|-------|
-| Default | `--bg-surface` bg, 1px `--border-default` border |
-| Focus | 2px outline offset in `--border-focus` |
-| Error | 1px `--color-error` border |
-| Disabled | 50% opacity, `--bg-elevated` bg |
+| State    | Style                                            |
+| -------- | ------------------------------------------------ |
+| Default  | `--bg-surface` bg, 1px `--border-default` border |
+| Focus    | 2px outline offset in `--border-focus`           |
+| Error    | 1px `--color-error` border                       |
+| Disabled | 50% opacity, `--bg-elevated` bg                  |
 
 ### Card / Panel
 
-| State | Style |
-|-------|-------|
+| State   | Style                                            |
+| ------- | ------------------------------------------------ |
 | Default | `--bg-surface` bg, 1px `--border-default` border |
-| Hover | Border becomes slightly darker |
+| Hover   | Border becomes slightly darker                   |
 
 ---
 
 ## Technical Approach
 
 ### Framework & Tooling
+
 - **React 19** with TypeScript
 - **Tailwind CSS v4** with CSS variables
 - **@rabjs/react** for state management
@@ -290,7 +302,7 @@ Same structure as Login with "SERVER_ADDRESS" field and "CONNECT" button.
 
 ```css
 /* index.css */
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Light mode tokens (default) */
@@ -368,7 +380,9 @@ All animations via CSS transitions — no JavaScript animation library needed:
 
 ```css
 /* Micro-interactions */
-button, input, .card {
+button,
+input,
+.card {
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
