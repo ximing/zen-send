@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { prepare, layout } from '@chenglou/pretext';
 import { observer, useService } from '@rabjs/react';
-import { FileText, PenLine, Image, Copy, Link, Download, Trash2 } from 'lucide-react';
+import { FileText, PenLine, Image, Copy, Link, Download, Trash2, QrCode } from 'lucide-react';
 import { ThemeService } from '../../services/theme.service';
 import { ApiService } from '../../services/api.service';
 import { HomeService } from '../../pages/home/home.service';
 import { ToastService } from '../toast/toast.service';
+import { QRCodeDialog } from '../qr-code-dialog';
 import type { TransferSession } from '@zen-send/shared';
 
 function formatSize(bytes: number): string {
@@ -48,6 +49,8 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
   const [isHovered, setIsHovered] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOverflow, setIsOverflow] = useState(false);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
   const contentAreaRef = useRef<HTMLDivElement>(null);
 
   const firstItem = transfer.items?.[0];
@@ -130,7 +133,23 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
     }
   };
 
+  const handleQrCode = async () => {
+    try {
+      if (firstItem?.storageType === 's3') {
+        const { url } = await apiService.getTransferExternalLink(transfer.id);
+        setQrCodeUrl(url);
+      } else {
+        const url = await apiService.getTransferDownloadUrl(transfer.id);
+        setQrCodeUrl(url);
+      }
+      setQrDialogOpen(true);
+    } catch {
+      toastService.show('Failed to generate QR code', 'error');
+    }
+  };
+
   return (
+  <>
     <div
       className={`flex ${isText ? 'items-start' : 'items-center'} p-3 mx-4 mb-2 rounded-xl bg-[var(--bg-surface)]
         transition-all duration-150 cursor-pointer
@@ -234,6 +253,16 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
         <button
           onClick={(e) => {
             e.stopPropagation();
+            handleQrCode();
+          }}
+          className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+          title="QR Code"
+        >
+          <QrCode size={18} className="text-[var(--text-secondary)]" />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
             onDelete(transfer);
           }}
           className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
@@ -243,6 +272,13 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
         </button>
       </div>
     </div>
+
+    <QRCodeDialog
+      url={qrCodeUrl}
+      open={qrDialogOpen}
+      onClose={() => setQrDialogOpen(false)}
+    />
+  </>
   );
 }
 
