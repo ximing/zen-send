@@ -3,6 +3,7 @@ import { Outlet, useNavigate, Navigate } from 'react-router-dom';
 import { observer, useService } from '@rabjs/react';
 import { useIsWide } from '../../hooks/use-is-wide';
 import { AuthService } from '../../services/auth.service';
+import { NoteService } from '../../services/note.service';
 import Sidebar from '../sidebar';
 import Drawer from '../drawer';
 import Header from '../header';
@@ -12,6 +13,18 @@ function AppLayoutInner() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const authService = useService(AuthService);
+  const noteService = useService(NoteService);
+
+  // Initialize note service when authenticated
+  useEffect(() => {
+    if (authService.isAuthenticated) {
+      noteService.loadNoteList();
+    } else {
+      noteService.notes = [];
+      noteService.currentNote = null;
+      noteService.currentNoteId = '';
+    }
+  }, [authService.isAuthenticated]);
 
   // Auth guard - redirect to login if not authenticated
   if (!authService.isAuthenticated) {

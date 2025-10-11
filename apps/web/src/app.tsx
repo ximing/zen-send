@@ -10,6 +10,7 @@ import DevicesPage from './pages/devices';
 import SettingsPage from './pages/settings';
 import SearchPage from './pages/search';
 import DownloadsPage from './pages/downloads';
+import NotesPage from './pages/notes';
 
 function App() {
   return (
@@ -27,6 +28,8 @@ function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/downloads" element={<DownloadsPage />} />
             <Route path="/devices" element={<DevicesPage />} />
+            <Route path="/notes" element={<NotesPage />} />
+            <Route path="/notes/:id" element={<NotesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
 

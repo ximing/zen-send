@@ -1,7 +1,6 @@
 import React from 'react';
 import { observer, useService } from '@rabjs/react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, CheckCircle, AlertCircle, Download, Share2, X } from 'lucide-react';
+import { CheckCircle, Download, X } from 'lucide-react';
 import { HomeService } from '../home/home.service';
 
 function formatSize(bytes: number): string {
@@ -12,12 +11,7 @@ function formatSize(bytes: number): string {
 }
 
 function DownloadsPage() {
-  const navigate = useNavigate();
   const homeService = useService(HomeService);
-
-  const handleBack = () => {
-    navigate('/');
-  };
 
   const downloads = homeService.uploadingFiles.filter((f) => f.status === 'completed');
 
@@ -29,25 +23,6 @@ function DownloadsPage() {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center px-2 py-2 shrink-0 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]">
-        <button
-          onClick={handleBack}
-          className="p-1 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
-        >
-          <ChevronLeft size={24} className="text-[var(--text-primary)]" />
-        </button>
-        <span className="flex-1 text-lg font-semibold text-[var(--text-primary)] ml-2">下载</span>
-        {downloads.length > 0 && (
-          <button
-            onClick={handleClearCompleted}
-            className="px-2 py-1 text-sm font-medium text-[var(--accent)] hover:opacity-80 transition-opacity"
-          >
-            清除已完成
-          </button>
-        )}
-      </div>
-
       {/* Content */}
       {downloads.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center">
