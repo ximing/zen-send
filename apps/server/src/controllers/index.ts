@@ -4,6 +4,7 @@ import { HealthController } from './health.controller.js';
 import { TransferController } from './transfer.controller.js';
 import { ExternalLinkController } from './external-link.controller.js';
 import { UserController } from './user.controller.js';
+import { NoteController } from './note.controller.js';
 
 export const controllers = [
   AuthController,
@@ -12,4 +13,5 @@ export const controllers = [
   TransferController,
   ExternalLinkController,
   UserController,
+  NoteController,
 ];

@@ -52,6 +52,16 @@ export const transferItems = mysqlTable('transferItems', {
   createdAt: int('createdAt').notNull(),
 });
 
+export const notes = mysqlTable('notes', {
+  id: varchar('id', { length: 24 }).primaryKey(),
+  userId: varchar('userId', { length: 24 }).notNull(),
+  title: varchar('title', { length: 100 }).notNull().default('未命名笔记'),
+  content: text('content').notNull().default(''),
+  sortOrder: int('sortOrder').notNull().default(0),
+  createdAt: int('createdAt').notNull(),
+  updatedAt: int('updatedAt').notNull(),
+});
+
 export const chunkUploads = mysqlTable('chunkUploads', {
   id: varchar('id', { length: 24 }).primaryKey(),
   sessionId: varchar('sessionId', { length: 24 }).notNull(),
