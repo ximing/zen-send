@@ -91,5 +91,12 @@ function createEditorTheme() {
     '.cm-block-code-body': {
       backgroundColor: 'var(--bg-surface)',
     },
+    '.cm-block-copied': {
+      animation: 'cm-block-flash 200ms ease-out',
+    },
+    '@keyframes cm-block-flash': {
+      '0%': { backgroundColor: 'var(--accent-soft)' },
+      '100%': { backgroundColor: 'transparent' },
+    },
   });
 }

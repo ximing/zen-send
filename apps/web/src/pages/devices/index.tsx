@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { observer, useService } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Trash2, X, CheckCircle, XCircle, AlertCircle, ChevronLeft } from 'lucide-react';
+import { RefreshCw, Trash2, X, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { DeviceService } from '../../services/device.service';
 import { ThemeService } from '../../services/theme.service';
 import { SocketService } from '../../services/socket.service';
@@ -78,19 +78,6 @@ const DevicesPage = observer(() => {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center px-2 py-2 shrink-0 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]">
-        <button
-          onClick={() => navigate('/')}
-          className="p-1 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
-        >
-          <ChevronLeft size={24} className="text-[var(--text-primary)]" />
-        </button>
-        <span className="flex-1 text-lg font-semibold text-[var(--text-primary)] ml-2">
-          设备管理
-        </span>
-      </div>
-
       {/* Content */}
       <div className="flex-1 min-h-0 overflow-y-auto p-6">
         <div className="max-w-2xl mx-auto">

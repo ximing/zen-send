@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer, useService } from '@rabjs/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeftRight, Download, Sun, Moon, LogOut, Smartphone, Settings, Notebook } from 'lucide-react';
+import { ArrowLeftRight, Download, Sun, Moon, LogOut, Smartphone, Settings, Notebook, Plus, Trash2 } from 'lucide-react';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { NoteService } from '../../services/note.service';
@@ -136,29 +136,25 @@ function NavContentInner({ onNavigate }: NavContentProps) {
           )}
           <Notebook size={20} />
           <span className="text-base">笔记</span>
-          <span className="ml-auto text-[10px] text-[var(--text-muted)]">
-            {noteService.noteListExpanded ? '▼' : '▶'}
-          </span>
+          <Plus
+            size={16}
+            className="ml-auto text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            onClick={async (e) => {
+              e.stopPropagation();
+              await noteService.createNote();
+              if (noteService.currentNoteId) {
+                navigate(`/notes/${noteService.currentNoteId}`);
+                onNavigate?.();
+              }
+            }}
+          />
         </button>
 
         {/* Note list (expanded) */}
         {noteService.noteListExpanded && (
           <div style={{ paddingLeft: '24px' }}>
-            <div
-              onClick={async () => {
-                await noteService.createNote();
-                if (noteService.currentNoteId) {
-                  navigate(`/notes/${noteService.currentNoteId}`);
-                  onNavigate?.();
-                }
-              }}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs cursor-pointer rounded-lg hover:bg-[var(--bg-elevated)] transition-colors"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              <span style={{ fontSize: '14px' }}>+</span> 新建笔记
-            </div>
             {noteService.notes.length === 0 && (
-              <div className="px-3 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+              <div className="px-3 py-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                 还没有笔记，点击 + 创建
               </div>
             )}
@@ -169,12 +165,12 @@ function NavContentInner({ onNavigate }: NavContentProps) {
                   navigate(`/notes/${note.id}`);
                   onNavigate?.();
                 }}
-                className="flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer group rounded-lg hover:bg-[var(--bg-elevated)] transition-colors"
+                className="flex items-center justify-between px-3 py-1.5 cursor-pointer group rounded-lg hover:bg-[var(--bg-elevated)] transition-colors"
                 style={{
                   color: location.pathname === `/notes/${note.id}` ? 'var(--accent)' : 'var(--text-secondary)',
                 }}
               >
-                <span className="truncate" style={{ fontWeight: location.pathname === `/notes/${note.id}` ? 500 : 400 }}>
+                <span className="truncate text-sm" style={{ fontWeight: location.pathname === `/notes/${note.id}` ? 500 : 400 }}>
                   {note.title}
                 </span>
                 <button
@@ -188,10 +184,10 @@ function NavContentInner({ onNavigate }: NavContentProps) {
                       }
                     }
                   }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity px-1"
-                  style={{ color: 'var(--text-muted)', fontSize: '12px' }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center w-6 h-6 -mr-1 rounded hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)]"
+                  style={{ color: 'var(--text-muted)' }}
                 >
-                  ×
+                  <Trash2 size={12} />
                 </button>
               </div>
             ))}

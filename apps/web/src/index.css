@@ -151,3 +151,8 @@ input,
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* Language dropdown hover */
+.lang-dropdown-item:hover {
+  background: var(--accent-soft);
+}
