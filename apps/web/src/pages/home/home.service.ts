@@ -16,10 +16,9 @@ export interface UploadingFile {
   status: 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled';
   sessionId?: string;
   error?: string;
-  // Speed/ETA tracking
-  speed?: number; // bytes per second
-  eta?: number; // seconds remaining
-  startTime?: number; // timestamp
+  speed?: number;
+  eta?: number;
+  startTime?: number;
   uploadedBytes?: number;
 }
 
@@ -30,11 +29,12 @@ export class HomeService extends Service {
   timeFilter: TimeFilter = 'all';
   searchQuery = '';
   isLoading = false;
+  isLoadingOlder = false;
   error: string | null = null;
   uploadingFiles: UploadingFile[] = [];
   previewTransfer: TransferSession | null = null;
   deleteConfirmId: string | null = null;
-  private _hasMore = true;
+  hasMore = true;
   private _fileData = new Map<
     string,
     { name: string; size: number; type?: string; data?: ArrayBuffer }
@@ -55,12 +55,10 @@ export class HomeService extends Service {
   get filteredTransfers() {
     let filtered = this.transfers;
 
-    // Apply type filter
     if (this.filter !== 'all') {
       filtered = filtered.filter((t) => t.items?.some((item) => item.type === this.filter));
     }
 
-    // Apply time filter
     if (this.timeFilter !== 'all') {
       const now = Date.now();
       const startOfToday = new Date().setHours(0, 0, 0, 0);
@@ -75,7 +73,6 @@ export class HomeService extends Service {
       });
     }
 
-    // Apply search query
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter((t) => {
@@ -86,12 +83,7 @@ export class HomeService extends Service {
       });
     }
 
-    // Sort by time descending (newest first)
-    return [...filtered].sort((a, b) => b.createdAt - a.createdAt);
-  }
-
-  get hasMore() {
-    return this._hasMore;
+    return filtered;
   }
 
   setSearchQuery(query: string) {
@@ -122,26 +114,21 @@ export class HomeService extends Service {
     }
   }
 
-  async loadTransfers(offset = 0, limit = 50) {
+  addTransfer(session: TransferSession) {
+    if (this.transfers.some((t) => t.id === session.id)) return;
+    this.transfers = [...this.transfers, session];
+  }
+
+  async loadTransfers(limit = 50) {
     this.isLoading = true;
     this.error = null;
     try {
-      const { transfers } = await this.apiService.get<{ transfers: TransferSession[] }>(
-        `/api/transfers?limit=${limit}&offset=${offset}`
-      );
-
-      if (offset === 0) {
-        this.transfers = transfers || [];
-      } else {
-        // Append and re-sort for merged dataset
-        const existingIds = new Set(this.transfers.map((t) => t.id));
-        const newTransfers = (transfers || []).filter((t) => !existingIds.has(t.id));
-        this.transfers = [...this.transfers, ...newTransfers].sort(
-          (a, b) => b.createdAt - a.createdAt
-        );
-      }
-
-      this._hasMore = (transfers || []).length === limit;
+      const result = await this.apiService.get<{
+        transfers: TransferSession[];
+        hasMore: boolean;
+      }>(`/api/transfers?limit=${limit}`);
+      this.transfers = result.transfers || [];
+      this.hasMore = result.hasMore;
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Failed to load transfers';
     } finally {
@@ -149,13 +136,24 @@ export class HomeService extends Service {
     }
   }
 
-  async loadMoreTransfers() {
-    if (this.isLoading || !this._hasMore) return;
-    this.isLoading = true;
+  async loadOlderTransfers(limit = 50) {
+    if (this.isLoadingOlder || !this.hasMore || this.transfers.length === 0) return;
+    this.isLoadingOlder = true;
     try {
-      await this.loadTransfers(this.transfers.length);
+      const first = this.transfers[0];
+      const result = await this.apiService.get<{
+        transfers: TransferSession[];
+        hasMore: boolean;
+      }>(`/api/transfers?limit=${limit}&beforeCreatedAt=${first.createdAt}&beforeId=${first.id}`);
+      const older = result.transfers || [];
+      const existingIds = new Set(this.transfers.map((t) => t.id));
+      const newTransfers = older.filter((t) => !existingIds.has(t.id));
+      this.transfers = [...newTransfers, ...this.transfers];
+      this.hasMore = result.hasMore;
+    } catch (e) {
+      this.error = e instanceof Error ? e.message : 'Failed to load older transfers';
     } finally {
-      this.isLoading = false;
+      this.isLoadingOlder = false;
     }
   }
 
@@ -193,7 +191,7 @@ export class HomeService extends Service {
         data: file.data,
       });
 
-      // Create a temporary transfer session to show in the chat list
+      // Add temporary session to list (appears at bottom in ASC order)
       const tempSession: TransferSession = {
         id: uploadId,
         userId: this.authService.user?.id || '',
@@ -237,7 +235,7 @@ export class HomeService extends Service {
     file: { name: string; size: number; type?: string; data?: ArrayBuffer }
   ) {
     const TEXT_INLINE_MAX_SIZE = 10 * 1024;
-    const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB - must match server's S3 multipart minimum
+    const CHUNK_SIZE = 5 * 1024 * 1024;
     const startTime = Date.now();
     const speedSamples: number[] = [];
     let lastUpdateTime = startTime;
@@ -245,7 +243,6 @@ export class HomeService extends Service {
 
     this.updateUploadStatus(uploadId, { startTime, uploadedBytes: 0 });
 
-    // Helper to update speed and ETA
     const updateSpeedAndEta = (uploadedBytes: number) => {
       const now = Date.now();
       const elapsed = (now - lastUpdateTime) / 1000;
@@ -256,17 +253,11 @@ export class HomeService extends Service {
         speedSamples.push(currentSpeed);
         if (speedSamples.length > 5) speedSamples.shift();
 
-        // Calculate rolling average speed
         const avgSpeed = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
         const remainingBytes = file.size - uploadedBytes;
         const eta = avgSpeed > 0 ? remainingBytes / avgSpeed : 0;
 
-        this.updateUploadStatus(uploadId, {
-          speed: avgSpeed,
-          eta,
-          uploadedBytes,
-        });
-
+        this.updateUploadStatus(uploadId, { speed: avgSpeed, eta, uploadedBytes });
         lastUpdateTime = now;
         lastUploadedBytes = uploadedBytes;
       }
@@ -277,7 +268,6 @@ export class HomeService extends Service {
 
       const sourceDeviceId = 'web-device';
 
-      // Check if file is text type (actual text files, not small images)
       const isTextFile =
         file.type?.startsWith('text/') ||
         file.name.endsWith('.txt') ||
@@ -306,9 +296,7 @@ export class HomeService extends Service {
           eta: 0,
           uploadedBytes: file.size,
         });
-
-        // Refresh transfer list after successful inline text upload
-        await this.loadTransfers();
+        // Socket transfer:new will deliver the full session; addTransfer dedup handles it
       } else {
         const chunkCount = Math.ceil(file.size / CHUNK_SIZE);
         const { sessionId, presignedUrls } = await this.apiService.post<{
@@ -323,7 +311,6 @@ export class HomeService extends Service {
           chunkCount,
         });
 
-        this.updateUploadStatus(uploadId, { sessionId });
         this.updateUploadStatus(uploadId, { sessionId });
 
         const totalChunks = presignedUrls.length;
@@ -361,9 +348,7 @@ export class HomeService extends Service {
           eta: 0,
           uploadedBytes: file.size,
         });
-
-        // Refresh transfer list after successful upload
-        await this.loadTransfers();
+        // Socket transfer:new will deliver the full session; addTransfer dedup handles it
       }
     } catch (error) {
       this.updateUploadStatus(uploadId, {
@@ -377,15 +362,9 @@ export class HomeService extends Service {
     const response = await fetch(url, {
       method: 'PUT',
       body: chunk,
-      headers: {
-        'Content-Type': 'application/octet-stream',
-      },
+      headers: { 'Content-Type': 'application/octet-stream' },
     });
-
-    if (!response.ok) {
-      throw new Error(`Chunk upload failed: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`Chunk upload failed: ${response.status}`);
     return response.headers.get('ETag') || '';
   }
 
@@ -394,23 +373,17 @@ export class HomeService extends Service {
       f.id === uploadId ? { ...f, ...updates } : f
     );
 
-    // Also update the temporary transfer session if sessionId is provided
     if (updates.sessionId) {
       this.transfers = this.transfers.map((t) =>
         t.id === uploadId ? { ...t, id: updates.sessionId! } : t
       );
     }
 
-    // Update transfer status when upload completes
     if (updates.status === 'completed' && updates.sessionId) {
       this.transfers = this.transfers.map((t) =>
         t.id === updates.sessionId ? { ...t, status: 'completed' } : t
       );
-
-      // Auto-remove uploading file state after 2 seconds
-      setTimeout(() => {
-        this.removeUpload(uploadId);
-      }, 2000);
+      setTimeout(() => this.removeUpload(uploadId), 2000);
     }
   }
 
@@ -420,10 +393,7 @@ export class HomeService extends Service {
       await this.apiService.deleteTransfer(file.sessionId);
     }
     this.updateUploadStatus(uploadId, { status: 'cancelled' });
-    // Auto-remove from list after 3 seconds
-    setTimeout(() => {
-      this.removeUpload(uploadId);
-    }, 3000);
+    setTimeout(() => this.removeUpload(uploadId), 3000);
   }
 
   removeUpload(uploadId: string) {
@@ -463,7 +433,7 @@ export class HomeService extends Service {
         totalSize: new TextEncoder().encode(content).length,
         content,
       });
-      await this.loadTransfers();
+      // No loadTransfers() — Socket transfer:new will deliver the session incrementally
     } catch (e) {
       throw new Error(e instanceof Error ? e.message : 'Failed to send text');
     }
