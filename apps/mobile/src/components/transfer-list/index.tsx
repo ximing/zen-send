@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
@@ -20,6 +20,16 @@ function TransferListInner({ onItemPress, onDownload }: TransferListProps) {
   const listRef = useRef<FlashListRef<TransferSession>>(null);
   const [atBottom, setAtBottom] = useState(true);
   const [newTransferCount, setNewTransferCount] = useState(0);
+  const prevLengthRef = useRef(homeService.transfers.length);
+
+  // Track new transfers arriving while not at bottom
+  useEffect(() => {
+    const currentLength = homeService.transfers.length;
+    if (currentLength > prevLengthRef.current && !atBottom) {
+      setNewTransferCount((c) => c + (currentLength - prevLengthRef.current));
+    }
+    prevLengthRef.current = currentLength;
+  });
 
   const renderItem = ({ item }: { item: TransferSession }) => (
     <TransferItem
