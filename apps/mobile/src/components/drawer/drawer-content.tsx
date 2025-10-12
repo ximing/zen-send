@@ -32,7 +32,6 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
   };
 
   const user = authService.user;
-  const serverUrl = authService.serverUrl;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgSurface }]}>
@@ -53,11 +52,9 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
             </Text>
           </View>
         )}
-        <Text style={[styles.username, { color: colors.textPrimary }]}>
+        <Text style={[styles.username, { color: colors.textPrimary }]} numberOfLines={1}>
           {user?.nickname || user?.email?.split('@')[0] || 'User'}
         </Text>
-        <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email ?? ''}</Text>
-        <Text style={[styles.serverUrl, { color: colors.textMuted }]}>{serverUrl}</Text>
       </TouchableOpacity>
 
       {/* Actions Section */}
@@ -65,6 +62,20 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
         <TouchableOpacity style={styles.actionButton} onPress={handleDownloads}>
           <Ionicons name="cloud-download-outline" size={20} color={colors.textPrimary} />
           <Text style={[styles.actionText, { color: colors.textPrimary }]}>下载</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Bottom Actions */}
+      <View style={styles.bottomActions}>
+        <TouchableOpacity style={styles.actionButton} onPress={handleThemeToggle}>
+          <Ionicons
+            name={themeService.isDark ? 'sunny' : 'moon-outline'}
+            size={20}
+            color={colors.textPrimary}
+          />
+          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
+            {themeService.isDark ? 'Light Mode' : 'Dark Mode'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -76,17 +87,6 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
         >
           <Ionicons name="settings-outline" size={20} color={colors.textPrimary} />
           <Text style={[styles.actionText, { color: colors.textPrimary }]}>设置</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionButton} onPress={handleThemeToggle}>
-          <Ionicons
-            name={themeService.isDark ? 'sunny' : 'moon-outline'}
-            size={20}
-            color={colors.textPrimary}
-          />
-          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
-            {themeService.isDark ? 'Light Mode' : 'Dark Mode'}
-          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleLogout}>
@@ -107,43 +107,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   userSection: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: 24,
+    gap: 12,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     marginBottom: 16,
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
   },
   avatarImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginBottom: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
   avatarText: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: '600',
   },
   username: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 4,
-  },
-  email: {
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  serverUrl: {
-    fontSize: 12,
+    flex: 1,
   },
   actionsSection: {
     paddingTop: 8,
+  },
+  bottomActions: {
+    marginTop: 'auto',
+    marginBottom: 16,
   },
   actionButton: {
     flexDirection: 'row',
