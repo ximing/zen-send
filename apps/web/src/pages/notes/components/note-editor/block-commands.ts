@@ -45,15 +45,30 @@ function addNewBlockAfterCurrent(view: EditorView): boolean {
 
   const doc = view.state.doc;
 
-  // Find the position right after the current block's full extent
-  // (including closing ``` line for code blocks)
-  const blockEnd = getBlockEnd(doc, block);
-  const insertPos = Math.min(blockEnd, doc.length);
+  // For code blocks, insert after the closing ``` line
+  // For markdown blocks, insert before the next block's opening ``` line
+  // In both cases we want to insert at the boundary between blocks
+  let insertPos: number;
+  if (block.type === 'code' && block.delimiter) {
+    insertPos = getBlockEnd(doc, block);
+  } else {
+    // Markdown block: content.to points to the start of the next block
+    // We need to find where the actual content ends (skip trailing newlines)
+    // but keep at least one newline for separation
+    let end = block.content.to;
+    // Trim trailing newlines from the content range to find the real end
+    while (end > block.content.from && doc.sliceString(end - 1, end) === '\n') {
+      end--;
+    }
+    // Insert after the last non-newline character, keeping one \n before the new block
+    insertPos = end;
+  }
+
+  insertPos = Math.min(insertPos, doc.length);
 
   const delimiter = `\n\`\`\`markdown\n\n\`\`\`\n`;
 
   // Find cursor position: the empty line between the ``` pairs
-  // delimiter layout: \n```\n<cursor_here>\n```\n
   const firstNewline = delimiter.indexOf('\n');
   const secondNewline = delimiter.indexOf('\n', firstNewline + 1);
   const codeContentPos = insertPos + secondNewline + 1;
@@ -89,45 +104,21 @@ function deleteCurrentBlock(view: EditorView): boolean {
   // Multiple blocks — delete entire block and move cursor
   const idx = blocks.indexOf(block);
 
-  let from: number;
-  let to: number;
-  if (block.type === 'code' && block.delimiter) {
-    from = block.delimiter.from;
-    const closingLineNum = doc.lineAt(block.content.to).number + 1;
-    if (closingLineNum <= doc.lines) {
-      const closingLine = doc.line(closingLineNum);
-      if (closingLine.text.trim() === '```' || closingLine.text.trim().startsWith('```')) {
-        to = Math.min(closingLine.to + 1, doc.length);
-      } else {
-        to = block.content.to;
-      }
-    } else {
-      to = block.content.to;
-    }
-  } else {
-    from = block.content.from;
-    to = block.content.to;
-  }
-
-  // Consume the newline before the block to avoid leftover blank lines
-  if (from > 0 && doc.sliceString(from - 1, from) === '\n') {
-    from -= 1;
-  }
+  // Calculate full block range
+  const blockFrom = getBlockFrom(block);
+  const blockTo = getBlockEnd(doc, block);
 
   // Cursor: end of previous block, or start of next block
   let cursorPos: number;
   if (idx > 0) {
     const prev = blocks[idx - 1];
-    // Previous block's content end is at prev.content.to, but we may have deleted
-    // a newline at the boundary. Calculate cursor in the new document.
-    cursorPos = Math.min(from, Math.max(0, prev.content.to - 1));
+    cursorPos = Math.max(prev.content.from, prev.content.to - 1);
   } else {
-    // Deleting first block — cursor goes to start of what was the next block
-    cursorPos = from;
+    cursorPos = 0;
   }
 
   view.dispatch({
-    changes: { from, to, insert: '' },
+    changes: { from: blockFrom, to: blockTo, insert: '' },
     selection: { anchor: cursorPos },
     annotations: heynoteEvent.of('deleteBlock'),
   });
@@ -168,12 +159,9 @@ export function convertBlockToMarkdown(view: EditorView): boolean {
   const content = view.state.doc.sliceString(block.content.from, block.content.to);
   const doc = view.state.doc;
   let to = block.content.to;
-  const closingLineNum = doc.lineAt(block.content.to).number + 1;
-  if (closingLineNum <= doc.lines) {
-    const closingLine = doc.line(closingLineNum);
-    if (closingLine.text.trim() === '```' || closingLine.text.trim().startsWith('```')) {
-      to = Math.min(closingLine.to + 1, doc.length);
-    }
+  const closing = findClosingFence(doc, block);
+  if (closing) {
+    to = Math.min(closing.line.to + 1, doc.length);
   }
   view.dispatch({
     changes: { from: block.delimiter.from, to, insert: content },
@@ -217,11 +205,23 @@ function gotoPreviousBlock(view: EditorView): boolean {
   return false;
 }
 
+export function findClosingFence(doc: any, block: Block): { lineNum: number; line: any } | null {
+  if (block.type !== 'code' || !block.delimiter) return null;
+  const openingLineNum = doc.lineAt(block.delimiter.from).number;
+  for (let i = openingLineNum + 1; i <= doc.lines; i++) {
+    const line = doc.line(i);
+    if (line.text.trim() === '```' || line.text.trim().startsWith('```')) {
+      return { lineNum: i, line };
+    }
+  }
+  return null;
+}
+
 function getBlockEnd(doc: any, block: Block): number {
   if (block.type === 'code' && block.delimiter) {
-    const closingLineNum = doc.lineAt(block.content.to).number + 1;
-    if (closingLineNum <= doc.lines) {
-      return Math.min(doc.line(closingLineNum).to + 1, doc.length);
+    const closing = findClosingFence(doc, block);
+    if (closing) {
+      return Math.min(closing.line.to + 1, doc.length);
     }
   }
   return block.content.to;

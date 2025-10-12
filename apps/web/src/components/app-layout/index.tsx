@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, useNavigate, Navigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { observer, useService } from '@rabjs/react';
 import { useIsWide } from '../../hooks/use-is-wide';
 import { AuthService } from '../../services/auth.service';
@@ -8,10 +8,18 @@ import Sidebar from '../sidebar';
 import Drawer from '../drawer';
 import Header from '../header';
 
+const HEADERLESS_PATHS = ['/notes', '/devices', '/downloads', '/settings'];
+
+function useShowHeader() {
+  const { pathname } = useLocation();
+  return !HEADERLESS_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
+}
+
 function AppLayoutInner() {
   const isWide = useIsWide();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
+  const showHeader = useShowHeader();
   const authService = useService(AuthService);
   const noteService = useService(NoteService);
 
@@ -45,11 +53,13 @@ function AppLayoutInner() {
 
       {/* Main content area */}
       <div className="flex-1 min-w-0 flex flex-col">
-        {/* Header: narrow screen shows menu button */}
-        <Header
-          onMenuPress={isWide ? undefined : () => setDrawerOpen(true)}
-          onSearchPress={() => navigate('/search')}
-        />
+        {/* Header: only on home and search pages */}
+        {showHeader && (
+          <Header
+            onMenuPress={isWide ? undefined : () => setDrawerOpen(true)}
+            onSearchPress={() => navigate('/search')}
+          />
+        )}
 
         {/* Page content */}
         <Outlet />

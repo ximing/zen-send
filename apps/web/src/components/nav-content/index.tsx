@@ -46,28 +46,18 @@ function NavContentInner({ onNavigate }: NavContentProps) {
   };
 
   const user = authService.user;
-  const serverUrl = window.location.origin;
 
   const navItems = [
     { path: '/', label: '文件传输', icon: ArrowLeftRight, onClick: handleHome },
     { path: '/devices', label: '设备管理', icon: Smartphone, onClick: handleDevices },
     { path: '/downloads', label: '下载', icon: Download, onClick: handleDownloads },
-    {
-      path: '/settings',
-      label: '设置',
-      icon: Settings,
-      onClick: () => {
-        navigate('/settings');
-        onNavigate?.();
-      },
-    },
   ];
 
   return (
     <div className="flex flex-col h-full">
       {/* User Info Section */}
       <div
-        className="flex flex-col items-center pb-6 border-b border-[var(--border-subtle)] mb-4 pt-5 px-5 cursor-pointer"
+        className="h-14 flex items-center gap-2 px-4 shrink-0 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] cursor-pointer"
         onClick={() => {
           navigate('/settings');
           onNavigate?.();
@@ -77,20 +67,18 @@ function NavContentInner({ onNavigate }: NavContentProps) {
           <img
             src={user.avatarUrl}
             alt="Avatar"
-            className="w-16 h-16 rounded-full object-cover mb-3"
+            className="w-9 h-9 rounded-full object-cover shrink-0"
           />
         ) : (
-          <div className="w-16 h-16 rounded-full bg-[var(--accent-soft)] flex items-center justify-center mb-3">
-            <span className="text-2xl font-semibold text-[var(--accent)]">
+          <div className="w-9 h-9 rounded-full bg-[var(--accent-soft)] flex items-center justify-center shrink-0">
+            <span className="text-sm font-semibold text-[var(--accent)]">
               {user?.email?.charAt(0).toUpperCase() ?? '?'}
             </span>
           </div>
         )}
-        <span className="text-lg font-semibold text-[var(--text-primary)]">
+        <span className="text-sm font-semibold text-[var(--text-primary)] truncate">
           {user?.nickname || user?.email?.split('@')[0] || 'User'}
         </span>
-        <span className="text-sm text-[var(--text-secondary)]">{user?.email ?? ''}</span>
-        <span className="text-xs text-[var(--text-muted)]">{serverUrl}</span>
       </div>
 
       {/* Navigation Items */}
@@ -209,6 +197,18 @@ function NavContentInner({ onNavigate }: NavContentProps) {
           <span className="text-base text-[var(--text-primary)]">
             {themeService.resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           </span>
+        </button>
+
+        <button
+          onClick={() => {
+            navigate('/settings');
+            onNavigate?.();
+          }}
+          className={`w-full flex items-center gap-3 py-3.5 px-3 rounded-lg transition-colors
+            ${location.pathname === '/settings' ? 'bg-[var(--bg-surface-hover)] text-[var(--accent)]' : 'hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]'}`}
+        >
+          <Settings size={20} />
+          <span className="text-base">设置</span>
         </button>
 
         <button

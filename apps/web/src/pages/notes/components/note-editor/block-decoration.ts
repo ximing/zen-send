@@ -2,7 +2,7 @@ import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate
 import { EditorState, RangeSetBuilder, StateEffect, StateField, type Range } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
 import { blockState } from './block-state';
-import { heynoteEvent } from './block-commands';
+import { heynoteEvent, findClosingFence } from './block-commands';
 
 // Collect all fence delimiter line positions from the syntax tree
 function collectFenceLines(state: EditorState): Set<number> {
@@ -117,15 +117,10 @@ export const blockDecorations = EditorView.decorations.compute(
       hiddenLines.add(openingLine.number);
 
       // Hide the closing ``` line (including newline to remove empty space)
-      if (block.content.to > 0) {
-        const closingLineNum = doc.lineAt(block.content.to).number + 1;
-        if (closingLineNum <= doc.lines) {
-          const closingLine = doc.line(closingLineNum);
-          if (closingLine.text.trim() === '```' || closingLine.text.trim().startsWith('```')) {
-            ranges.push(Decoration.replace({}).range(closingLine.from, Math.min(closingLine.to + 1, doc.length)));
-            hiddenLines.add(closingLine.number);
-          }
-        }
+      const closing = findClosingFence(doc, block);
+      if (closing) {
+        ranges.push(Decoration.replace({}).range(closing.line.from, Math.min(closing.line.to + 1, doc.length)));
+        hiddenLines.add(closing.lineNum);
       }
     }
 
