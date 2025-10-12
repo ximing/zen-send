@@ -364,6 +364,9 @@ importers:
       '@rabjs/react':
         specifier: ^9.0.5
         version: 9.0.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@virtuoso.dev/message-list':
+        specifier: ^1.16.7
+        version: 1.16.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@zen-send/dto':
         specifier: workspace:*
         version: link:../../packages/dto
@@ -3594,6 +3597,18 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+
+  '@virtuoso.dev/gurx@1.2.3':
+    resolution: {integrity: sha512-zqIzVOQgJGEbrG+hvNiNHdrtM2G/9zBVgBSRUAW2yT8iUOouSHAsPIxpCU/xsAYEwicXURGhU6cxzgBPVjXL+g==}
+    peerDependencies:
+      react: 19.2.3
+      react-dom: 19.2.3
+
+  '@virtuoso.dev/message-list@1.16.7':
+    resolution: {integrity: sha512-esyAlAQ50WHUY/u8lkaf9B9R4inajCRna8QoS7mFYFpR5DigjFOsYd7Rp8UlEgDk4iNzerOs5ennMjaQQeQgwA==}
+    peerDependencies:
+      react: 19.2.3
+      react-dom: 19.2.3
 
   '@vitejs/plugin-react@5.2.0':
     resolution: {integrity: sha512-YmKkfhOAi3wsB1PhJq5Scj3GXMn3WvtQ/JC0xoopuHoXSdmtdStOpFrYaT1kie2YgFBcIe64ROzMYRjCrYOdYw==}
@@ -11972,6 +11987,17 @@ snapshots:
       eslint-visitor-keys: 5.0.1
 
   '@ungap/structured-clone@1.3.0': {}
+
+  '@virtuoso.dev/gurx@1.2.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+
+  '@virtuoso.dev/message-list@1.16.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@virtuoso.dev/gurx': 1.2.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
 
   '@vitejs/plugin-react@5.2.0(vite@7.3.1(@types/node@24.12.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
