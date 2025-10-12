@@ -2,6 +2,7 @@ import type { Server, Socket } from 'socket.io';
 import { Container } from 'typedi';
 import { verifyAccessToken, type TokenPayload } from '../utils/jwt.js';
 import { DeviceService, type DeviceInfo } from '../services/device.service.js';
+import { TransferService } from '../services/transfer.service.js';
 import { logger } from '@zen-send/logger';
 import { setSocketIO } from './socket-instance.js';
 
@@ -91,13 +92,27 @@ export function setupSocket(io: Server): void {
     // Handle transfer notification
     socket.on('transfer:notify', async (data: { targetDeviceId: string; sessionId: string }) => {
       const { targetDeviceId, sessionId } = data;
+      const userId = socket.user?.userId;
 
-      const targetSocketInfo = deviceSockets.get(targetDeviceId);
-      if (targetSocketInfo?.socketId) {
-        io.to(targetSocketInfo.socketId).emit('transfer:new', { sessionId });
-        logger.info({ targetDeviceId, sessionId }, 'Transfer notification sent');
-      } else {
-        logger.warn({ targetDeviceId, sessionId }, 'Target device not found or offline');
+      try {
+        const transferService = Container.get(TransferService);
+        const transfer = userId
+          ? await transferService.getTransferById(sessionId, userId)
+          : null;
+
+        const targetSocketInfo = deviceSockets.get(targetDeviceId);
+        if (targetSocketInfo?.socketId) {
+          if (transfer) {
+            io.to(targetSocketInfo.socketId).emit('transfer:new', { session: transfer });
+          } else {
+            io.to(targetSocketInfo.socketId).emit('transfer:new', { sessionId });
+          }
+          logger.info({ targetDeviceId, sessionId }, 'Transfer notification sent');
+        } else {
+          logger.warn({ targetDeviceId, sessionId }, 'Target device not found or offline');
+        }
+      } catch (error) {
+        logger.error({ error, sessionId }, 'Failed to fetch transfer for notification');
       }
     });
 
