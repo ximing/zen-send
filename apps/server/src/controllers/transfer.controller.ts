@@ -131,23 +131,35 @@ export class TransferController {
   @Get()
   async list(
     @CurrentUser() user: TokenPayload,
-    @QueryParams() query: { limit?: string; offset?: string }
+    @QueryParams() query: { limit?: string; beforeCreatedAt?: string; beforeId?: string }
   ) {
-    const limit = query.limit;
-    const offset = query.offset;
-    const parsedLimit = limit ? parseInt(limit, 10) : 50;
-    const parsedOffset = offset ? parseInt(offset, 10) : 0;
+    const limit = query.limit ? parseInt(query.limit, 10) : 50;
+    const beforeCreatedAt = query.beforeCreatedAt
+      ? parseInt(query.beforeCreatedAt, 10)
+      : undefined;
+    const beforeId = query.beforeId || undefined;
 
-    if (isNaN(parsedLimit) || parsedLimit < 0 || isNaN(parsedOffset) || parsedOffset < 0) {
-      throw new HttpError(400, 'Invalid limit or offset parameter');
+    if (isNaN(limit) || limit < 0) {
+      throw new HttpError(400, 'Invalid limit parameter');
+    }
+    if (
+      beforeCreatedAt !== undefined &&
+      (isNaN(beforeCreatedAt) || beforeCreatedAt < 0)
+    ) {
+      throw new HttpError(400, 'Invalid beforeCreatedAt parameter');
+    }
+    // beforeCreatedAt and beforeId must both be provided or both omitted
+    if ((beforeCreatedAt !== undefined) !== (beforeId !== undefined)) {
+      throw new HttpError(400, 'beforeCreatedAt and beforeId must both be provided or both omitted');
     }
 
-    const transfers = await this.transferService.getTransferList(
+    const result = await this.transferService.getTransferList(
       user.userId,
-      parsedLimit,
-      parsedOffset
+      limit,
+      beforeCreatedAt,
+      beforeId
     );
-    return ResponseUtil.success({ transfers });
+    return ResponseUtil.success(result);
   }
 
   @Get('/:id')
