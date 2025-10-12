@@ -3,6 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { NotificationService } from './notification.service';
 import { AuthService } from './auth.service';
 import { HomeService } from './home.service';
+import type { TransferSession } from '@zen-send/shared';
 
 export class SocketService extends Service {
   socket: Socket | null = null;
@@ -70,14 +71,16 @@ export class SocketService extends Service {
     });
 
     this.socket.on('transfer:new', (data: unknown) => {
-      const payload = data as {
-        session?: { sourceDeviceName?: string; items?: Array<{ name?: string }> };
-      };
-      const title = payload.session?.sourceDeviceName ?? 'New Transfer';
-      const body = payload.session?.items?.[0]?.name ?? 'You have a new incoming transfer';
+      const payload = data as { session?: TransferSession };
+      const session = payload.session;
+      if (!session) return;
+
+      const title = session.sourceDeviceId || 'New Transfer';
+      const body = session.items?.[0]?.name || 'You have a new incoming transfer';
       this.notificationService.showTransferNotification(title, body);
-      // Refresh transfers list when a new transfer arrives
-      this.homeService.refresh();
+
+      // Incremental append instead of full refresh
+      this.homeService.addTransfer(session);
     });
 
     this.socket.on('transfer:progress', (data: unknown) => {
