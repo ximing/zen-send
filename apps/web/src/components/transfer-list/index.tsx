@@ -1,6 +1,12 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer, useService } from '@rabjs/react';
-import { MailOpen } from 'lucide-react';
+import {
+  VirtuosoMessageList,
+  VirtuosoMessageListLicense,
+  VirtuosoMessageListMethods,
+  type DataWithScrollModifier,
+} from '@virtuoso.dev/message-list';
+import { ChevronDown, MailOpen } from 'lucide-react';
 import { HomeService } from '../../pages/home/home.service';
 import { DeviceService } from '../../services/device.service';
 import { SocketService } from '../../services/socket.service';
@@ -14,14 +20,26 @@ function TransferListInner() {
   const deviceService = useService(DeviceService);
   const socketService = useService(SocketService);
   const toastService = useService(ToastService);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const virtuosoRef = useRef<VirtuosoMessageListMethods<TransferSession, null>>(null);
+  const [atBottom, setAtBottom] = useState(true);
+  const [newTransferCount, setNewTransferCount] = useState(0);
 
   useEffect(() => {
     deviceService.loadDevices();
+  }, [deviceService]);
 
+  useEffect(() => {
     const handleTransferNew = (data: unknown) => {
-      const session = data as TransferSession;
+      const payload = data as { session: TransferSession };
+      const session = payload.session;
+      if (!session) return;
+
+      // addTransfer already deduplicates by id
       homeService.addTransfer(session);
+
+      if (!atBottom) {
+        setNewTransferCount((c) => c + 1);
+      }
     };
 
     const handleTransferComplete = (data: unknown) => {
@@ -36,19 +54,12 @@ function TransferListInner() {
       socketService.offTransferNew(handleTransferNew);
       socketService.offTransferComplete(handleTransferComplete);
     };
-  }, [deviceService, socketService, homeService]);
+  }, [socketService, homeService, atBottom]);
 
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    const { scrollTop } = containerRef.current;
-    if (
-      scrollTop < 200 &&
-      homeService.hasMore &&
-      !homeService.isLoadingOlder
-    ) {
-      homeService.loadOlderTransfers();
-    }
-  }, [homeService]);
+  const scrollToBottom = useCallback(() => {
+    virtuosoRef.current?.scrollToItem({ index: 'LAST', align: 'end' });
+    setNewTransferCount(0);
+  }, []);
 
   const handlePreview = useCallback(
     (transfer: TransferSession) => {
@@ -101,38 +112,82 @@ function TransferListInner() {
 
   const transfers = homeService.filteredTransfers;
 
-  return (
-    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-      <div
-        ref={containerRef}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-2"
-        onScroll={handleScroll}
-      >
-        {transfers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center pt-20">
-            <MailOpen size={48} className="text-[var(--text-secondary)] mb-3" />
-            <p className="text-sm text-[var(--text-secondary)]">No transfers yet</p>
-          </div>
-        ) : (
-          <>
-            {transfers.map((transfer) => (
-              <TransferItem
-                key={transfer.id}
-                transfer={transfer}
-                onPreview={handlePreview}
-                onDownload={handleDownload}
-                onDelete={handleDelete}
-              />
-            ))}
+  if (transfers.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center pt-20">
+        <MailOpen size={48} className="text-[var(--text-secondary)] mb-3" />
+        <p className="text-sm text-[var(--text-secondary)]">No transfers yet</p>
+        <PreviewModal />
+      </div>
+    );
+  }
 
-            {homeService.hasMore && (
+  return (
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative">
+      <VirtuosoMessageListLicense licenseKey="">
+        <VirtuosoMessageList<TransferSession, null>
+          ref={virtuosoRef}
+          data={{
+            data: transfers,
+            scrollModifier: {
+              type: 'auto-scroll-to-bottom',
+              autoScroll: ({ atBottom, scrollInProgress }) => {
+                if (atBottom || scrollInProgress) {
+                  return { index: 'LAST', align: 'end', behavior: 'smooth' };
+                }
+                return false;
+              },
+            },
+          }}
+          style={{ height: '100%' }}
+          computeItemKey={({ data }) => data.id}
+          ItemContent={({ data }) => (
+            <TransferItem
+              transfer={data}
+              onPreview={handlePreview}
+              onDownload={handleDownload}
+              onDelete={handleDelete}
+            />
+          )}
+          onScroll={(location) => {
+            setAtBottom(location.isAtBottom);
+            if (location.isAtBottom) setNewTransferCount(0);
+          }}
+          Header={() =>
+            homeService.isLoadingOlder ? (
               <div className="py-4 text-center">
                 <div className="w-5 h-5 border-2 border-[var(--text-secondary)] border-t-transparent rounded-full animate-spin mx-auto" />
               </div>
-            )}
-          </>
-        )}
-      </div>
+            ) : null
+          }
+        />
+      </VirtuosoMessageListLicense>
+
+      {/* New transfer banner */}
+      {newTransferCount > 0 && (
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2
+            px-4 py-2 rounded-full bg-[var(--accent)] text-white text-sm font-medium
+            shadow-lg cursor-pointer hover:bg-[var(--accent)]/90 transition-colors z-10"
+          onClick={scrollToBottom}
+        >
+          <span>{newTransferCount} 条新传输</span>
+          <ChevronDown size={16} />
+        </div>
+      )}
+
+      {/* Scroll to bottom button */}
+      {!atBottom && newTransferCount === 0 && (
+        <button
+          className="absolute bottom-4 right-4 w-10 h-10 rounded-full
+            bg-[var(--bg-surface)] border border-[var(--border-subtle)]
+            shadow-md flex items-center justify-center
+            hover:bg-[var(--bg-elevated)] transition-colors z-10"
+          onClick={scrollToBottom}
+        >
+          <ChevronDown size={20} className="text-[var(--text-secondary)]" />
+        </button>
+      )}
 
       <PreviewModal />
     </div>
