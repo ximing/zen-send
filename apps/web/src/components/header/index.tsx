@@ -1,14 +1,15 @@
 import React from 'react';
 import { observer, useService } from '@rabjs/react';
-import { Menu, Search } from 'lucide-react';
+import { Menu, Search, Download } from 'lucide-react';
 import { SocketService } from '../../services/socket.service';
 
 interface HeaderProps {
   onMenuPress?: () => void;
   onSearchPress: () => void;
+  onDownloadPress?: () => void;
 }
 
-function HeaderInner({ onMenuPress, onSearchPress }: HeaderProps) {
+function HeaderInner({ onMenuPress, onSearchPress, onDownloadPress }: HeaderProps) {
   const socketService = useService(SocketService);
 
   return (
@@ -37,12 +38,22 @@ function HeaderInner({ onMenuPress, onSearchPress }: HeaderProps) {
         />
       </div>
 
-      <button
-        onClick={onSearchPress}
-        className="p-2 min-w-[44px] flex justify-end hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
-      >
-        <Search size={22} className="text-[var(--text-primary)]" />
-      </button>
+      <div className="flex items-center gap-1">
+        {onDownloadPress && (
+          <button
+            onClick={onDownloadPress}
+            className="p-2 min-w-[44px] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+          >
+            <Download size={22} className="text-[var(--text-primary)]" />
+          </button>
+        )}
+        <button
+          onClick={onSearchPress}
+          className="p-2 min-w-[44px] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+        >
+          <Search size={22} className="text-[var(--text-primary)]" />
+        </button>
+      </div>
     </header>
   );
 }

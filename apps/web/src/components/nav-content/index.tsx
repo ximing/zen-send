@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer, useService } from '@rabjs/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeftRight, Download, Sun, Moon, LogOut, Smartphone, Settings, Notebook, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, Sun, Moon, LogOut, Smartphone, Settings, Notebook, Plus, Trash2 } from 'lucide-react';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { NoteService } from '../../services/note.service';
@@ -30,11 +30,6 @@ function NavContentInner({ onNavigate }: NavContentProps) {
     navigate('/login');
   };
 
-  const handleDownloads = () => {
-    navigate('/downloads');
-    onNavigate?.();
-  };
-
   const handleDevices = () => {
     navigate('/devices');
     onNavigate?.();
@@ -50,7 +45,6 @@ function NavContentInner({ onNavigate }: NavContentProps) {
   const navItems = [
     { path: '/', label: '文件传输', icon: ArrowLeftRight, onClick: handleHome },
     { path: '/devices', label: '设备管理', icon: Smartphone, onClick: handleDevices },
-    { path: '/downloads', label: '下载', icon: Download, onClick: handleDownloads },
   ];
 
   return (
