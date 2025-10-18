@@ -1,11 +1,21 @@
 import { EditorView } from '@codemirror/view';
-import { Annotation } from '@codemirror/state';
+import { Annotation, type EditorState } from '@codemirror/state';
 import { blockState, getActiveBlock, type Block } from './block-state';
 import { blockCopiedEffect, clearCopiedEffect } from './block-decoration';
 
 export const heynoteEvent = Annotation.define<string>();
 
-const LANGUAGES = ['markdown', 'javascript', 'typescript', 'python', 'sql', 'json', 'css', 'html', 'text'];
+const LANGUAGES = [
+  'markdown',
+  'javascript',
+  'typescript',
+  'python',
+  'sql',
+  'json',
+  'css',
+  'html',
+  'text',
+];
 
 export function getLanguageList(): string[] {
   return LANGUAGES;
@@ -26,16 +36,21 @@ function copyBlock(view: EditorView): boolean {
   const block = getActiveBlock(view.state);
   if (!block) return false;
   const text = view.state.doc.sliceString(block.content.from, block.content.to);
-  navigator.clipboard.writeText(text).then(() => {
-    view.dispatch({ effects: blockCopiedEffect.of({ from: block.content.from, to: block.content.to }) });
-    setTimeout(() => {
-      if (view.dom.isConnected) {
-        view.dispatch({ effects: clearCopiedEffect.of(null) });
-      }
-    }, 200);
-  }).catch(() => {
-    // Clipboard API failed — permissions or insecure context
-  });
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      view.dispatch({
+        effects: blockCopiedEffect.of({ from: block.content.from, to: block.content.to }),
+      });
+      setTimeout(() => {
+        if (view.dom.isConnected) {
+          view.dispatch({ effects: clearCopiedEffect.of(null) });
+        }
+      }, 200);
+    })
+    .catch(() => {
+      // Clipboard API failed — permissions or insecure context
+    });
   return true;
 }
 
@@ -205,7 +220,10 @@ function gotoPreviousBlock(view: EditorView): boolean {
   return false;
 }
 
-export function findClosingFence(doc: any, block: Block): { lineNum: number; line: any } | null {
+export function findClosingFence(
+  doc: EditorState['doc'],
+  block: Block
+): { lineNum: number; line: { from: number; to: number } } | null {
   if (block.type !== 'code' || !block.delimiter) return null;
   const openingLineNum = doc.lineAt(block.delimiter.from).number;
   for (let i = openingLineNum + 1; i <= doc.lines; i++) {
@@ -217,7 +235,7 @@ export function findClosingFence(doc: any, block: Block): { lineNum: number; lin
   return null;
 }
 
-function getBlockEnd(doc: any, block: Block): number {
+function getBlockEnd(doc: EditorState['doc'], block: Block): number {
   if (block.type === 'code' && block.delimiter) {
     const closing = findClosingFence(doc, block);
     if (closing) {
@@ -270,7 +288,11 @@ function moveBlockDown(view: EditorView): boolean {
   const nextText = view.state.doc.sliceString(nextFrom, getBlockEnd(view.state.doc, next));
 
   view.dispatch({
-    changes: { from: blockFrom, to: getBlockEnd(view.state.doc, next), insert: nextText + blockText },
+    changes: {
+      from: blockFrom,
+      to: getBlockEnd(view.state.doc, next),
+      insert: nextText + blockText,
+    },
     annotations: heynoteEvent.of('moveBlock'),
   });
   return true;
