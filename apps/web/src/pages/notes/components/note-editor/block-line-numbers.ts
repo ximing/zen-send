@@ -19,9 +19,6 @@ export function getBlockLineNumber(state: EditorState, lineNo: number): string {
   return '';
 }
 
-// Empty marker for block widgets — ensures the gutter creates a proper spacer
-// element for each block widget (like LanguageLabelWidget) instead of relying
-// on the next text line's marginTop compensation, which can cause misalignment.
 class EmptyWidgetMarker extends GutterMarker {
   toDOM() {
     return document.createTextNode('');
@@ -36,8 +33,5 @@ export const blockLineNumbers = [
       return getBlockLineNumber(state, lineNo);
     },
   }),
-  // Provide a gutter marker for block widgets so the line-number gutter creates
-  // a properly-sized spacer element. Without this, block widgets like the
-  // LanguageLabelWidget cause gutter-content misalignment.
   lineNumberWidgetMarker.of((_view: unknown, _widget: WidgetType) => emptyMarker),
 ];

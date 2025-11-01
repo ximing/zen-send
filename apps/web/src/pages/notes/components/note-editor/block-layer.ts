@@ -1,11 +1,11 @@
 import { EditorView, layer, type LayerMarker, type ViewUpdate } from '@codemirror/view';
-import { blockState } from './block-state';
+import { getVisibleBlocks } from './block-state';
 
 class BlockMarker implements LayerMarker {
   constructor(
     readonly className: string,
     readonly top: number,
-    readonly height: number
+    readonly height: number,
   ) {}
 
   draw() {
@@ -22,26 +22,21 @@ class BlockMarker implements LayerMarker {
   }
 
   eq(other: BlockMarker) {
-    return (
-      this.className === other.className && this.top === other.top && this.height === other.height
-    );
+    return this.className === other.className && this.top === other.top && this.height === other.height;
   }
 }
 
 function buildMarkers(view: EditorView): LayerMarker[] {
-  const blocks = view.state.field(blockState);
+  const visibleBlocks = getVisibleBlocks(view.state);
   const markers: LayerMarker[] = [];
 
-  for (let index = 0; index < blocks.length; index++) {
-    const block = blocks[index];
+  for (let index = 0; index < visibleBlocks.length; index++) {
+    const visibleBlock = visibleBlocks[index];
     const className = index % 2 === 0 ? 'cm-block-even' : 'cm-block-odd';
-    const fromPos =
-      block.type === 'code' && block.delimiter ? block.delimiter.from : block.content.from;
-    const toPos = block.content.to;
 
     try {
-      const top = view.coordsAtPos(Math.max(0, fromPos))?.top;
-      const bottom = view.coordsAtPos(Math.min(view.state.doc.length, toPos))?.bottom;
+      const top = view.coordsAtPos(visibleBlock.topAnchorPos)?.top;
+      const bottom = view.coordsAtPos(visibleBlock.bottomAnchorPos)?.bottom;
 
       if (top !== undefined && bottom !== undefined) {
         const editorTop = view.dom.getBoundingClientRect().top;
@@ -61,7 +56,7 @@ export const blockLayer = layer({
     return buildMarkers(view);
   },
   update(update: ViewUpdate, _layer: HTMLElement) {
-    return update.docChanged || update.viewportChanged;
+    return update.docChanged || update.viewportChanged || update.heightChanged || update.geometryChanged;
   },
   class: 'cm-blocks-layer',
 });
