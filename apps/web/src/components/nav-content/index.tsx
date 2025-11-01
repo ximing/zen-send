@@ -1,7 +1,17 @@
 import React from 'react';
 import { observer, useService } from '@rabjs/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeftRight, Sun, Moon, LogOut, Smartphone, Settings, Notebook, Plus, Trash2 } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Sun,
+  Moon,
+  LogOut,
+  Smartphone,
+  Settings,
+  Notebook,
+  Plus,
+  Trash2,
+} from 'lucide-react';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { NoteService } from '../../services/note.service';
@@ -149,10 +159,16 @@ function NavContentInner({ onNavigate }: NavContentProps) {
                 }}
                 className="flex items-center justify-between px-3 py-1.5 cursor-pointer group rounded-lg hover:bg-[var(--bg-elevated)] transition-colors"
                 style={{
-                  color: location.pathname === `/notes/${note.id}` ? 'var(--accent)' : 'var(--text-secondary)',
+                  color:
+                    location.pathname === `/notes/${note.id}`
+                      ? 'var(--accent)'
+                      : 'var(--text-secondary)',
                 }}
               >
-                <span className="truncate text-sm" style={{ fontWeight: location.pathname === `/notes/${note.id}` ? 500 : 400 }}>
+                <span
+                  className="truncate text-sm"
+                  style={{ fontWeight: location.pathname === `/notes/${note.id}` ? 500 : 400 }}
+                >
                   {note.title}
                 </span>
                 <button

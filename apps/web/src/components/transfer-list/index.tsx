@@ -22,6 +22,12 @@ function TransferListInner() {
   const virtuosoRef = useRef<VirtuosoMessageListMethods<TransferSession, null>>(null);
   const [atBottom, setAtBottom] = useState(true);
   const [newTransferCount, setNewTransferCount] = useState(0);
+  const atBottomRef = useRef(true);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    atBottomRef.current = atBottom;
+  }, [atBottom]);
 
   useEffect(() => {
     deviceService.loadDevices();
@@ -36,7 +42,7 @@ function TransferListInner() {
       // addTransfer already deduplicates by id
       homeService.addTransfer(session);
 
-      if (!atBottom) {
+      if (!atBottomRef.current) {
         setNewTransferCount((c) => c + 1);
       }
     };
@@ -53,7 +59,7 @@ function TransferListInner() {
       socketService.offTransferNew(handleTransferNew);
       socketService.offTransferComplete(handleTransferComplete);
     };
-  }, [socketService, homeService, atBottom]);
+  }, [socketService, homeService]);
 
   const scrollToBottom = useCallback(() => {
     virtuosoRef.current?.scrollToItem({ index: 'LAST', align: 'end' });

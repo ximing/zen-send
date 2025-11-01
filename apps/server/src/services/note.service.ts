@@ -35,7 +35,10 @@ export class NoteService {
     return (result[0] as NoteDetail) ?? null;
   }
 
-  async createNote(userId: string, data: { title?: string; content?: string }): Promise<NoteDetail> {
+  async createNote(
+    userId: string,
+    data: { title?: string; content?: string }
+  ): Promise<NoteDetail> {
     const id = generateNoteId();
     const now = Math.floor(Date.now() / 1000);
 
@@ -67,7 +70,11 @@ export class NoteService {
     };
   }
 
-  async updateNote(id: string, userId: string, data: { title?: string; content?: string }): Promise<boolean> {
+  async updateNote(
+    id: string,
+    userId: string,
+    data: { title?: string; content?: string }
+  ): Promise<boolean> {
     const existing = await this.db
       .select()
       .from(notes)
@@ -76,7 +83,10 @@ export class NoteService {
     if (existing.length === 0) return false;
 
     const now = Math.floor(Date.now() / 1000);
-    await this.db.update(notes).set({ ...data, updatedAt: now }).where(and(eq(notes.id, id), eq(notes.userId, userId)));
+    await this.db
+      .update(notes)
+      .set({ ...data, updatedAt: now })
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)));
     return true;
   }
 
@@ -92,7 +102,10 @@ export class NoteService {
     return true;
   }
 
-  async reorderNotes(userId: string, orders: Array<{ id: string; sortOrder: number }>): Promise<void> {
+  async reorderNotes(
+    userId: string,
+    orders: Array<{ id: string; sortOrder: number }>
+  ): Promise<void> {
     for (const item of orders) {
       await this.db
         .update(notes)

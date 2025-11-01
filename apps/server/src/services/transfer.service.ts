@@ -267,7 +267,10 @@ export class TransferService {
     limit = 50,
     beforeCreatedAt?: number,
     beforeId?: string
-  ): Promise<{ transfers: (TransferSessionInfo & { items: TransferItemInfo[] })[]; hasMore: boolean }> {
+  ): Promise<{
+    transfers: (TransferSessionInfo & { items: TransferItemInfo[] })[];
+    hasMore: boolean;
+  }> {
     const fetchLimit = limit + 1;
 
     let results;

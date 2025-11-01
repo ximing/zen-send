@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsArray, MaxLength, ValidateNested, IsInt, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  MaxLength,
+  ValidateNested,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import type { CreateNoteRequest, UpdateNoteRequest, ReorderNotesRequest } from '@zen-send/dto';
 

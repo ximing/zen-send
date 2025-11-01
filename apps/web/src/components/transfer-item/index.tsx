@@ -149,136 +149,132 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
   };
 
   return (
-  <>
-    <div
-      className={`flex ${isText ? 'items-start' : 'items-center'} p-3 mx-4 mb-2 rounded-xl bg-[var(--bg-surface)]
+    <>
+      <div
+        className={`flex ${isText ? 'items-start' : 'items-center'} p-3 mx-4 mb-2 rounded-xl bg-[var(--bg-surface)]
         transition-all duration-150 cursor-pointer
         ${isHovered ? 'shadow-sm' : ''}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={() => onPreview(transfer)}
-    >
-      {/* Icon/Thumbnail */}
-      <div className="w-[42px] h-[42px] rounded-[10px] bg-[var(--bg-elevated)] flex items-center justify-center overflow-hidden shrink-0">
-        {isImage && thumbnailUrl ? (
-          <img
-            src={thumbnailUrl}
-            alt=""
-            className="w-[42px] h-[42px] rounded-[10px] object-cover"
-          />
-        ) : isText ? (
-          <PenLine size={20} className="text-[var(--text-secondary)]" />
-        ) : isImage ? (
-          <Image size={20} className="text-[var(--text-secondary)]" />
-        ) : (
-          <FileText size={20} className="text-[var(--text-secondary)]" />
-        )}
-      </div>
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => onPreview(transfer)}
+      >
+        {/* Icon/Thumbnail */}
+        <div className="w-[42px] h-[42px] rounded-[10px] bg-[var(--bg-elevated)] flex items-center justify-center overflow-hidden shrink-0">
+          {isImage && thumbnailUrl ? (
+            <img
+              src={thumbnailUrl}
+              alt=""
+              className="w-[42px] h-[42px] rounded-[10px] object-cover"
+            />
+          ) : isText ? (
+            <PenLine size={20} className="text-[var(--text-secondary)]" />
+          ) : isImage ? (
+            <Image size={20} className="text-[var(--text-secondary)]" />
+          ) : (
+            <FileText size={20} className="text-[var(--text-secondary)]" />
+          )}
+        </div>
 
-      {/* Content */}
-      <div className="flex-1 ml-3 min-w-0" ref={contentAreaRef}>
-        {isText ? (
-          <>
-            <div
-              className={`text-sm font-medium text-[var(--text-primary)] whitespace-pre-wrap break-words ${
-                !isExpanded ? 'line-clamp-2' : ''
-              }`}
-            >
-              {firstItem?.content || 'Text'}
-            </div>
-            {isOverflow && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsExpanded(!isExpanded);
-                }}
-                className="text-xs text-[var(--accent)] mt-0.5 hover:underline"
+        {/* Content */}
+        <div className="flex-1 ml-3 min-w-0" ref={contentAreaRef}>
+          {isText ? (
+            <>
+              <div
+                className={`text-sm font-medium text-[var(--text-primary)] whitespace-pre-wrap break-words ${
+                  !isExpanded ? 'line-clamp-2' : ''
+                }`}
               >
-                {isExpanded ? '收起' : '展开'}
-              </button>
-            )}
-            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
-              {size} · {timeAgo}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="text-sm font-medium text-[var(--text-primary)] truncate">{name}</div>
-            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
-              {size} · {timeAgo}
-            </div>
-          </>
-        )}
-      </div>
+                {firstItem?.content || 'Text'}
+              </div>
+              {isOverflow && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(!isExpanded);
+                  }}
+                  className="text-xs text-[var(--accent)] mt-0.5 hover:underline"
+                >
+                  {isExpanded ? '收起' : '展开'}
+                </button>
+              )}
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                {size} · {timeAgo}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-sm font-medium text-[var(--text-primary)] truncate">{name}</div>
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                {size} · {timeAgo}
+              </div>
+            </>
+          )}
+        </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-0.5 shrink-0">
-        {isText ? (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCopyText();
-            }}
-            className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-            title="Copy"
-          >
-            <Copy size={18} className="text-[var(--text-secondary)]" />
-          </button>
-        ) : (
-          <>
-            {firstItem?.storageType === 's3' && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCopyLink();
-                }}
-                className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-                title="Copy Link"
-              >
-                <Link size={18} className="text-[var(--text-secondary)]" />
-              </button>
-            )}
+        {/* Actions */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          {isText ? (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onDownload(transfer);
+                handleCopyText();
               }}
               className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-              title="Download"
+              title="Copy"
             >
-              <Download size={18} className="text-[var(--text-secondary)]" />
+              <Copy size={18} className="text-[var(--text-secondary)]" />
             </button>
-          </>
-        )}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleQrCode();
-          }}
-          className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-          title="QR Code"
-        >
-          <QrCode size={18} className="text-[var(--text-secondary)]" />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(transfer);
-          }}
-          className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-          title="Delete"
-        >
-          <Trash2 size={18} className="text-[var(--text-secondary)]" />
-        </button>
+          ) : (
+            <>
+              {firstItem?.storageType === 's3' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyLink();
+                  }}
+                  className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                  title="Copy Link"
+                >
+                  <Link size={18} className="text-[var(--text-secondary)]" />
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownload(transfer);
+                }}
+                className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                title="Download"
+              >
+                <Download size={18} className="text-[var(--text-secondary)]" />
+              </button>
+            </>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleQrCode();
+            }}
+            className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+            title="QR Code"
+          >
+            <QrCode size={18} className="text-[var(--text-secondary)]" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(transfer);
+            }}
+            className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+            title="Delete"
+          >
+            <Trash2 size={18} className="text-[var(--text-secondary)]" />
+          </button>
+        </div>
       </div>
-    </div>
 
-    <QRCodeDialog
-      url={qrCodeUrl}
-      open={qrDialogOpen}
-      onClose={() => setQrDialogOpen(false)}
-    />
-  </>
+      <QRCodeDialog url={qrCodeUrl} open={qrDialogOpen} onClose={() => setQrDialogOpen(false)} />
+    </>
   );
 }
 

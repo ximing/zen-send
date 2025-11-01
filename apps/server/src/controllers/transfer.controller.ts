@@ -122,23 +122,21 @@ export class TransferController {
     @QueryParams() query: { limit?: string; beforeCreatedAt?: string; beforeId?: string }
   ) {
     const limit = query.limit ? parseInt(query.limit, 10) : 50;
-    const beforeCreatedAt = query.beforeCreatedAt
-      ? parseInt(query.beforeCreatedAt, 10)
-      : undefined;
+    const beforeCreatedAt = query.beforeCreatedAt ? parseInt(query.beforeCreatedAt, 10) : undefined;
     const beforeId = query.beforeId || undefined;
 
     if (isNaN(limit) || limit < 0) {
       throw new HttpError(400, 'Invalid limit parameter');
     }
-    if (
-      beforeCreatedAt !== undefined &&
-      (isNaN(beforeCreatedAt) || beforeCreatedAt < 0)
-    ) {
+    if (beforeCreatedAt !== undefined && (isNaN(beforeCreatedAt) || beforeCreatedAt < 0)) {
       throw new HttpError(400, 'Invalid beforeCreatedAt parameter');
     }
     // beforeCreatedAt and beforeId must both be provided or both omitted
     if ((beforeCreatedAt !== undefined) !== (beforeId !== undefined)) {
-      throw new HttpError(400, 'beforeCreatedAt and beforeId must both be provided or both omitted');
+      throw new HttpError(
+        400,
+        'beforeCreatedAt and beforeId must both be provided or both omitted'
+      );
     }
 
     const result = await this.transferService.getTransferList(
@@ -166,7 +164,9 @@ export class TransferController {
       storageType: 'db' | 's3';
       content?: string;
     };
-    const items = (transfer as unknown as Record<string, unknown>).items as TransferItem[] | undefined;
+    const items = (transfer as unknown as Record<string, unknown>).items as
+      | TransferItem[]
+      | undefined;
 
     // 对于 s3 类型的 item，需要获取下载 URL
     const formattedItems = await Promise.all(

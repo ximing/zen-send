@@ -20,14 +20,16 @@ function QRCodeDialog({ url, open, onClose }: QRCodeDialogProps) {
       width: 240,
       margin: 2,
       color: { dark: '#2C2C2C', light: '#FFFFFF' },
-    }).then(setQrDataUrl).catch(() => setQrDataUrl(null));
+    })
+      .then(setQrDataUrl)
+      .catch(() => setQrDataUrl(null));
   }, [open, url]);
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.currentTarget === e.target) onClose();
     },
-    [onClose],
+    [onClose]
   );
 
   if (!open) return null;

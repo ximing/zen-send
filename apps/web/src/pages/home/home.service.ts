@@ -60,15 +60,14 @@ export class HomeService extends Service {
     }
 
     if (this.timeFilter !== 'all') {
-      const now = Date.now();
-      const startOfToday = new Date().setHours(0, 0, 0, 0);
-      const startOfWeek = startOfToday - 7 * 24 * 60 * 60 * 1000;
-      const startOfMonth = startOfToday - 30 * 24 * 60 * 60 * 1000;
+      const startOfTodaySec = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
+      const startOfWeekSec = startOfTodaySec - 7 * 24 * 60 * 60;
+      const startOfMonthSec = startOfTodaySec - 30 * 24 * 60 * 60;
 
       filtered = filtered.filter((t) => {
-        if (this.timeFilter === 'today') return t.createdAt >= startOfToday;
-        if (this.timeFilter === 'week') return t.createdAt >= startOfWeek;
-        if (this.timeFilter === 'month') return t.createdAt >= startOfMonth;
+        if (this.timeFilter === 'today') return t.createdAt >= startOfTodaySec;
+        if (this.timeFilter === 'week') return t.createdAt >= startOfWeekSec;
+        if (this.timeFilter === 'month') return t.createdAt >= startOfMonthSec;
         return true;
       });
     }
