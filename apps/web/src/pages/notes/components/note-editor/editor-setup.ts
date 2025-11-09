@@ -137,7 +137,7 @@ export function createEditorTheme(isDark: boolean) {
         gap: '6px',
         flexWrap: 'wrap',
       },
-      '.cm-panel.cm-search input[type=text]': {
+      '.cm-panel.cm-search .cm-textfield': {
         backgroundColor: t.bgPrimary,
         border: `1px solid ${isDark ? '#2e2e30' : '#e8e5e0'}`,
         borderRadius: '4px',
@@ -148,7 +148,7 @@ export function createEditorTheme(isDark: boolean) {
         outline: 'none',
         margin: '0',
       },
-      '.cm-panel.cm-search input[type=text]:focus': {
+      '.cm-panel.cm-search .cm-textfield:focus': {
         borderColor: t.accent,
       },
       '.cm-panel.cm-search input[type=checkbox]': {
