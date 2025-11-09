@@ -4,21 +4,23 @@ import { EditorView, keymap } from '@codemirror/view';
 import { EditorState, Prec } from '@codemirror/state';
 import { ChevronLeft, ChevronDown } from 'lucide-react';
 import { NoteService } from '../../../../services/note.service';
-import { createEditorExtensions } from './editor-setup';
-import { blockState, getActiveBlock } from './block-state';
+import { ThemeService } from '../../../../services/theme.service';
+import { createEditorExtensions, createEditorTheme, themeCompartment } from './editor-setup';
+import { blockState, getActiveBlock, DEFAULT_BLOCK_CONTENT, migrateFromMarkdownFormat } from './block-state';
 import {
   blockKeymap,
   getLanguageList,
-  convertBlockToCode,
-  convertBlockToMarkdown,
   changeBlockLanguage,
+  emptyBlockSelected,
 } from './block-commands';
 import {
   blockDecorations,
   blockChangeFilter,
   blockAtomicRanges,
+  preventSelectionBeforeFirstBlock,
   copiedHighlightState,
   copiedHighlightPlugin,
+  updateCreatedOnEmptyBlock,
 } from './block-decoration';
 import { blockLayer } from './block-layer';
 import { blockLineNumbers } from './block-line-numbers';
@@ -30,14 +32,15 @@ function NoteEditorInner() {
   const viewRef = useRef<EditorView | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const noteService = useService(NoteService);
+  const themeService = useService(ThemeService);
   const isWide = useIsWide();
   const navigate = useNavigate();
 
-  const [activeBlock, setActiveBlock] = useState<{ type: string; language: string } | null>(null);
+  const [activeBlock, setActiveBlock] = useState<{ language: string } | null>(null);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState('');
-  const prevActiveBlockRef = useRef<{ type: string; language: string } | null>(null);
+  const prevActiveBlockRef = useRef<{ language: string } | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveNow = useCallback(() => {
@@ -61,22 +64,24 @@ function NoteEditorInner() {
       handleSaveNow();
     }
 
-    const content = noteService.currentNote.content || '```markdown\n\n```\n';
+    const content = migrateFromMarkdownFormat(noteService.currentNote.content || DEFAULT_BLOCK_CONTENT);
     const currentSaveTimeoutRef = saveTimeoutRef;
 
     const state = EditorState.create({
       doc: content,
       extensions: [
-        ...createEditorExtensions(),
+        ...createEditorExtensions(themeService.resolvedTheme === 'dark'),
         blockState,
         ...blockLineNumbers,
         blockDecorations,
         blockChangeFilter,
         blockAtomicRanges,
+        preventSelectionBeforeFirstBlock,
+        updateCreatedOnEmptyBlock,
+        emptyBlockSelected,
         blockLayer,
         copiedHighlightState,
         copiedHighlightPlugin,
-        // Block keymap with highest precedence — must run before default keymaps
         Prec.high(keymap.of(blockKeymap)),
         keymap.of([
           {
@@ -91,9 +96,9 @@ function NoteEditorInner() {
           if (update.selectionSet || update.docChanged) {
             const block = getActiveBlock(update.state);
             if (block) {
-              const newBlock = { type: block.type, language: block.language };
+              const newBlock = { language: block.language.name };
               const prev = prevActiveBlockRef.current;
-              if (!prev || prev.type !== newBlock.type || prev.language !== newBlock.language) {
+              if (!prev || prev.language !== newBlock.language) {
                 prevActiveBlockRef.current = newBlock;
                 setActiveBlock(newBlock);
               }
@@ -130,13 +135,22 @@ function NoteEditorInner() {
   }, [noteService.currentNoteId]);
 
   useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    view.dispatch({
+      effects: themeCompartment.reconfigure(
+        createEditorTheme(themeService.resolvedTheme === 'dark'),
+      ),
+    });
+  }, [themeService.resolvedTheme]);
+
+  useEffect(() => {
     noteService._saveNowFn = handleSaveNow;
     return () => {
       noteService._saveNowFn = null;
     };
   }, [handleSaveNow, noteService]);
 
-  // Close dropdown when clicking outside or pressing Escape
   useEffect(() => {
     if (!langDropdownOpen) return;
     const clickHandler = (e: MouseEvent) => {
@@ -168,27 +182,13 @@ function NoteEditorInner() {
   }[noteService.saveStatus];
 
   const languages = getLanguageList();
-  const displayLanguage = activeBlock
-    ? activeBlock.type === 'markdown'
-      ? 'MARKDOWN'
-      : activeBlock.language.toUpperCase()
-    : '';
+  const displayLanguage = activeBlock ? activeBlock.language.toUpperCase() : '';
 
   const handleLanguageSelect = (lang: string) => {
     const view = viewRef.current;
     if (!view || !activeBlock) return;
 
-    if (lang === 'markdown') {
-      if (activeBlock.type === 'code') {
-        convertBlockToMarkdown(view);
-      }
-    } else {
-      if (activeBlock.type === 'markdown') {
-        convertBlockToCode(view, lang);
-      } else {
-        changeBlockLanguage(view, lang);
-      }
-    }
+    changeBlockLanguage(view, lang);
     setLangDropdownOpen(false);
   };
 
@@ -286,38 +286,20 @@ function NoteEditorInner() {
                   minWidth: '120px',
                 }}
               >
-                <button
-                  onClick={() => handleLanguageSelect('markdown')}
-                  className="lang-dropdown-item block w-full text-left px-3 py-1.5 text-xs rounded"
-                  style={{
-                    color:
-                      activeBlock?.type === 'markdown' ? 'var(--accent)' : 'var(--text-primary)',
-                    fontWeight: activeBlock?.type === 'markdown' ? 600 : 400,
-                  }}
-                >
-                  MARKDOWN
-                </button>
-                {languages
-                  .filter((l) => l !== 'markdown')
-                  .map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => handleLanguageSelect(lang)}
-                      className="lang-dropdown-item block w-full text-left px-3 py-1.5 text-xs rounded"
-                      style={{
-                        color:
-                          activeBlock?.type === 'code' && activeBlock?.language === lang
-                            ? 'var(--accent)'
-                            : 'var(--text-primary)',
-                        fontWeight:
-                          activeBlock?.type === 'code' && activeBlock?.language === lang
-                            ? 600
-                            : 400,
-                      }}
-                    >
-                      {lang.toUpperCase()}
-                    </button>
-                  ))}
+                {languages.map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => handleLanguageSelect(lang)}
+                    className="lang-dropdown-item block w-full text-left px-3 py-1.5 text-xs rounded"
+                    style={{
+                      color:
+                        activeBlock?.language === lang ? 'var(--accent)' : 'var(--text-primary)',
+                      fontWeight: activeBlock?.language === lang ? 600 : 400,
+                    }}
+                  >
+                    {lang.toUpperCase()}
+                  </button>
+                ))}
               </div>
             )}
           </div>
