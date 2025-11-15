@@ -2,7 +2,7 @@ export const theme = {
   light: {
     bgPrimary: '#F7F5F2',
     bgSurface: '#FFFFFF',
-    bgElevated: '#FFFFFF',
+    bgElevated: '#EEECE9',
     bgOverlay: 'rgba(0, 0, 0, 0.5)',
     primary: '#2C2C2C',
     primaryHover: '#3C3C3C',

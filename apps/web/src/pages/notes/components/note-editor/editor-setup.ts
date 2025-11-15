@@ -86,7 +86,6 @@ export function createEditorTheme(isDark: boolean) {
         backgroundColor: t.bgSurface,
         color: t.textMuted,
         border: 'none',
-        borderRight: `1px solid ${isDark ? '#2e2e30' : '#e8e5e0'}`,
         lineHeight: '1.4',
       },
       '.cm-gutterElement': { lineHeight: '1.4' },
@@ -107,15 +106,12 @@ export function createEditorTheme(isDark: boolean) {
         width: '100%',
         boxSizing: 'content-box',
         backgroundColor: t.bgSurface,
-        borderTop: `1px solid ${isDark ? '#2e2e30' : '#e8e5e0'}`,
       },
       '.heynote-blocks-layer .block-odd': {
         width: '100%',
         boxSizing: 'content-box',
         backgroundColor: t.bgPrimary,
-        borderTop: `1px solid ${isDark ? '#2e2e30' : '#e8e5e0'}`,
       },
-      '.heynote-blocks-layer .block-even:first-child': { borderTop: 'none' },
       '.heynote-block-start': { height: '12px' },
       '.heynote-block-start.first': { height: '0px' },
       '.cm-activeLine.heynote-empty-block-selected': { backgroundColor: accentSoft },
@@ -127,7 +123,6 @@ export function createEditorTheme(isDark: boolean) {
       // Search panel
       '.cm-panels': {
         backgroundColor: t.bgSurface,
-        borderTop: `1px solid ${isDark ? '#2e2e30' : '#e8e5e0'}`,
         color: t.textPrimary,
       },
       '.cm-panel.cm-search': {

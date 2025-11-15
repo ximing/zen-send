@@ -1,20 +1,46 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { EditorState } from '@codemirror/state';
-import { languages } from '@codemirror/language-data';
-import { blockState, getVisibleBlocks } from './block-state';
+import {
+  blockState,
+  getVisibleBlocks,
+  DEFAULT_BLOCK_CONTENT,
+  getBlockDelimiter,
+} from './block-state';
 import { getBlockLineNumber } from './block-line-numbers';
 
 function createState(doc: string) {
   return EditorState.create({
     doc,
-    extensions: [markdown({ base: markdownLanguage, codeLanguages: languages }), blockState],
+    extensions: [blockState],
   });
 }
 
-test('numbers markdown block lines from 1', () => {
-  const state = createState('alpha\nbeta');
+test('parses a single markdown block', () => {
+  const content = getBlockDelimiter('markdown');
+  const state = createState(content + 'Hello world');
+  const blocks = state.field(blockState);
+
+  assert.equal(blocks.length, 1);
+  assert.equal(blocks[0].language.name, 'markdown');
+});
+
+test('parses multiple blocks', () => {
+  const state = createState(
+    getBlockDelimiter('markdown') + 'Hello' + getBlockDelimiter('python') + 'print("hi")',
+  );
+  const blocks = state.field(blockState);
+
+  assert.equal(blocks.length, 2);
+  assert.equal(blocks[0].language.name, 'markdown');
+  assert.equal(blocks[1].language.name, 'python');
+  assert.equal(state.doc.sliceString(blocks[0].content.from, blocks[0].content.to), 'Hello');
+  assert.equal(state.doc.sliceString(blocks[1].content.from, blocks[1].content.to), 'print("hi")');
+});
+
+test('numbers block lines from 1', () => {
+  const content = getBlockDelimiter('text') + 'alpha\nbeta';
+  const state = createState(content);
   const visibleBlocks = getVisibleBlocks(state);
 
   assert.deepEqual(
@@ -23,71 +49,106 @@ test('numbers markdown block lines from 1', () => {
   );
 });
 
-test('numbers code block content from 1 after hiding fences', () => {
-  const state = createState('```ts\nconst a = 1\nconst b = 2\n```');
-  const visibleBlocks = getVisibleBlocks(state);
+test('returns empty for delimiter line numbers', () => {
+  const content = getBlockDelimiter('text') + 'alpha\nbeta';
+  const state = createState(content);
 
-  assert.deepEqual(
-    visibleBlocks[0].lines.map((line) => line.localLineNumber),
-    [1, 2],
-  );
+  assert.equal(getBlockLineNumber(state, 1), '');
+  assert.equal(getBlockLineNumber(state, 2), '');
+  assert.equal(getBlockLineNumber(state, 3), '1');
+  assert.equal(getBlockLineNumber(state, 4), '2');
 });
 
-test('resets numbering for each block', () => {
-  const state = createState('alpha\n\n```ts\nconst a = 1\n```\nomega');
+test('keeps numbering local to each block', () => {
+  const state = createState(
+    getBlockDelimiter('text') + 'alpha\nbeta' + getBlockDelimiter('python') + 'print("x")',
+  );
   const visibleBlocks = getVisibleBlocks(state);
 
   assert.deepEqual(
     visibleBlocks.map((block) => block.lines.map((line) => line.localLineNumber)),
-    [[1, 2], [1], [1]],
+    [[1, 2], [1]],
   );
 });
 
-test('returns blank for fences and local numbers for visible lines', () => {
-  const state = createState('```ts\nconst a = 1\nconst b = 2\n```');
-
-  assert.equal(getBlockLineNumber(state, 1), '');
-  assert.equal(getBlockLineNumber(state, 2), '1');
-  assert.equal(getBlockLineNumber(state, 3), '2');
-  assert.equal(getBlockLineNumber(state, 4), '');
-});
-
-test('keeps empty code blocks unnumbered but anchored', () => {
-  const state = createState('```\n```');
+test('handles empty block content', () => {
+  const state = createState(getBlockDelimiter('text') + getBlockDelimiter('python') + 'code');
+  const blocks = state.field(blockState);
   const visibleBlocks = getVisibleBlocks(state);
 
+  assert.equal(blocks.length, 2);
   assert.equal(visibleBlocks[0].hasNumberedLines, false);
-  assert.deepEqual(visibleBlocks[0].lines, []);
-  assert.equal(visibleBlocks[0].visibleStartLine, 1);
-  assert.equal(visibleBlocks[0].visibleEndLine, 2);
-  assert.equal(typeof visibleBlocks[0].topAnchorPos, 'number');
-  assert.equal(typeof visibleBlocks[0].bottomAnchorPos, 'number');
+  assert.equal(visibleBlocks[0].lines.length, 0);
+  assert.equal(visibleBlocks[1].hasNumberedLines, true);
 });
 
-test('counts visible blank lines inside a block without skipping numbers', () => {
-  const state = createState('```ts\nconst a = 1\n\nconst b = 2\n```');
+test('produces consistent geometry for single block', () => {
+  const content = getBlockDelimiter('markdown') + 'alpha\nbeta';
+  const state = createState(content);
   const visibleBlocks = getVisibleBlocks(state);
+  const block = visibleBlocks[0];
 
-  assert.deepEqual(
-    visibleBlocks[0].lines.map((line) => ({ lineNumber: line.lineNumber, localLineNumber: line.localLineNumber })),
-    [
-      { lineNumber: 2, localLineNumber: 1 },
-      { lineNumber: 3, localLineNumber: 2 },
-      { lineNumber: 4, localLineNumber: 3 },
-    ],
-  );
+  assert.equal(block.language, 'markdown');
+  assert.equal(block.hasNumberedLines, true);
+  assert.equal(block.contentTopPos !== undefined, true);
+  assert.equal(block.blockTopPos !== undefined, true);
+  assert.deepEqual(block.lines.map((line) => line.localLineNumber), [1, 2]);
 });
 
-test('exposes stable top and bottom anchors for markdown and code blocks', () => {
-  const state = createState('alpha\n\n```ts\nconst a = 1\n```');
-  const visibleBlocks = getVisibleBlocks(state);
+test('default block content is a valid single block', () => {
+  const state = createState(DEFAULT_BLOCK_CONTENT);
+  const blocks = state.field(blockState);
 
-  assert.equal(typeof visibleBlocks[0].topAnchorPos, 'number');
-  assert.equal(typeof visibleBlocks[0].bottomAnchorPos, 'number');
-  assert.equal(typeof visibleBlocks[1].topAnchorPos, 'number');
-  assert.equal(typeof visibleBlocks[1].bottomAnchorPos, 'number');
-  assert.equal(visibleBlocks[0].visibleStartLine, 1);
-  assert.equal(visibleBlocks[0].visibleEndLine, 2);
-  assert.equal(visibleBlocks[1].visibleStartLine, 4);
-  assert.equal(visibleBlocks[1].visibleEndLine, 4);
+  assert.equal(blocks.length, 1);
+  assert.equal(blocks[0].language.name, 'markdown');
+});
+
+test('delimiter includes trailing newline', () => {
+  const content = getBlockDelimiter('markdown') + 'Hello';
+  const state = createState(content);
+  const block = state.field(blockState)[0];
+
+  assert.equal(state.doc.sliceString(block.delimiter.to - 1, block.delimiter.to), '\n');
+  assert.equal(state.doc.sliceString(block.content.from, block.content.from + 1), 'H');
+});
+
+test('handles block with no trailing content', () => {
+  const content = getBlockDelimiter('text');
+  const state = createState(content);
+  const blocks = state.field(blockState);
+
+  assert.equal(blocks.length, 1);
+  assert.equal(blocks[0].content.from, blocks[0].content.to);
+});
+
+test('block has range field', () => {
+  const content = getBlockDelimiter('markdown') + 'Hello' + getBlockDelimiter('python') + 'code';
+  const state = createState(content);
+  const blocks = state.field(blockState);
+
+  assert.equal(blocks.length, 2);
+  assert.equal(blocks[0].range.from, blocks[0].delimiter.from);
+  assert.equal(blocks[0].range.to, blocks[0].content.to);
+  assert.equal(blocks[1].range.from, blocks[1].delimiter.from);
+  assert.equal(blocks[1].range.to, blocks[1].content.to);
+});
+
+test('block has created metadata', () => {
+  const content = getBlockDelimiter('markdown');
+  const state = createState(content);
+  const blocks = state.field(blockState);
+
+  assert.equal(blocks.length, 1);
+  assert.equal(typeof blocks[0].created, 'string');
+  assert.ok(blocks[0].created!.includes('T')); // ISO format
+});
+
+test('block language has auto flag', () => {
+  const content = getBlockDelimiter('markdown', true);
+  const state = createState(content + 'Hello');
+  const blocks = state.field(blockState);
+
+  assert.equal(blocks.length, 1);
+  assert.equal(blocks[0].language.name, 'markdown');
+  assert.equal(blocks[0].language.auto, true);
 });

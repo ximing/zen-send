@@ -4,7 +4,7 @@ import { EditorView, keymap } from '@codemirror/view';
 import { EditorState, Prec } from '@codemirror/state';
 import { ChevronLeft, ChevronDown } from 'lucide-react';
 import { NoteService } from '../../../../services/note.service';
-import { ThemeService } from '../../../../services/theme.service';
+import { useTheme } from '../../../../theme/theme-provider';
 import { createEditorExtensions, createEditorTheme, themeCompartment } from './editor-setup';
 import { blockState, getActiveBlock, DEFAULT_BLOCK_CONTENT, migrateFromMarkdownFormat } from './block-state';
 import {
@@ -32,7 +32,7 @@ function NoteEditorInner() {
   const viewRef = useRef<EditorView | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const noteService = useService(NoteService);
-  const themeService = useService(ThemeService);
+  const { resolvedTheme } = useTheme();
   const isWide = useIsWide();
   const navigate = useNavigate();
 
@@ -70,7 +70,7 @@ function NoteEditorInner() {
     const state = EditorState.create({
       doc: content,
       extensions: [
-        ...createEditorExtensions(themeService.resolvedTheme === 'dark'),
+        ...createEditorExtensions(resolvedTheme === 'dark'),
         blockState,
         ...blockLineNumbers,
         blockDecorations,
@@ -139,10 +139,10 @@ function NoteEditorInner() {
     if (!view) return;
     view.dispatch({
       effects: themeCompartment.reconfigure(
-        createEditorTheme(themeService.resolvedTheme === 'dark'),
+        createEditorTheme(resolvedTheme === 'dark'),
       ),
     });
-  }, [themeService.resolvedTheme]);
+  }, [resolvedTheme]);
 
   useEffect(() => {
     noteService._saveNowFn = handleSaveNow;
@@ -213,7 +213,6 @@ function NoteEditorInner() {
       <div
         className="note-toolbar h-14 flex items-center justify-between px-4 py-2"
         style={{
-          borderBottom: '1px solid var(--border-subtle)',
           background: 'var(--bg-surface)',
         }}
       >

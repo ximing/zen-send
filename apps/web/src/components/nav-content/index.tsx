@@ -61,7 +61,7 @@ function NavContentInner({ onNavigate }: NavContentProps) {
     <div className="flex flex-col h-full">
       {/* User Info Section */}
       <div
-        className="h-14 flex items-center gap-2 px-4 shrink-0 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] cursor-pointer"
+        className="h-14 flex items-center gap-2 px-4 shrink-0 hover:bg-[var(--bg-surface)] transition-colors cursor-pointer"
         onClick={() => {
           navigate('/settings');
           onNavigate?.();
@@ -97,8 +97,8 @@ function NavContentInner({ onNavigate }: NavContentProps) {
               className={`w-full flex items-center gap-3 py-3.5 px-3 rounded-lg transition-colors relative
                 ${
                   isActive
-                    ? 'bg-[var(--bg-surface-hover)] text-[var(--accent)]'
-                    : 'hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]'
+                    ? 'bg-[var(--bg-surface)] text-[var(--accent)]'
+                    : 'hover:bg-[var(--bg-surface)] text-[var(--text-primary)]'
                 }`}
             >
               {isActive && (
@@ -112,15 +112,15 @@ function NavContentInner({ onNavigate }: NavContentProps) {
       </div>
 
       {/* Note section */}
-      <div style={{ borderTop: '1px solid var(--border-subtle)', margin: '4px 16px' }} />
+      <div className="h-3" />
       <div className="px-3">
         <button
           onClick={() => noteService.toggleNoteList()}
           className={`w-full flex items-center gap-3 py-3.5 px-3 rounded-lg transition-colors relative
             ${
               location.pathname.startsWith('/notes')
-                ? 'bg-[var(--bg-surface-hover)] text-[var(--accent)]'
-                : 'hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]'
+                ? 'bg-[var(--bg-surface)] text-[var(--accent)]'
+                : 'hover:bg-[var(--bg-surface)] text-[var(--text-primary)]'
             }`}
         >
           {location.pathname.startsWith('/notes') && (
@@ -157,7 +157,7 @@ function NavContentInner({ onNavigate }: NavContentProps) {
                   navigate(`/notes/${note.id}`);
                   onNavigate?.();
                 }}
-                className="flex items-center justify-between px-3 py-1.5 cursor-pointer group rounded-lg hover:bg-[var(--bg-elevated)] transition-colors"
+                className="flex items-center justify-between px-3 py-1.5 cursor-pointer group rounded-lg hover:bg-[var(--bg-surface)] transition-colors"
                 style={{
                   color:
                     location.pathname === `/notes/${note.id}`
@@ -197,7 +197,7 @@ function NavContentInner({ onNavigate }: NavContentProps) {
       <div className="mt-auto px-3 pb-4">
         <button
           onClick={handleThemeToggle}
-          className="w-full flex items-center gap-3 py-3.5 px-3 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+          className="w-full flex items-center gap-3 py-3.5 px-3 hover:bg-[var(--bg-surface)] rounded-lg transition-colors"
         >
           {themeService.resolvedTheme === 'dark' ? (
             <Sun size={20} className="text-[var(--text-primary)]" />
@@ -215,7 +215,7 @@ function NavContentInner({ onNavigate }: NavContentProps) {
             onNavigate?.();
           }}
           className={`w-full flex items-center gap-3 py-3.5 px-3 rounded-lg transition-colors
-            ${location.pathname === '/settings' ? 'bg-[var(--bg-surface-hover)] text-[var(--accent)]' : 'hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]'}`}
+            ${location.pathname === '/settings' ? 'bg-[var(--bg-surface)] text-[var(--accent)]' : 'hover:bg-[var(--bg-surface)] text-[var(--text-primary)]'}`}
         >
           <Settings size={20} />
           <span className="text-base">设置</span>
@@ -223,7 +223,7 @@ function NavContentInner({ onNavigate }: NavContentProps) {
 
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 py-3.5 px-3 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+          className="w-full flex items-center gap-3 py-3.5 px-3 hover:bg-[var(--bg-surface)] rounded-lg transition-colors"
         >
           <LogOut size={20} className="text-[var(--text-primary)]" />
           <span className="text-base text-[var(--text-primary)]">Logout</span>
