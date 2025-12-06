@@ -1,7 +1,15 @@
-import { lineNumbers, GutterMarker, lineNumberWidgetMarker, type WidgetType } from '@codemirror/view';
+import {
+  lineNumbers,
+  GutterMarker,
+  lineNumberWidgetMarker,
+  type WidgetType,
+} from '@codemirror/view';
 import { getBlockLineFromPos, type VisibleBlock } from './block-state';
 
-export function getBlockLineNumberFromBlocks(visibleBlocks: VisibleBlock[], lineNo: number): string {
+export function getBlockLineNumberFromBlocks(
+  visibleBlocks: VisibleBlock[],
+  lineNo: number
+): string {
   for (const block of visibleBlocks) {
     const visibleLine = block.lines.find((line) => line.lineNumber === lineNo);
     if (visibleLine) {
@@ -12,7 +20,10 @@ export function getBlockLineNumberFromBlocks(visibleBlocks: VisibleBlock[], line
   return '';
 }
 
-export function getBlockLineNumber(state: Parameters<typeof getBlockLineFromPos>[0], lineNo: number): string {
+export function getBlockLineNumber(
+  state: Parameters<typeof getBlockLineFromPos>[0],
+  lineNo: number
+): string {
   if (lineNo < 1 || lineNo > state.doc.lines) {
     return '';
   }

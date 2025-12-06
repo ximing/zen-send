@@ -10,7 +10,13 @@ import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import { yCollab } from 'y-codemirror.next';
 import type * as Y from 'yjs';
 import type * as awarenessProtocol from 'y-protocols/awareness';
-import { defaultKeymap, history, historyKeymap, indentWithTab, selectAll } from '@codemirror/commands';
+import {
+  defaultKeymap,
+  history,
+  historyKeymap,
+  indentWithTab,
+  selectAll,
+} from '@codemirror/commands';
 import {
   syntaxHighlighting,
   defaultHighlightStyle,
@@ -70,15 +76,9 @@ export function createEditorExtensions(isDark: boolean) {
 
 export function createEditorTheme(isDark: boolean) {
   const t = isDark ? appTheme.dark : appTheme.light;
-  const accentSoft = isDark
-    ? 'rgba(139, 154, 125, 0.15)'
-    : 'rgba(139, 154, 125, 0.12)';
-  const searchMatch = isDark
-    ? 'rgba(139, 154, 125, 0.30)'
-    : 'rgba(139, 154, 125, 0.25)';
-  const searchMatchSelected = isDark
-    ? 'rgba(139, 154, 125, 0.60)'
-    : 'rgba(139, 154, 125, 0.55)';
+  const accentSoft = isDark ? 'rgba(139, 154, 125, 0.15)' : 'rgba(139, 154, 125, 0.12)';
+  const searchMatch = isDark ? 'rgba(139, 154, 125, 0.30)' : 'rgba(139, 154, 125, 0.25)';
+  const searchMatchSelected = isDark ? 'rgba(139, 154, 125, 0.60)' : 'rgba(139, 154, 125, 0.55)';
   const mono = "'JetBrains Mono', 'Fira Code', 'SF Mono', monospace";
 
   return EditorView.theme(
@@ -203,6 +203,6 @@ export function createEditorTheme(isDark: boolean) {
         backgroundColor: searchMatchSelected,
       },
     },
-    { dark: isDark },
+    { dark: isDark }
   );
 }

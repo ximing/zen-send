@@ -27,7 +27,7 @@ test('parses a single markdown block', () => {
 
 test('parses multiple blocks', () => {
   const state = createState(
-    getBlockDelimiter('markdown') + 'Hello' + getBlockDelimiter('python') + 'print("hi")',
+    getBlockDelimiter('markdown') + 'Hello' + getBlockDelimiter('python') + 'print("hi")'
   );
   const blocks = state.field(blockState);
 
@@ -45,7 +45,7 @@ test('numbers block lines from 1', () => {
 
   assert.deepEqual(
     visibleBlocks[0].lines.map((line) => line.localLineNumber),
-    [1, 2],
+    [1, 2]
   );
 });
 
@@ -61,13 +61,13 @@ test('returns empty for delimiter line numbers', () => {
 
 test('keeps numbering local to each block', () => {
   const state = createState(
-    getBlockDelimiter('text') + 'alpha\nbeta' + getBlockDelimiter('python') + 'print("x")',
+    getBlockDelimiter('text') + 'alpha\nbeta' + getBlockDelimiter('python') + 'print("x")'
   );
   const visibleBlocks = getVisibleBlocks(state);
 
   assert.deepEqual(
     visibleBlocks.map((block) => block.lines.map((line) => line.localLineNumber)),
-    [[1, 2], [1]],
+    [[1, 2], [1]]
   );
 });
 
@@ -92,7 +92,10 @@ test('produces consistent geometry for single block', () => {
   assert.equal(block.hasNumberedLines, true);
   assert.equal(block.contentTopPos !== undefined, true);
   assert.equal(block.blockTopPos !== undefined, true);
-  assert.deepEqual(block.lines.map((line) => line.localLineNumber), [1, 2]);
+  assert.deepEqual(
+    block.lines.map((line) => line.localLineNumber),
+    [1, 2]
+  );
 });
 
 test('default block content is a valid single block', () => {

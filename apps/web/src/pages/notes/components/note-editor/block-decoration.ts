@@ -52,7 +52,7 @@ export const blockDecorations = EditorView.decorations.compute([blockState], (st
           inclusive: true,
           block: true,
           side: 0,
-        }).range(from, to),
+        }).range(from, to)
       );
     }
   }
@@ -131,7 +131,7 @@ export const preventSelectionBeforeFirstBlock = EditorState.transactionFilter.of
       if (!changed) return r;
       return EditorSelection.range(
         Math.max(r.anchor, firstBlockDelimiterSize!),
-        Math.max(r.head, firstBlockDelimiterSize!),
+        Math.max(r.head, firstBlockDelimiterSize!)
       );
     });
 
@@ -139,7 +139,7 @@ export const preventSelectionBeforeFirstBlock = EditorState.transactionFilter.of
     return {
       selection: EditorSelection.create(mappedRanges, tr.selection.mainIndex),
     };
-  },
+  }
 );
 
 // Copy highlight
@@ -174,7 +174,7 @@ export const copiedHighlightPlugin = ViewPlugin.fromClass(
       ]);
     }
   },
-  { decorations: (v) => v.decorations },
+  { decorations: (v) => v.decorations }
 );
 
 /**
@@ -220,7 +220,11 @@ export const updateCreatedOnEmptyBlock = EditorState.transactionFilter.of((tr) =
   const now = new Date();
   for (const entry of emptyBlocks) {
     if (!entry.touched) continue;
-    const delimiterText = getBlockDelimiter(entry.block.language.name, entry.block.language.auto, now);
+    const delimiterText = getBlockDelimiter(
+      entry.block.language.name,
+      entry.block.language.auto,
+      now
+    );
     changes.push({
       from: tr.changes.mapPos(entry.block.delimiter.from, 1),
       to: tr.changes.mapPos(entry.block.delimiter.to, -1),

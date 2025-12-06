@@ -84,7 +84,7 @@ export const emptyBlockSelected = StateField.define<number | null>({
           return builder.finish();
         }
       },
-      { decorations: (v) => v.decorations },
+      { decorations: (v) => v.decorations }
     );
   },
 });
@@ -225,7 +225,11 @@ export function changeBlockLanguage(view: EditorView, newLang: string): boolean 
   const block = getActiveBlock(view.state);
   if (!block) return false;
 
-  const newDelim = getBlockDelimiter(newLang, block.language.auto, block.created ? new Date(block.created) : undefined);
+  const newDelim = getBlockDelimiter(
+    newLang,
+    block.language.auto,
+    block.created ? new Date(block.created) : undefined
+  );
   view.dispatch({
     changes: { from: block.delimiter.from, to: block.delimiter.to, insert: newDelim },
     annotations: heynoteEvent.of(HEYNOTE_EVENTS.CHANGE_LANGUAGE),
@@ -282,7 +286,7 @@ function moveBlockUp(view: EditorView): boolean {
   const selectionRange = view.state.selection.main;
   const newSelectionRange = EditorSelection.range(
     selectionRange.anchor - block.delimiter.from + prev.delimiter.from,
-    selectionRange.head - block.delimiter.from + prev.delimiter.from,
+    selectionRange.head - block.delimiter.from + prev.delimiter.from
   );
 
   view.dispatch({
@@ -309,7 +313,7 @@ function moveBlockDown(view: EditorView): boolean {
   const selectionRange = view.state.selection.main;
   const newSelectionRange = EditorSelection.range(
     selectionRange.anchor + next.content.to - next.delimiter.from,
-    selectionRange.head + next.content.to - next.delimiter.from,
+    selectionRange.head + next.content.to - next.delimiter.from
   );
 
   view.dispatch({

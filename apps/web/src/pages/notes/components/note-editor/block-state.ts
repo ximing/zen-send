@@ -10,7 +10,7 @@ export const DEFAULT_BLOCK_LANGUAGE = 'markdown';
 const languageTokensMatcher = LANGUAGE_TOKENS.join('|');
 export const BLOCK_DELIMITER_REGEX = new RegExp(
   `\\n${BLOCK_MARKER}(${languageTokensMatcher})(-a)?(?:;[^\\n]+)*\\n`,
-  'g',
+  'g'
 );
 const CREATED_METADATA_REGEX = /;created=([^;\n]+)/;
 
@@ -215,7 +215,7 @@ function getBlockGeometry(state: EditorState, block: Block) {
   const doc = state.doc;
   const delimiterLine = doc.lineAt(Math.max(0, Math.min(block.delimiter.from, doc.length - 1)));
   const contentEndLine = doc.lineAt(
-    Math.max(0, Math.min(Math.max(block.content.to - 1, 0), doc.length - 1)),
+    Math.max(0, Math.min(Math.max(block.content.to - 1, 0), doc.length - 1))
   );
 
   return {

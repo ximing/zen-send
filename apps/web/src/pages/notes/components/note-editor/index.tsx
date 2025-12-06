@@ -8,7 +8,12 @@ import { NoteService } from '../../../../services/note.service';
 import { NoteCollabService } from '../../../../services/note-collab.service';
 import { AuthService } from '../../../../services/auth.service';
 import { useTheme } from '../../../../theme/theme-provider';
-import { createEditorExtensions, createEditorTheme, themeCompartment, createCollabExtensions } from './editor-setup';
+import {
+  createEditorExtensions,
+  createEditorTheme,
+  themeCompartment,
+  createCollabExtensions,
+} from './editor-setup';
 import { hashToColor } from './collab-colors';
 import { blockState, getActiveBlock } from './block-state';
 import {
@@ -149,9 +154,7 @@ function NoteEditorInner() {
     const view = viewRef.current;
     if (!view) return;
     view.dispatch({
-      effects: themeCompartment.reconfigure(
-        createEditorTheme(resolvedTheme === 'dark'),
-      ),
+      effects: themeCompartment.reconfigure(createEditorTheme(resolvedTheme === 'dark')),
     });
   }, [resolvedTheme]);
 
@@ -228,11 +231,14 @@ function NoteEditorInner() {
         <div
           className="flex items-center justify-center px-4 py-1 text-xs"
           style={{
-            background: connectionStatus === 'reconnecting' ? 'var(--color-warning)' : 'var(--color-error)',
+            background:
+              connectionStatus === 'reconnecting' ? 'var(--color-warning)' : 'var(--color-error)',
             color: '#fff',
           }}
         >
-          {connectionStatus === 'disconnected' ? '连接已断开，编辑内容将在重连后自动同步' : '正在重新连接...'}
+          {connectionStatus === 'disconnected'
+            ? '连接已断开，编辑内容将在重连后自动同步'
+            : '正在重新连接...'}
         </div>
       )}
       <div
@@ -321,7 +327,11 @@ function NoteEditorInner() {
           <button
             onClick={() => setShareDialogOpen(true)}
             className="rounded px-2 py-1 flex items-center"
-            style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', background: 'var(--bg-primary)' }}
+            style={{
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-primary)',
+            }}
             title="分享笔记"
           >
             <Share2 size={13} />

@@ -21,9 +21,7 @@ function ShareDialogInner({ noteId, open, onClose }: ShareDialogProps) {
   const note = noteService.currentNote;
   const isShared = note?.isShared ?? false;
   const shareToken = note?.shareToken;
-  const shareUrl = shareToken
-    ? `${window.location.origin}/notes/shared/${shareToken}`
-    : '';
+  const shareUrl = shareToken ? `${window.location.origin}/notes/shared/${shareToken}` : '';
 
   const handleToggle = async () => {
     if (loading) return;
@@ -52,7 +50,9 @@ function ShareDialogInner({ noteId, open, onClose }: ShareDialogProps) {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
       style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div
         className="rounded-2xl shadow-xl w-full mx-4 p-6"

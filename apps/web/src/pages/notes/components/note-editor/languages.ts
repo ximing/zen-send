@@ -1,9 +1,6 @@
 import { jsonLanguage } from '@codemirror/lang-json';
 import { pythonLanguage } from '@codemirror/lang-python';
-import {
-  javascriptLanguage,
-  typescriptLanguage,
-} from '@codemirror/lang-javascript';
+import { javascriptLanguage, typescriptLanguage } from '@codemirror/lang-javascript';
 import { htmlLanguage } from '@codemirror/lang-html';
 import { StandardSQL } from '@codemirror/lang-sql';
 import { markdownLanguage } from '@codemirror/lang-markdown';
@@ -65,7 +62,7 @@ export const LANGUAGES: LanguageDef[] = [
 ];
 
 const languageMapping: Record<string, Parser | null> = Object.fromEntries(
-  LANGUAGES.map((l) => [l.token, l.parser]),
+  LANGUAGES.map((l) => [l.token, l.parser])
 );
 
 export function getLanguageParser(token: string): Parser | null {
