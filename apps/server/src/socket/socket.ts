@@ -222,9 +222,7 @@ export function setupSocket(io: Server): void {
         // 如果客户端有离线编辑，先合并到服务端 doc，再广播给其他客户端
         if (clientState && clientState.length > 0) {
           collabService.applyUpdate(noteId, new Uint8Array(clientState));
-          socket
-            .to(`note:${noteId}`)
-            .emit('note:collab:update', { noteId, update: clientState });
+          socket.to(`note:${noteId}`).emit('note:collab:update', { noteId, update: clientState });
         }
 
         // 计算要发给客户端的 diff：有 stateVector 则发增量，否则发全量

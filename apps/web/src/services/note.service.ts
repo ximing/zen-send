@@ -104,7 +104,10 @@ export class NoteService extends Service {
   }
 
   async enableShare(noteId: string): Promise<string> {
-    const { shareToken } = await this.apiService.post<ShareNoteResponse>(`/api/notes/${noteId}/share`, {});
+    const { shareToken } = await this.apiService.post<ShareNoteResponse>(
+      `/api/notes/${noteId}/share`,
+      {}
+    );
     if (this.currentNote && this.currentNote.id === noteId) {
       this.currentNote.isShared = true;
       this.currentNote.shareToken = shareToken;

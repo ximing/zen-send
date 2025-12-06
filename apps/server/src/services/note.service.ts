@@ -50,7 +50,12 @@ export class NoteService {
 
   async getNoteByShareToken(token: string): Promise<SharedNoteDetail | null> {
     const result = await this.db
-      .select({ id: notes.id, title: notes.title, content: notes.content, isShared: notes.isShared })
+      .select({
+        id: notes.id,
+        title: notes.title,
+        content: notes.content,
+        isShared: notes.isShared,
+      })
       .from(notes)
       .where(and(eq(notes.shareToken, token), eq(notes.isShared, 1)))
       .limit(1);
