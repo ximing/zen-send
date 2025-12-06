@@ -157,3 +157,46 @@ input,
   background: var(--accent-soft);
 }
 
+/* ============================================
+   Yjs Collab — 远端光标 & 选区样式
+   ============================================ */
+
+/* 远端选区背景：使用 awareness 注入的 --user-color */
+.cm-ySelection {
+  background-color: color-mix(in srgb, var(--user-color, #999) 25%, transparent);
+}
+
+/* 光标竖线 */
+.cm-ySelectionCaret {
+  position: relative;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 2px solid var(--user-color, #999);
+  border-right: none;
+  box-sizing: border-box;
+}
+
+/* 用户名 tooltip */
+.cm-ySelectionInfo {
+  position: absolute;
+  top: -1.6em;
+  left: -1px;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  line-height: 1.4;
+  white-space: nowrap;
+  padding: 1px 6px;
+  border-radius: 3px 3px 3px 0;
+  background: var(--user-color, #999);
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  z-index: 100;
+  transition: opacity 100ms ease;
+}
+
+.cm-ySelectionCaret:hover .cm-ySelectionInfo {
+  opacity: 1;
+}
+

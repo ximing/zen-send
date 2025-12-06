@@ -9,6 +9,7 @@ import {
   CurrentUser,
   Authorized,
   HttpError,
+  HttpCode,
 } from 'routing-controllers';
 import { Service } from 'typedi';
 import { NoteService } from '../services/note.service.js';
@@ -69,5 +70,26 @@ export class NoteController {
       throw new HttpError(404, 'Note not found');
     }
     return ResponseUtil.success({ id });
+  }
+
+  @Post('/:id/share')
+  @HttpCode(200)
+  async enableShare(@Param('id') id: string, @CurrentUser() user: TokenPayload) {
+    try {
+      const shareToken = await this.noteService.enableShare(id, user.userId);
+      return ResponseUtil.success({ shareToken });
+    } catch {
+      throw new HttpError(404, 'Note not found');
+    }
+  }
+
+  @Delete('/:id/share')
+  async disableShare(@Param('id') id: string, @CurrentUser() user: TokenPayload) {
+    try {
+      await this.noteService.disableShare(id, user.userId);
+      return ResponseUtil.success(null);
+    } catch {
+      throw new HttpError(404, 'Note not found');
+    }
   }
 }

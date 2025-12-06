@@ -6,15 +6,21 @@ import { AuthService } from './auth.service';
 import type { Device } from '@zen-send/shared';
 
 export class SocketService extends Service {
-  private socket: Socket | null = null;
+  readonly instanceId: string = crypto.randomUUID();
+  private readonly _instanceTime: string = new Date().toLocaleTimeString();
+  private _socket: Socket | null = null;
   isConnected = false;
+
+  get socket(): Socket | null {
+    return this._socket;
+  }
 
   get authService() {
     return this.resolve(AuthService);
   }
 
-  connect() {
-    if (this.socket?.connected) return;
+  connect(shareToken?: string) {
+    if (this._socket?.connected) return;
 
     const apiBaseUrl = getApiBaseUrl();
     const socketUrl = getSocketUrl();
@@ -23,39 +29,41 @@ export class SocketService extends Service {
     console.log('[Socket] Connecting to:', socketUrl);
     console.log('[Socket] Auth token exists:', !!this.authService.accessToken);
 
-    this.socket = io(socketUrl, {
+    const auth = shareToken
+      ? { shareToken }
+      : { token: this.authService.accessToken };
+
+    this._socket = io(socketUrl, {
       transports: ['websocket'],
       autoConnect: true,
-      auth: {
-        token: this.authService.accessToken,
-      },
+      auth,
     });
 
-    this.socket.on('connect', () => {
-      console.log('[Socket] Connected, socket ID:', this.socket?.id);
+    this._socket.on('connect', () => {
+      console.log('[Socket] Connected, socket ID:', this._socket?.id);
       this.isConnected = true;
       this.registerDevice();
     });
 
-    this.socket.on('connect_error', (error) => {
+    this._socket.on('connect_error', (error) => {
       console.log('[Socket] Connect error:', error.message);
     });
 
-    this.socket.on('disconnect', (reason) => {
+    this._socket.on('disconnect', (reason) => {
       console.log('[Socket] Disconnected:', reason);
       this.isConnected = false;
     });
   }
 
   disconnect() {
-    this.socket?.disconnect();
-    this.socket = null;
+    this._socket?.disconnect();
+    this._socket = null;
     this.isConnected = false;
   }
 
   registerDevice() {
-    if (!this.socket?.connected) return;
-    this.socket.emit('device:register', {
+    if (!this._socket?.connected) return;
+    this._socket.emit('device:register', {
       deviceId: this.getDeviceId(),
       deviceName: this.getDeviceName(),
       deviceType: this.getDeviceType(),
@@ -63,11 +71,11 @@ export class SocketService extends Service {
   }
 
   private getDeviceId(): string {
-    return 'web-' + (this.authService.user?.id || 'unknown');
+    return 'web-' + this.instanceId;
   }
 
   private getDeviceName(): string {
-    return 'Web Device';
+    return `Web (${this._instanceTime})`;
   }
 
   private getDeviceType(): string {
@@ -75,51 +83,51 @@ export class SocketService extends Service {
   }
 
   sendHeartbeat() {
-    if (!this.socket?.connected) return;
-    this.socket.emit('device:heartbeat');
+    if (!this._socket?.connected) return;
+    this._socket.emit('device:heartbeat');
   }
 
   onDeviceList(callback: (devices: Device[]) => void) {
-    this.socket?.on('device:list', (data: { devices: Device[] }) => callback(data.devices));
+    this._socket?.on('device:list', (data: { devices: Device[] }) => callback(data.devices));
   }
 
   onTransferNew(callback: (session: unknown) => void) {
-    this.socket?.on('transfer:new', (session) => callback(session));
+    this._socket?.on('transfer:new', (session) => callback(session));
   }
 
   onTransferProgress(callback: (data: { sessionId: string; progress: number }) => void) {
-    this.socket?.on('transfer:progress', callback);
+    this._socket?.on('transfer:progress', callback);
   }
 
   onTransferComplete(callback: (data: { sessionId: string }) => void) {
-    this.socket?.on('transfer:complete', callback);
+    this._socket?.on('transfer:complete', callback);
   }
 
   offTransferNew(callback: (session: unknown) => void) {
-    this.socket?.off('transfer:new', callback);
+    this._socket?.off('transfer:new', callback);
   }
 
   offTransferComplete(callback: (data: { sessionId: string }) => void) {
-    this.socket?.off('transfer:complete', callback);
+    this._socket?.off('transfer:complete', callback);
   }
 
   emitTransferComplete(sessionId: string) {
-    this.socket?.emit('transfer:complete', { sessionId });
+    this._socket?.emit('transfer:complete', { sessionId });
   }
 
   notifyTransfer(targetDeviceId: string | null, sessionId: string): void {
-    if (!this.socket?.connected) return;
+    if (!this._socket?.connected) return;
     if (targetDeviceId === null) {
-      this.socket.emit('transfer:notify', { sessionId });
+      this._socket.emit('transfer:notify', { sessionId });
     } else {
-      this.socket.emit('transfer:notify', { targetDeviceId, sessionId });
+      this._socket.emit('transfer:notify', { targetDeviceId, sessionId });
     }
   }
 
   removeAllListeners() {
-    this.socket?.removeAllListeners('device:list');
-    this.socket?.removeAllListeners('transfer:new');
-    this.socket?.removeAllListeners('transfer:progress');
-    this.socket?.removeAllListeners('transfer:complete');
+    this._socket?.removeAllListeners('device:list');
+    this._socket?.removeAllListeners('transfer:new');
+    this._socket?.removeAllListeners('transfer:progress');
+    this._socket?.removeAllListeners('transfer:complete');
   }
 }

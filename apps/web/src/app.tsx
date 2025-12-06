@@ -10,6 +10,7 @@ import DevicesPage from './pages/devices';
 import SettingsPage from './pages/settings';
 import SearchPage from './pages/search';
 import NotesPage from './pages/notes';
+import SharedNotePage from './pages/shared-note';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/setup" element={<SetupPage />} />
+          <Route path="/notes/shared/:token" element={<SharedNotePage />} />
 
           {/* Authenticated routes - wrapped by AppLayout */}
           <Route element={<AppLayout />}>
