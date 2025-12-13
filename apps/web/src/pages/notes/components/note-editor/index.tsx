@@ -74,10 +74,6 @@ function NoteEditorInner() {
   useEffect(() => {
     if (!editorRef.current || !noteService.currentNote) return;
 
-    if (saveTimeoutRef.current) {
-      handleSaveNow();
-    }
-
     const noteId = noteService.currentNote.id;
     const currentSaveTimeoutRef = saveTimeoutRef;
     const userName = authService.user?.nickname ?? authService.user?.email ?? 'Anonymous';
@@ -150,7 +146,15 @@ function NoteEditorInner() {
 
     return () => {
       noteCollabService.leaveNote();
-      handleSaveNow();
+      if (currentSaveTimeoutRef.current) {
+        clearTimeout(currentSaveTimeoutRef.current);
+        currentSaveTimeoutRef.current = null;
+      }
+      const doc = view.state.doc.toString();
+      const title = noteService.shouldAutoExtractTitle(noteId)
+        ? noteService.extractTitleFromContent(doc)
+        : noteService.notes.find((n) => n.id === noteId)?.title ?? '未命名笔记';
+      noteService.saveNote(noteId, doc, title);
       view.destroy();
       viewRef.current = null;
     };
