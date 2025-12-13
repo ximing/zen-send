@@ -62,7 +62,7 @@ const gutterHeightFix = ViewPlugin.fromClass(
   class {
     update(update: ViewUpdate) {
       if (update.geometryChanged || update.viewportChanged) {
-        const gutters = update.view.dom.querySelector('.cm-gutters');
+        const gutters = update.view.dom.querySelector<HTMLElement>('.cm-gutters');
         if (gutters) {
           const scrollHeight = update.view.scrollDOM.scrollHeight;
           const currentHeight = parseInt(gutters.style.height || '0', 10);
