@@ -6,7 +6,6 @@ import FilterTabs from '../../components/filter-tabs';
 import TransferList from '../../components/transfer-list';
 import SelectedFiles from '../../components/selected-files';
 import BottomToolbar from '../../components/bottom-toolbar';
-import Toast from '../../components/toast';
 import { getMimeTypeFromExtension } from '../../lib/zen-bridge';
 
 const HomeContent = observer(() => {
@@ -109,7 +108,6 @@ const HomeContent = observer(() => {
         </div>
       )}
 
-      <Toast />
     </div>
   );
 });
