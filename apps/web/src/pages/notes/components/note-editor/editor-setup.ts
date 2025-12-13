@@ -5,6 +5,8 @@ import {
   drawSelection,
   rectangularSelection,
   highlightSpecialChars,
+  ViewPlugin,
+  type ViewUpdate,
 } from '@codemirror/view';
 import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import { yCollab } from 'y-codemirror.next';
@@ -44,9 +46,39 @@ export function createCollabExtensions(
   return yCollab(ytext, awareness);
 }
 
+/**
+ * Ensures .cm-gutters height covers the full scroll area so that
+ * the gutter background doesn't disappear when scrolling vertically.
+ *
+ * CodeMirror sets `height: 100%` on `.cm-gutters` which equals the
+ * scroller's clientHeight. When the content is taller and the user
+ * scrolls down, the gutter element scrolls up along with the content,
+ * leaving an uncolored gap at the bottom of the gutter area.
+ *
+ * This plugin syncs the gutter height with the scroller's scrollHeight
+ * so the background always covers the visible viewport.
+ */
+const gutterHeightFix = ViewPlugin.fromClass(
+  class {
+    update(update: ViewUpdate) {
+      if (update.geometryChanged || update.viewportChanged) {
+        const gutters = update.view.dom.querySelector('.cm-gutters');
+        if (gutters) {
+          const scrollHeight = update.view.scrollDOM.scrollHeight;
+          const currentHeight = parseInt(gutters.style.height || '0', 10);
+          if (currentHeight !== scrollHeight) {
+            gutters.style.height = scrollHeight + 'px';
+          }
+        }
+      }
+    }
+  },
+);
+
 export function createEditorExtensions(isDark: boolean) {
   return [
     heynoteLang(),
+    gutterHeightFix,
     highlightActiveLine(),
     highlightSpecialChars(),
     history(),
@@ -109,7 +141,7 @@ export function createEditorTheme(isDark: boolean) {
       '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
         backgroundColor: `${accentSoft} !important`,
       },
-      '.cm-scroller': { overflow: 'auto' },
+      '.cm-scroller': { overflowX: 'auto' },
       // Block layer
       '.heynote-blocks-layer': { width: '100%' },
       '.heynote-blocks-layer .block-even': {
