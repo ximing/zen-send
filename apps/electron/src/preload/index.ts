@@ -84,6 +84,19 @@ contextBridge.exposeInMainWorld('zenBridge', {
     serverUrlStore.set('serverUrl', url);
     ipcRenderer.invoke('server-url:changed', url);
   },
+
+  // Global shortcut management
+  getGlobalShortcut: () => {
+    return ipcRenderer.invoke('shortcut:get');
+  },
+
+  setGlobalShortcut: (accelerator: string) => {
+    return ipcRenderer.invoke('shortcut:set', accelerator);
+  },
+
+  clearGlobalShortcut: () => {
+    return ipcRenderer.invoke('shortcut:clear');
+  },
 });
 
 // --------- Type definitions for Renderer process ---------
@@ -109,6 +122,9 @@ declare global {
       writeFile: (path: string, data: ArrayBuffer) => Promise<void>;
       getServerUrl: () => string;
       setServerUrl: (url: string) => void;
+      getGlobalShortcut: () => Promise<string>;
+      setGlobalShortcut: (accelerator: string) => Promise<{ success: boolean; error?: string }>;
+      clearGlobalShortcut: () => Promise<void>;
     };
   }
 }
