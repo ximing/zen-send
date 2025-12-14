@@ -16,6 +16,7 @@ import {
   type Block,
 } from './block-state';
 import { blockCopiedEffect, clearCopiedEffect } from './block-decoration';
+import { LANGUAGES as EAGER_LANGUAGES, LAZY_LANGUAGES } from './languages';
 
 export const heynoteEvent = Annotation.define<string>();
 
@@ -30,20 +31,18 @@ export const HEYNOTE_EVENTS = {
   UPDATE_CREATED: 'updateCreated',
 } as const;
 
-const LANGUAGES = [
-  'markdown',
-  'text',
-  'javascript',
-  'typescript',
-  'python',
-  'sql',
-  'json',
-  'css',
-  'html',
+export interface LanguageOption {
+  token: string;
+  name: string;
+}
+
+const LANGUAGE_LIST: LanguageOption[] = [
+  ...EAGER_LANGUAGES.map((l) => ({ token: l.token, name: l.name })),
+  ...LAZY_LANGUAGES,
 ];
 
-export function getLanguageList(): string[] {
-  return LANGUAGES;
+export function getLanguageList(): LanguageOption[] {
+  return LANGUAGE_LIST;
 }
 
 /**

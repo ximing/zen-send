@@ -40,9 +40,22 @@ export class NoteService extends Service {
     if (this._inflightSave) {
       await this._inflightSave;
     }
+    const listItem = this.notes.find((n) => n.id === id);
+    if (listItem) {
+      this.currentNote = { id: listItem.id, userId: '', title: listItem.title, content: '', sortOrder: listItem.sortOrder, createdAt: 0, updatedAt: listItem.updatedAt };
+    } else {
+      this.currentNote = { id, userId: '', title: '...', content: '', sortOrder: 0, createdAt: 0, updatedAt: 0 };
+    }
+    this.currentNoteId = id;
     try {
-      this.currentNote = await this.apiService.get<NoteDetail>(`/api/notes/${id}`);
-      this.currentNoteId = id;
+      const note = await this.apiService.get<NoteDetail>(`/api/notes/${id}`);
+      if (this.currentNoteId === id) {
+        this.currentNote = note;
+        const listNote = this.notes.find((n) => n.id === id);
+        if (!listNote) {
+          this.notes.push({ id: note.id, title: note.title, sortOrder: note.sortOrder, updatedAt: note.updatedAt });
+        }
+      }
       this.noteListExpanded = true;
     } catch {
       this.toastService.show('加载笔记失败', 'error');
@@ -75,7 +88,7 @@ export class NoteService extends Service {
         if (listItem && title) {
           listItem.title = title;
         }
-        if (this.currentNote) {
+        if (this.currentNote && this.currentNote.id === id) {
           this.currentNote.content = content;
           if (title) this.currentNote.title = title;
           this.currentNote.updatedAt = Math.floor(Date.now() / 1000);
