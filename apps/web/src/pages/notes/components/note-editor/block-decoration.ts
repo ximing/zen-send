@@ -92,10 +92,15 @@ export const blockAtomicRanges = EditorView.atomicRanges.of((view: EditorView) =
   const doc = view.state.doc;
   const ranges: { from: number; to: number }[] = [];
 
-  for (const block of blocks) {
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    const isFirst = i === 0;
     if (block.delimiter.from <= doc.length && block.delimiter.to <= doc.length) {
       ranges.push({
-        from: block.delimiter.from,
+        // Skip the leading \n for non-first blocks: prev block's content.to equals
+        // this delimiter.from, and CM6 forward-bias selection would otherwise push
+        // the head past the delimiter into the next block.
+        from: isFirst ? block.delimiter.from : block.delimiter.from + 1,
         to: Math.min(block.delimiter.to, doc.length),
       });
     }
