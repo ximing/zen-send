@@ -21,7 +21,7 @@ export class NoteService extends Service {
       sortOrder: note.sortOrder,
       updatedAt: note.updatedAt,
     };
-    this.notes.unshift(listItem);
+    this.notes = [listItem, ...this.notes];
     return listItem;
   }
 
