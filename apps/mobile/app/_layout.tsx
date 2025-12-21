@@ -9,6 +9,7 @@ import { SocketService } from '../src/services/socket.service';
 import { HomeService } from '../src/services/home.service';
 import { NotificationService } from '../src/services/notification.service';
 import { UserService } from '../src/services/user.service';
+import { NoteService } from '../src/services/note.service';
 import ToastInner from '../src/components/toast';
 
 // Register services
@@ -19,6 +20,7 @@ register(SocketService);
 register(HomeService);
 register(NotificationService);
 register(UserService);
+register(NoteService);
 
 function RootLayoutInner() {
   const themeService = useService(ThemeService);
