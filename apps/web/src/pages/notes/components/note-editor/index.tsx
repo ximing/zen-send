@@ -82,7 +82,7 @@ function NoteEditorInner() {
     const currentSaveTimeoutRef = saveTimeoutRef;
     const userName = authService.user?.nickname ?? authService.user?.email ?? 'Anonymous';
     const userColor = hashToColor(authService.user?.id ?? '');
-    const { ytext, awareness } = noteCollabService.joinNote(noteId, userName, userColor);
+    const { ytext, awareness, waitForSync } = noteCollabService.joinNote(noteId, userName, userColor);
 
     // CM6 初始内容必须为空，yCollab 会在 Yjs sync 后把 YText 内容推入 CM6
     // 不能用 DB content 初始化，否则与 YText sync 叠加会产生重复内容
@@ -148,7 +148,15 @@ function NoteEditorInner() {
     const view = new EditorView({ state, parent: editorRef.current });
     viewRef.current = view;
 
+    let destroyed = false;
+    waitForSync.then(() => {
+      if (destroyed || !viewRef.current) return;
+      const end = viewRef.current.state.doc.length;
+      viewRef.current.dispatch({ effects: EditorView.scrollIntoView(end) });
+    });
+
     return () => {
+      destroyed = true;
       noteCollabService.leaveNote();
       if (currentSaveTimeoutRef.current) {
         clearTimeout(currentSaveTimeoutRef.current);
