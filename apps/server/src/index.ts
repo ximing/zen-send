@@ -1,24 +1,18 @@
+import 'reflect-metadata';
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { app } from './app.js';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import { createApp } from './app.js';
 import { logger } from '@zen-send/logger';
-import { setupSocket } from './socket/socket.js';
 
-const httpServer = createServer(app);
+async function bootstrap() {
+  try {
+    const { io } = await createApp();
+    logger.info('Server bootstrapped successfully');
+  } catch (error) {
+    logger.error('Failed to bootstrap server', error);
+    process.exit(1);
+  }
+}
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.CORS_ORIGIN || '*',
-    methods: ['GET', 'POST'],
-  },
-});
-
-setupSocket(io);
-
-const PORT = process.env.PORT || 3110;
-httpServer.listen(PORT, () => {
-  logger.info({ port: PORT }, 'Server started');
-});
+bootstrap();
