@@ -14,13 +14,16 @@ const TYPE_ICONS: Record<TransferItemType, React.ReactNode> = {
   text: <Pencil size={24} className="text-[var(--text-secondary)]" />,
 };
 
-// Sprite map: each icon is 120x120px (including background)
-// Light theme (left): 0-480px, Dark theme (right): 480-960px
-const DEVICE_SPRITE_POSITIONS: Record<DeviceType, number> = {
-  web: 0, // First icon (0px)
-  android: 120, // Second icon (120px)
-  ios: 240, // Third icon (240px)
-  desktop: 360, // Fourth icon (360px)
+// Sprite map: 1000x420px, 4x2 grid
+// Icons are roughly 184x184px
+// Layout:
+// Row 1: Light Web, Light Android, Dark Web, Dark Android
+// Row 2: Light iOS, Light Desktop, Dark iOS, Dark Desktop
+const DEVICE_SPRITE_CENTERS: Record<DeviceType, { light: {x: number, y: number}, dark: {x: number, y: number} }> = {
+  web: { dark: { x: 132, y: 94.5 }, light: { x: 619.5, y: 94.5 } },
+  android: { dark: { x: 377, y: 94.5 }, light: { x: 864, y: 94.5 } },
+  ios: { dark: { x: 132, y: 326.5 }, light: { x: 619.5, y: 326.5 } },
+  desktop: { dark: { x: 377, y: 326.5 }, light: { x: 864, y: 326.5 } },
 };
 
 const isImageType = (contentType?: string) => {
@@ -35,17 +38,24 @@ interface DeviceIconProps {
 }
 
 const DeviceIcon: React.FC<DeviceIconProps> = ({ deviceType, className, isDarkTheme = false }) => {
-  const bgPosition = DEVICE_SPRITE_POSITIONS[deviceType];
-  // Dark theme uses right half of sprite (add 480px offset)
-  const spriteOffsetX = isDarkTheme ? 480 : 0;
+  const centers = DEVICE_SPRITE_CENTERS[deviceType] || DEVICE_SPRITE_CENTERS.web;
+  const { x: centerX, y: centerY } = isDarkTheme ? centers.dark : centers.light;
+  
+  // Scale image so icon (184px) becomes 28px (leaves 6px padding in 40px container)
+  const scale = 28 / 184;
+  const bgWidth = 1000 * scale;
+  const bgHeight = 420 * scale;
+  
+  const posX = 20 - centerX * scale;
+  const posY = 20 - centerY * scale;
 
   return (
     <div
       className={`w-10 h-10 flex-shrink-0 ${className || ''}`}
       style={{
         backgroundImage: `url(${iconSprite})`,
-        backgroundPosition: `${-(bgPosition + spriteOffsetX)}px 0`,
-        backgroundSize: '960px 120px',
+        backgroundPosition: `${posX}px ${posY}px`,
+        backgroundSize: `${bgWidth}px ${bgHeight}px`,
         backgroundRepeat: 'no-repeat',
       }}
     />
