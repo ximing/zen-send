@@ -1,0 +1,32 @@
+{
+  "name": "@zen-send/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": " expo start",
+    "dev": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "build:android": "expo run:android",
+    "build:ios": "expo run:ios",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint app/"
+  },
+  "dependencies": {
+    "@zen-send/shared": "workspace:*",
+    "expo": "~52.0.0",
+    "expo-status-bar": "~2.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.5",
+    "socket.io-client": "^4.8.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.0",
+    "@types/react": "~18.3.0",
+    "@types/react-native": "^0.72.8",
+    "@zen-send/eslint-config": "workspace:*",
+    "@zen-send/typescript-config": "workspace:*",
+    "typescript": "^5.7.3",
+    "expo-router": "~4.0.0"
+  }
+}

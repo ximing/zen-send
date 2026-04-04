@@ -1,0 +1,9 @@
+{
+  "name": "@zen-send/typescript-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

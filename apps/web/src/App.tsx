@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import type { Device } from '@zen-send/shared';
-import { ThemeProvider } from './theme/ThemeProvider';
+import { ThemeProvider, useTheme } from './theme/theme-provider';
 
 const socket: Socket = io('http://localhost:3001');
 
-function App() {
+function AppContent() {
+  const { setMode, resolvedTheme } = useTheme();
   const [devices, setDevices] = useState<Device[]>([]);
   const [connected, setConnected] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
-  const [deviceName, setDeviceName] = useState('Web Device');
+  const [deviceName] = useState('Web Device');
 
   useEffect(() => {
     socket.on('connect', () => {
@@ -35,36 +36,71 @@ function App() {
       socket.off('devices');
       socket.off('disconnect');
     };
-  }, []);
+  }, [deviceName]);
 
   const handleDiscover = () => {
     socket.emit('discover');
   };
 
-  return (
-    <ThemeProvider>
-      <div style={{ padding: '20px', fontFamily: 'system-ui' }}>
-        <h1>Zen Send</h1>
-        <p>Status: {connected ? 'Connected' : 'Disconnected'}</p>
-        {deviceId && <p>Device ID: {deviceId}</p>}
+  const toggleTheme = () => {
+    setMode(resolvedTheme === 'dark' ? 'light' : 'dark');
+  };
 
-        <div style={{ marginTop: '20px' }}>
-          <button onClick={handleDiscover}>Discover Devices</button>
+  return (
+    <div className="min-h-screen bg-bg-primary text-text-primary font-sans p-5">
+      <header className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-text-primary">Zen Send</h1>
+        <button
+          onClick={toggleTheme}
+          className="px-4 py-2 bg-surface-secondary dark:bg-surface-elevated border border-border-default rounded-md hover:bg-bg-elevated transition-colors duration-normal text-sm"
+        >
+          {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+        </button>
+      </header>
+
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${connected ? 'bg-success' : 'bg-error'}`} />
+          <span className="text-text-secondary">{connected ? 'Connected' : 'Disconnected'}</span>
         </div>
 
-        <h2>Available Devices</h2>
+        {deviceId && <p className="text-sm text-text-muted">Device ID: {deviceId}</p>}
+
+        <div className="mt-4">
+          <button
+            onClick={handleDiscover}
+            className="px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-hover transition-colors duration-normal"
+          >
+            Discover Devices
+          </button>
+        </div>
+
+        <h2 className="text-lg font-medium text-text-primary mt-6">Available Devices</h2>
+
         {devices.length === 0 ? (
-          <p>No devices found</p>
+          <p className="text-text-muted">No devices found</p>
         ) : (
-          <ul>
+          <ul className="space-y-2">
             {devices.map((device) => (
-              <li key={device.id}>
-                {device.name} ({device.type})
+              <li
+                key={device.id}
+                className="p-3 bg-surface-secondary dark:bg-surface-elevated rounded-md border border-border-default"
+              >
+                <span className="text-text-primary font-medium">{device.name}</span>
+                <span className="ml-2 text-sm text-text-muted">({device.type})</span>
               </li>
             ))}
           </ul>
         )}
       </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
     </ThemeProvider>
   );
 }

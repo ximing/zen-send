@@ -1,8 +1,9 @@
 export const theme = {
   light: {
-    background: '#FAFAFA',
-    surface: '#FFFFFF',
-    surfaceElevated: '#F5F5F5',
+    bgPrimary: '#FAFAFA',
+    bgSurface: '#FFFFFF',
+    bgElevated: '#F5F5F5',
+    bgOverlay: 'rgba(0, 0, 0, 0.5)',
     primary: '#6366F1',
     primaryHover: '#4F46E5',
     primaryPressed: '#4338CA',
@@ -10,23 +11,24 @@ export const theme = {
     secondary: '#8B5CF6',
     secondaryHover: '#7C3AED',
     accent: '#06B6D4',
-    text: '#1F2937',
+    textPrimary: '#1F2937',
     textSecondary: '#6B7280',
-    textTertiary: '#9CA3AF',
+    textMuted: '#9CA3AF',
+    textDisabled: '#D1D5DB',
     onSurface: '#1F2937',
-    border: '#E5E7EB',
-    borderStrong: '#D1D5DB',
+    borderDefault: '#E5E7EB',
+    borderSubtle: '#F3F4F6',
+    borderFocus: '#6366F1',
     success: '#10B981',
     warning: '#F59E0B',
     error: '#EF4444',
     info: '#3B82F6',
-    shadow: 'rgba(0, 0, 0, 0.1)',
-    shadowStrong: 'rgba(0, 0, 0, 0.15)',
   },
   dark: {
-    background: '#0F0F0F',
-    surface: '#1A1A1A',
-    surfaceElevated: '#262626',
+    bgPrimary: '#0F0F0F',
+    bgSurface: '#1A1A1A',
+    bgElevated: '#262626',
+    bgOverlay: 'rgba(0, 0, 0, 0.7)',
     primary: '#818CF8',
     primaryHover: '#6366F1',
     primaryPressed: '#4F46E5',
@@ -34,25 +36,26 @@ export const theme = {
     secondary: '#A78BFA',
     secondaryHover: '#8B5CF6',
     accent: '#22D3EE',
-    text: '#F9FAFB',
+    textPrimary: '#F9FAFB',
     textSecondary: '#9CA3AF',
-    textTertiary: '#6B7280',
+    textMuted: '#6B7280',
+    textDisabled: '#4B5563',
     onSurface: '#F9FAFB',
-    border: '#374151',
-    borderStrong: '#4B5563',
+    borderDefault: '#374151',
+    borderSubtle: '#1F2937',
+    borderFocus: '#818CF8',
     success: '#34D399',
     warning: '#FBBF24',
     error: '#F87171',
     info: '#60A5FA',
-    shadow: 'rgba(0, 0, 0, 0.3)',
-    shadowStrong: 'rgba(0, 0, 0, 0.5)',
   },
 } as const satisfies Record<'light' | 'dark', Theme>;
 
 export type Theme = {
-  background: string;
-  surface: string;
-  surfaceElevated: string;
+  bgPrimary: string;
+  bgSurface: string;
+  bgElevated: string;
+  bgOverlay: string;
   primary: string;
   primaryHover: string;
   primaryPressed: string;
@@ -60,19 +63,20 @@ export type Theme = {
   secondary: string;
   secondaryHover: string;
   accent: string;
-  text: string;
+  textPrimary: string;
   textSecondary: string;
-  textTertiary: string;
+  textMuted: string;
+  textDisabled: string;
   onSurface: string;
-  border: string;
-  borderStrong: string;
+  borderDefault: string;
+  borderSubtle: string;
+  borderFocus: string;
   success: string;
   warning: string;
   error: string;
   info: string;
-  shadow: string;
-  shadowStrong: string;
 };
+
 export type ThemeMode = 'light' | 'dark' | 'system';
 export const storageKey = 'zen-send-theme';
 
