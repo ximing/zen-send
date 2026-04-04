@@ -2,12 +2,11 @@ import { Service } from '@rabjs/react';
 import { HomeService } from '../../pages/home/home.service';
 import type { ZenBridgeFile } from '../../lib/zen-bridge';
 
-export type SendToolbarModalType = 'text' | 'clipboard' | null;
+export type SendToolbarModalType = 'text' | null;
 
 export class SendToolbarService extends Service {
   modalType: SendToolbarModalType = null;
   textInput = '';
-  clipboardContent = '';
 
   get homeService() {
     return this.resolve(HomeService);
@@ -15,24 +14,11 @@ export class SendToolbarService extends Service {
 
   openModal(type: SendToolbarModalType) {
     this.modalType = type;
-    if (type === 'clipboard') {
-      this.loadClipboard();
-    }
   }
 
   closeModal() {
     this.modalType = null;
     this.textInput = '';
-    this.clipboardContent = '';
-  }
-
-  async loadClipboard() {
-    try {
-      const text = await navigator.clipboard.readText();
-      this.clipboardContent = text;
-    } catch {
-      this.clipboardContent = '';
-    }
   }
 
   setTextInput(text: string) {
@@ -55,19 +41,6 @@ export class SendToolbarService extends Service {
         name: 'text.txt',
         size: new Blob([this.textInput]).size,
         data: new TextEncoder().encode(this.textInput).buffer as ArrayBuffer,
-      },
-    ]);
-    this.closeModal();
-  }
-
-  submitClipboard() {
-    if (!this.clipboardContent.trim()) return;
-
-    this.homeService.addFiles([
-      {
-        name: 'clipboard.txt',
-        size: new Blob([this.clipboardContent]).size,
-        data: new TextEncoder().encode(this.clipboardContent).buffer as ArrayBuffer,
       },
     ]);
     this.closeModal();
