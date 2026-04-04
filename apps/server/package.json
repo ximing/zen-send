@@ -1,0 +1,37 @@
+{
+  "name": "@zen-send/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@zen-send/logger": "workspace:*",
+    "@zen-send/shared": "workspace:*",
+    "drizzle-orm": "^0.38.0",
+    "express": "^4.21.0",
+    "mysql2": "^3.11.0",
+    "nanoid": "^5.0.0",
+    "socket.io": "^4.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@zen-send/eslint-config": "workspace:*",
+    "@zen-send/typescript-config": "workspace:*",
+    "drizzle-kit": "^0.30.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.3"
+  }
+}
