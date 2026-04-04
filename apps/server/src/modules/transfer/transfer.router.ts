@@ -12,5 +12,6 @@ router.post('/:id/complete', transferController.complete);
 router.get('/', transferController.list);
 router.get('/:id', transferController.get);
 router.get('/:id/download', transferController.getDownloadUrl);
+router.delete('/:id', transferController.deleteTransfer);
 
 export default router;

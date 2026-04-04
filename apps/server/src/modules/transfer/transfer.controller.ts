@@ -147,4 +147,21 @@ export const transferController = {
       }
     }
   },
+
+  async deleteTransfer(req: Request, res: Response, next: Function): Promise<void> {
+    try {
+      const userId = req.user!.userId;
+      const id = req.params.id as string;
+
+      const deleted = await transferService.deleteTransfer(id, userId);
+      if (!deleted) {
+        notFound(res, 'Transfer not found');
+        return;
+      }
+
+      success(res, { message: 'Transfer deleted successfully' });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
