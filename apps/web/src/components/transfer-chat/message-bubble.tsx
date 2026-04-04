@@ -25,10 +25,10 @@ const TYPE_ICONS: Record<TransferItemType, React.ReactNode> = {
 };
 
 const DEVICE_TYPE_ICONS: Record<DeviceType, React.ReactNode> = {
-  web: <Globe size={20} />,
-  android: <Smartphone size={20} />,
-  ios: <Tablet size={20} />,
-  desktop: <Monitor size={20} />,
+  web: <Globe size={18} />,
+  android: <Smartphone size={18} />,
+  ios: <Tablet size={18} />,
+  desktop: <Monitor size={18} />,
 };
 
 const DEVICE_ICON_COLORS = {
@@ -36,11 +36,10 @@ const DEVICE_ICON_COLORS = {
   received: '#a855f7',
 } as const;
 
-const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
-
-function isImageType(mimeType: string): boolean {
-  return IMAGE_TYPES.includes(mimeType);
-}
+const isImageType = (contentType?: string) => {
+  if (!contentType) return false;
+  return contentType.startsWith('image/');
+};
 
 interface DeviceIconProps {
   deviceType: DeviceType;
@@ -51,7 +50,7 @@ const DeviceIcon: React.FC<DeviceIconProps> = ({ deviceType, isSent }) => {
   const color = isSent ? DEVICE_ICON_COLORS.sent : DEVICE_ICON_COLORS.received;
   return (
     <div
-      className="w-10 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+      className="w-10 h-10 rounded-full border-2 bg-white shadow-md flex items-center justify-center flex-shrink-0"
       style={{ borderColor: color, color }}
     >
       {DEVICE_TYPE_ICONS[deviceType]}
@@ -146,29 +145,26 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
     return 0;
   };
 
-  const bubbleColor = isSent ? DEVICE_ICON_COLORS.sent : DEVICE_ICON_COLORS.received;
-
   return (
     <div
-      className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-2`}
+      className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-2 px-3`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       title={new Date(transfer.createdAt).toLocaleString('zh-CN')}
     >
-      <div className={`flex items-center ${isSent ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex items-start ${isSent ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Device Icon - external on the side */}
         {device && (
           <DeviceIcon deviceType={device.type} isSent={isSent} />
         )}
 
-        {/* Tail - CSS triangle pointing to icon */}
+        {/* Tail - CSS triangle pointing to icon, matches bubble background */}
         <div
-          className="w-0 h-0"
-          style={{
-            borderTop: '8px solid transparent',
-            borderBottom: '8px solid transparent',
-            [isSent ? 'borderLeft' : 'borderRight']: `8px solid ${bubbleColor}`,
-          }}
+          className={`w-0 h-0 border-t-8 border-b-8 border-t-transparent border-b-transparent ${
+            isSent
+              ? 'border-r-8 border-r-[var(--bg-elevated)] -ml-0.5'
+              : 'border-l-8 border-l-[var(--bg-elevated)] -mr-0.5'
+          }`}
         />
 
         {/* Bubble */}
@@ -177,7 +173,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
             ${isPending ? 'bg-[var(--bg-surface)] opacity-50' : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80'}
             ${isHovered ? 'shadow-lg' : ''}
           `}
-          style={{ borderTop: `2px solid ${bubbleColor}` }}
         >
           {/* Compact single-line layout */}
           <div className="flex items-center gap-4">
