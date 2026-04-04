@@ -1,49 +1,52 @@
 export const theme = {
   light: {
-    bgPrimary: '#fafafa',
-    bgSurface: '#ffffff',
-    bgElevated: '#f5f5f5',
+    bgPrimary: '#F7F5F2',
+    bgSurface: '#FFFFFF',
+    bgElevated: '#F5F5F5',
     bgOverlay: 'rgba(0, 0, 0, 0.5)',
-    primary: '#1a1a1a',
-    primaryHover: '#333333',
+    primary: '#2C2C2C',
+    primaryHover: '#1a1a1a',
     primaryPressed: '#000000',
-    onPrimary: '#ffffff',
-    secondary: '#666666',
-    secondaryHover: '#555555',
-    accent: '#888888',
-    textPrimary: '#1a1a1a',
-    textSecondary: '#666666',
-    textMuted: '#999999',
-    textDisabled: '#cccccc',
-    onSurface: '#1a1a1a',
-    borderDefault: '#e5e5e5',
-    borderSubtle: '#f0f0f0',
-    borderFocus: '#1a1a1a',
+    onPrimary: '#FFFFFF',
+    secondary: '#9A958F',
+    secondaryHover: '#8A857C',
+    accent: '#8B9A7D',
+    accentSoft: 'rgba(139, 154, 125, 0.12)',
+    textPrimary: '#2C2C2C',
+    textSecondary: '#9A958F',
+    textMuted: '#B5AFA8',
+    textDisabled: '#DDD8D0',
+    onSurface: '#2C2C2C',
+    borderDefault: '#DDD8D0',
+    borderSubtle: '#EDEBE7',
+    borderFocus: '#8B9A7D',
     success: '#16a34a',
     warning: '#ca8a04',
     error: '#dc2626',
     info: '#2563eb',
   },
   dark: {
-    bgPrimary: '#0f0f0f',
-    bgSurface: '#141414',
-    bgElevated: '#1a1a1a',
+    bgPrimary: '#1C1C1E',
+    bgSurface: '#242426',
+    bgElevated: '#2C2C2E',
+    bgHeader: '#3A3A3C',
     bgOverlay: 'rgba(0, 0, 0, 0.7)',
-    primary: '#e5e5e5',
-    primaryHover: '#d4d4d4',
-    primaryPressed: '#a3a3a3',
-    onPrimary: '#0f0f0f',
-    secondary: '#888888',
-    secondaryHover: '#999999',
-    accent: '#666666',
-    textPrimary: '#e5e5e5',
-    textSecondary: '#888888',
-    textMuted: '#555555',
-    textDisabled: '#333333',
-    onSurface: '#e5e5e5',
-    borderDefault: '#2a2a2a',
-    borderSubtle: '#1f1f1f',
-    borderFocus: '#e5e5e5',
+    primary: '#E5E2DC',
+    primaryHover: '#D4D1CC',
+    primaryPressed: '#C5C2BD',
+    onPrimary: '#1C1C1E',
+    secondary: '#8A8880',
+    secondaryHover: '#9A9890',
+    accent: '#8B9A7D',
+    accentSoft: 'rgba(139, 154, 125, 0.12)',
+    textPrimary: '#E5E2DC',
+    textSecondary: '#8A8880',
+    textMuted: '#6B6860',
+    textFaint: '#4A4A4C',
+    onSurface: '#E5E2DC',
+    borderDefault: '#3A3A3C',
+    borderSubtle: '#2E2E30',
+    borderFocus: '#8B9A7D',
     success: '#4ade80',
     warning: '#fbbf24',
     error: '#f87171',
@@ -55,6 +58,7 @@ export type Theme = {
   bgPrimary: string;
   bgSurface: string;
   bgElevated: string;
+  bgHeader?: string;
   bgOverlay: string;
   primary: string;
   primaryHover: string;
@@ -63,9 +67,11 @@ export type Theme = {
   secondary: string;
   secondaryHover: string;
   accent: string;
+  accentSoft: string;
   textPrimary: string;
   textSecondary: string;
   textMuted: string;
+  textFaint?: string;
   textDisabled: string;
   onSurface: string;
   borderDefault: string;
