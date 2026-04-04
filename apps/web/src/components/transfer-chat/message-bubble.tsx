@@ -219,118 +219,116 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
             ${isHovered ? 'shadow-lg' : ''}
           `}
           >
-            {/* Compact single-line layout */}
-            <div className="flex items-center gap-4">
-              {/* Image message - full width image */}
-              {imageUrl && itemType !== 'text' && isImageType(transfer.contentType) ? (
-                <div className="w-full">
-                  <img
-                    src={imageUrl}
-                    alt={transfer.originalFileName}
-                    className="max-w-full max-h-[300px] rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={handlePreview}
-                  />
-                </div>
-              ) : (
-                <>
-                  {/* Icon for files, not for text */}
-                  {itemType !== 'text' && (
-                    <div className="flex-shrink-0">
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={transfer.originalFileName}
-                          className="w-12 h-12 object-cover rounded-lg"
-                        />
-                      ) : (
-                        icon
+            {/* Image message - full width, no gap */}
+            {imageUrl && itemType !== 'text' && isImageType(transfer.contentType) ? (
+              <div className="w-full">
+                <img
+                  src={imageUrl}
+                  alt={transfer.originalFileName}
+                  className="max-w-full max-h-[300px] rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={handlePreview}
+                />
+              </div>
+            ) : (
+              /* File/Text message layout */
+              <div className="flex items-center gap-4">
+                {/* Icon for files, not for text */}
+                {itemType !== 'text' && (
+                  <div className="flex-shrink-0">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={transfer.originalFileName}
+                        className="w-12 h-12 object-cover rounded-lg"
+                      />
+                    ) : (
+                      icon
+                    )}
+                  </div>
+                )}
+
+                {/* File Info - compact vertical stack */}
+                <div className="flex-1 min-w-0">
+                  {itemType === 'text' && firstItem?.content ? (
+                    <div>
+                      <div
+                        className={`text-sm leading-relaxed whitespace-pre-wrap ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'} ${isLongText && !isExpanded ? 'line-clamp-3' : ''}`}
+                      >
+                        {firstItem.content}
+                      </div>
+                      {isLongText && (
+                        <button
+                          onClick={() => setIsExpanded(!isExpanded)}
+                          className="text-xs text-[var(--primary)] hover:text-[var(--primary-hover)] mt-1"
+                        >
+                          {isExpanded ? '收起' : '展开'}
+                        </button>
                       )}
+                    </div>
+                  ) : (
+                    <div
+                      className={`text-sm font-medium truncate leading-relaxed ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}
+                    >
+                      {displayFileName}
                     </div>
                   )}
-
-                  {/* File Info - compact vertical stack */}
-                  <div className="flex-1 min-w-0">
-                    {itemType === 'text' && firstItem?.content ? (
-                      <div>
-                        <div
-                          className={`text-sm leading-relaxed whitespace-pre-wrap ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'} ${isLongText && !isExpanded ? 'line-clamp-3' : ''}`}
-                        >
-                          {firstItem.content}
-                        </div>
-                        {isLongText && (
-                          <button
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-xs text-[var(--primary)] hover:text-[var(--primary-hover)] mt-1"
-                          >
-                            {isExpanded ? '收起' : '展开'}
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <div
-                        className={`text-sm font-medium truncate leading-relaxed ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}
-                      >
-                        {displayFileName}
-                      </div>
+                  <div className="flex items-center gap-3 text-xs text-[var(--text-muted)] mt-1">
+                    <span>{formatSize(transfer.totalSize)}</span>
+                    {isCompleted && (
+                      <span className="flex items-center gap-1 text-[var(--color-success)]">
+                        <CheckCircle size={10} /> Done
+                      </span>
                     )}
-                    <div className="flex items-center gap-3 text-xs text-[var(--text-muted)] mt-1">
-                      <span>{formatSize(transfer.totalSize)}</span>
-                      {isCompleted && (
-                        <span className="flex items-center gap-1 text-[var(--color-success)]">
-                          <CheckCircle size={10} /> Done
-                        </span>
-                      )}
-                      {isFailed && (
-                        <span className="flex items-center gap-1 text-[var(--color-error)]">
-                          <AlertCircle size={10} /> Failed
-                        </span>
-                      )}
-                    </div>
+                    {isFailed && (
+                      <span className="flex items-center gap-1 text-[var(--color-error)]">
+                        <AlertCircle size={10} /> Failed
+                      </span>
+                    )}
                   </div>
+                </div>
 
-                  {/* Action buttons */}
-                  {(isHovered || isCompleted) && !isUploading && !isPending && !isExpired && (
-                    <div className={`flex gap-2 flex-shrink-0 ${isSent ? 'order-1' : 'order-3'}`}>
-                      {itemType === 'text' ? (
+                {/* Action buttons */}
+                {(isHovered || isCompleted) && !isUploading && !isPending && !isExpired && (
+                  <div className={`flex gap-2 flex-shrink-0 ${isSent ? 'order-1' : 'order-3'}`}>
+                    {itemType === 'text' ? (
+                      <button
+                        onClick={handleCopyText}
+                        className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                        title="Copy"
+                      >
+                        <Copy
+                          size={16}
+                          className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                        />
+                      </button>
+                    ) : (
+                      <>
                         <button
-                          onClick={handleCopyText}
+                          onClick={handlePreview}
                           className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-                          title="Copy"
+                          title="Preview"
                         >
-                          <Copy
+                          <Eye
                             size={16}
                             className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
                           />
                         </button>
-                      ) : (
-                        <>
-                          <button
-                            onClick={handlePreview}
-                            className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-                            title="Preview"
-                          >
-                            <Eye
-                              size={16}
-                              className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
-                            />
-                          </button>
-                          <button
-                            onClick={handleDownload}
-                            className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-                            title="Download"
-                          >
-                            <Download
-                              size={16}
-                              className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
-                            />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                        <button
+                          onClick={handleDownload}
+                          className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
+                          title="Download"
+                        >
+                          <Download
+                            size={16}
+                            className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                          />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Bottom row: Device tag + Time */}
             <div className="flex items-center justify-between mt-3 pt-2 border-t border-[var(--border-subtle)]/30">
