@@ -1,9 +1,27 @@
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useRoutes, Route, Navigate } from 'react-router';
 import type { Device } from '@zen-send/shared';
 import { ThemeProvider, useTheme } from './theme/theme-provider';
 
 const socket: Socket = io('http://localhost:3001');
+
+// Placeholder page components - to be implemented
+function HomePage() {
+  return <div>Home Page - To be implemented</div>;
+}
+
+function LoginPage() {
+  return <div>Login Page - To be implemented</div>;
+}
+
+function RegisterPage() {
+  return <div>Register Page - To be implemented</div>;
+}
+
+function SetupPage() {
+  return <div>Setup Page - To be implemented</div>;
+}
 
 function AppContent() {
   const { setMode, resolvedTheme } = useTheme();
@@ -97,10 +115,22 @@ function AppContent() {
   );
 }
 
+const routeConfig = [
+  { path: '/', element: <HomePage /> },
+  { path: '/login', element: <LoginPage /> },
+  { path: '/register', element: <RegisterPage /> },
+  { path: '/setup', element: <SetupPage /> },
+];
+
+function AppRoutes() {
+  const routes = useRoutes(routeConfig);
+  return routes;
+}
+
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AppRoutes />
     </ThemeProvider>
   );
 }
