@@ -37,6 +37,7 @@ export function getZenBridge(): ZenBridge {
   // Browser fallback
   return {
     isElectron: false,
+    openFileDialog: browserOpenFileDialog,
   };
 }
 
