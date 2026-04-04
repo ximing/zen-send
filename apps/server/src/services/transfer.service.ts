@@ -24,7 +24,7 @@ export interface InitTransferOutput {
   s3Key: string;
   chunkCount: number;
   chunkSize: number;
-  presignedUrls: { chunkIndex: number; url: string; s3Key: string }[];
+  presignedUrls?: { chunkIndex: number; url: string; s3Key: string }[];
 }
 
 export interface TransferSessionInfo {
@@ -54,6 +54,7 @@ export interface TransferItemInfo {
   size: number;
   content: string | null;
   thumbnailKey: string | null;
+  storageType: 'db' | 's3';
   createdAt: number;
 }
 
@@ -209,7 +210,10 @@ export class TransferService {
     return results as TransferSessionInfo[];
   }
 
-  async getTransferById(sessionId: string, userId: string): Promise<TransferSessionInfo | null> {
+  async getTransferById(
+    sessionId: string,
+    userId: string
+  ): Promise<(TransferSessionInfo & { items: TransferItemInfo[] }) | null> {
     const results = await this.db
       .select()
       .from(transferSessions)
@@ -222,9 +226,12 @@ export class TransferService {
 
     const session = results[0] as TransferSessionInfo;
 
-    await this.db.select().from(transferItems).where(eq(transferItems.sessionId, sessionId));
+    const items = await this.db
+      .select()
+      .from(transferItems)
+      .where(eq(transferItems.sessionId, sessionId));
 
-    return { ...session };
+    return { ...session, items: items as TransferItemInfo[] };
   }
 
   async getDownloadUrl(sessionId: string, userId: string): Promise<string> {
@@ -277,6 +284,7 @@ export class TransferService {
       size,
       content,
       thumbnailKey,
+      storageType,
       createdAt: now,
     };
   }
@@ -292,9 +300,43 @@ export class TransferService {
       return false;
     }
 
+    const session = existing[0];
+
+    // Delete S3 objects based on status
+    if (session.status === 'pending' && session.chunkCount > 0) {
+      // Get all chunk S3 keys and delete them
+      const chunks = await this.db
+        .select({ s3Key: chunkUploads.s3Key })
+        .from(chunkUploads)
+        .where(eq(chunkUploads.sessionId, sessionId));
+
+      for (const chunk of chunks) {
+        await this.s3Service.deleteObject(chunk.s3Key);
+      }
+    } else if (session.status === 'completed') {
+      // Delete the main S3 key (directory prefix)
+      await this.s3Service.deleteObject(session.s3Key);
+    }
+
+    // Delete transferItems S3 objects (thumbnails)
+    const items = await this.db
+      .select({ thumbnailKey: transferItems.thumbnailKey })
+      .from(transferItems)
+      .where(eq(transferItems.sessionId, sessionId));
+
+    for (const item of items) {
+      if (item.thumbnailKey) {
+        await this.s3Service.deleteObject(item.thumbnailKey);
+      }
+    }
+
+    // Delete records in correct order: chunkUploads -> transferItems -> transferSessions
+    await this.db.delete(chunkUploads).where(eq(chunkUploads.sessionId, sessionId));
+    await this.db.delete(transferItems).where(eq(transferItems.sessionId, sessionId));
     await this.db
       .delete(transferSessions)
       .where(and(eq(transferSessions.id, sessionId), eq(transferSessions.userId, userId)));
+
     return true;
   }
 }
