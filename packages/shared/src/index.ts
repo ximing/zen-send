@@ -14,7 +14,7 @@ export interface Device {
 }
 
 // Transfer item types
-export type TransferItemType = 'file' | 'text' | 'clipboard';
+export type TransferItemType = 'file' | 'text';
 export type TransferStatus = 'pending' | 'uploading' | 'completed' | 'failed' | 'expired';
 
 export interface TransferItem {
@@ -26,6 +26,7 @@ export interface TransferItem {
   size: number;
   content?: string;
   thumbnailKey?: string;
+  storageType?: 'db' | 's3';
   createdAt: number;
 }
 
