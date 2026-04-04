@@ -12,9 +12,19 @@ export class RegisterService extends Service {
     return this.resolve(AuthService);
   }
 
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
   async register(): Promise<boolean> {
     if (!this.email || !this.password || !this.confirmPassword) {
       this.error = 'Please fill in all fields';
+      return false;
+    }
+
+    if (!this.isValidEmail(this.email)) {
+      this.error = 'Please enter a valid email address';
       return false;
     }
 
