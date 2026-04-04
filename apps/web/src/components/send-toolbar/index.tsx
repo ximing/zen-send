@@ -146,8 +146,8 @@ const SendToolbarContent = observer(() => {
                 onClick={() => service.submitText()}
                 disabled={!service.textInput.trim()}
                 className="h-[46px] px-5 text-[13px] font-medium tracking-wide
-                           bg-[var(--bg-elevated)] text-[var(--text-primary)]
-                           rounded-lg hover:bg-[var(--border-default)] transition-colors
+                           bg-[var(--primary)] text-[var(--on-primary)]
+                           rounded-[10px] hover:opacity-90 transition-colors
                            disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 ADD_TEXT
