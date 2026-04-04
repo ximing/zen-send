@@ -128,17 +128,21 @@ export class TransferController {
 
     // 获取 items 并构建响应
     const items = (transfer as any).items || [];
-    const formattedItems = items.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      mimeType: item.mimeType,
-      size: item.size,
-      storageType: item.storageType,
-      content: item.storageType === 'db' ? item.content : undefined,
-      downloadUrl: item.storageType === 's3'
-        ? this.transferService.getDownloadUrl(id, user.userId)
-        : undefined,
-    }));
+
+    // 对于 s3 类型的 item，需要获取下载 URL
+    const formattedItems = await Promise.all(
+      items.map(async (item: any) => ({
+        id: item.id,
+        name: item.name,
+        mimeType: item.mimeType,
+        size: item.size,
+        storageType: item.storageType,
+        content: item.storageType === 'db' ? item.content : undefined,
+        downloadUrl: item.storageType === 's3'
+          ? await this.transferService.getDownloadUrl(id, user.userId)
+          : undefined,
+      }))
+    );
 
     return ResponseUtil.success({
       id: transfer.id,
