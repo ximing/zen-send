@@ -8,8 +8,8 @@
 
 | 内容类型 | 处理方式 |
 |---------|---------|
-| **用户在界面直接输入的文本**（≤10KB） | 直接存数据库 |
-| **用户在界面直接输入的文本**（>10KB） | 走 S3 分片上传 |
+| **用户在界面直接输入的文本**（≤10KB，即 `totalSize <= 10 * 1024` 字节） | 直接存数据库 |
+| **用户在界面直接输入的文本**（>10KB，即 `totalSize > 10 * 1024` 字节） | 走 S3 分片上传 |
 | **文本文件**（.txt, .md 等） | 走 S3 分片上传 |
 | **剪贴板内容** | 读取后按实际内容类型处理：文本内容 → 文本逻辑，文件内容 → 文件逻辑 |
 | **其他二进制文件**（图片、视频等） | 走 S3 分片上传 |
@@ -25,11 +25,11 @@
 ```typescript
 export const transferItems = sqliteTable('transferItems', {
   // ... existing fields
-  storageType: text('storageType').$type<'db' | 's3'>().default('s3'),
+  storageType: text('storageType').$type<'db' | 's3'>().notNull(),
 });
 ```
 
-现有字段 `content` (text 类型) 用于存储 <=10KB 的文本。
+**注意：** `storageType` 无默认值，服务端在插入时必须明确设置。文本 ≤10KB 设置为 `'db'`，其他设置为 `'s3'`。
 
 ## 3. DTO 类型变更
 
@@ -101,17 +101,19 @@ interface InitTransferResponse {
     ↓
 检查类型和大小
     ↓
-文本且 ≤10KB
+文本且 totalSize <= 10KB
     ├── POST /api/transfers/init + content
-    └── 等待响应 → 完成
+    └── 等待 200 响应 → 完成
 
-文件 或 文本 >10KB
+文件 或 totalSize > 10KB
     ├── POST /api/transfers/init
     ├── 获取 presigned URLs
     ├── 遍历 chunks 并行上传到 S3
     ├── POST /api/transfers/:id/complete
     └── 完成
 ```
+
+**内联文本上传：** 服务端收到 `init` 请求后，直接将 `content` 存入 `transferItems.content`，设置 `storageType = 'db'`，无需等待 S3 操作。
 
 ### 5.2 取消上传
 
@@ -153,10 +155,26 @@ interface InitTransferResponse {
 
 **端点：** `GET /api/transfers/:id`
 
-响应中包含 `transferItems` 数组，每项根据 `storageType` 决定内容提供方式：
+**响应：**
+```typescript
+interface TransferSessionResponse {
+  id: string;
+  status: 'pending' | 'completed' | 'cancelled' | 'failed';
+  items: {
+    id: string;
+    name: string;
+    mimeType: string;
+    size: number;
+    storageType: 'db' | 's3';
+    content?: string;        // storageType = 'db' 时返回
+    downloadUrl?: string;    // storageType = 's3' 时返回，预签名 URL，24 小时有效
+  }[];
+}
+```
 
-- `storageType = 'db'`：直接返回 `content` 字段
-- `storageType = 's3'`：返回 S3 预签名下载 URL（24 小时有效）
+客户端根据 `storageType` 判断：
+- `'db'`：直接使用 `content` 字段
+- `'s3'`：使用 `downloadUrl` 下载
 
 ## 8. 错误处理
 
