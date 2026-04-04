@@ -57,16 +57,6 @@ export interface ApiResponse<T = unknown> {
 }
 
 // Auth types
-export interface RegisterRequest {
-  email: string;
-  password: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
@@ -77,11 +67,6 @@ export interface AuthTokens {
 }
 
 // Device types
-export interface RegisterDeviceRequest {
-  name: string;
-  type: DeviceType;
-}
-
 export interface DeviceResponse {
   device: Device;
 }
@@ -91,18 +76,6 @@ export interface DeviceListResponse {
 }
 
 // Transfer types
-export interface InitTransferRequest {
-  sourceDeviceId: string;
-  targetDeviceId?: string;
-  items: Array<{
-    type: TransferItemType;
-    name?: string;
-    mimeType?: string;
-    size?: number;
-    content?: string;
-  }>;
-}
-
 export interface InitTransferResponse {
   session: {
     id: string;
@@ -115,11 +88,6 @@ export interface InitTransferResponse {
   };
   items: Array<{ id: string; type: string; name: string | null; size: number }>;
   presignedUrls?: string[];
-}
-
-export interface UploadChunkRequest {
-  chunkIndex: number;
-  etag: string;
 }
 
 export interface CompleteTransferResponse {
@@ -138,6 +106,11 @@ export interface TransferDetailResponse {
 export interface DownloadUrlResponse {
   url: string;
 }
+
+// Re-export DTOs from @zen-send/dto for backwards compatibility
+export type { RegisterRequest, LoginRequest, RefreshTokenRequest } from '@zen-send/dto';
+export type { RegisterDeviceRequest } from '@zen-send/dto';
+export type { InitTransferRequest, UploadChunkRequest } from '@zen-send/dto';
 
 // Socket events
 export interface SocketEvents {
