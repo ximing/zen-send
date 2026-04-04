@@ -33,7 +33,7 @@ const DEVICE_TYPE_ICONS: Record<DeviceType, React.ReactNode> = {
 
 const DEVICE_ICON_COLORS = {
   sent: '#8B9A7D',
-  received: '#a855f7',
+  received: '#8A8880',
 } as const;
 
 const isImageType = (contentType?: string) => {
