@@ -40,7 +40,7 @@ const SendToolbarContent = observer(() => {
           <button
             onClick={handleSelectFile}
             className="flex flex-col items-center gap-2 p-4
-                       bg-[var(--bg-elevated)] hover:bg-[var(--border-default)]
+                       bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]
                        rounded-lg transition-colors"
           >
             <Paperclip size={20} className="text-[var(--text-secondary)]" />
@@ -51,7 +51,7 @@ const SendToolbarContent = observer(() => {
           <button
             onClick={() => service.openModal('text')}
             className="flex flex-col items-center gap-2 p-4
-                       bg-[var(--bg-elevated)] hover:bg-[var(--border-default)]
+                       bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]
                        rounded-lg transition-colors"
           >
             <Pencil size={20} className="text-[var(--text-secondary)]" />
@@ -106,7 +106,7 @@ const SendToolbarContent = observer(() => {
           onClick={() => service.closeModal()}
         >
           <div
-            className="bg-[var(--bg-surface)] rounded-xl shadow-xl w-full max-w-md"
+            className="bg-[var(--bg-surface)] rounded-2xl w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-4">
@@ -125,7 +125,7 @@ const SendToolbarContent = observer(() => {
                 value={service.textInput}
                 onChange={(e) => service.setTextInput(e.target.value)}
                 placeholder="Type something..."
-                className="w-full h-40 px-4 py-3 bg-[var(--bg-elevated)] rounded-lg text-[var(--text-primary)] placeholder-[var(--text-muted)]
+                className="w-full h-40 px-4 py-3 bg-[var(--bg-elevated)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-muted)]
                            focus:outline-none resize-none"
                 autoFocus
               />
@@ -143,7 +143,7 @@ const SendToolbarContent = observer(() => {
                 disabled={!service.textInput.trim()}
                 className="h-[46px] px-5 text-[13px] font-medium tracking-wide
                            bg-[var(--primary)] text-[var(--on-primary)]
-                           rounded-[10px] hover:opacity-90 transition-colors
+                           rounded-xl hover:opacity-90 transition-colors
                            disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 ADD_TEXT

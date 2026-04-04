@@ -225,7 +225,7 @@ const HomeContent = observer(() => {
           <div className="mt-10">
             <button
               onClick={() => sendToolbarService.sendFiles()}
-              className="w-full py-4 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-lg
+              className="w-full py-4 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-xl
                          font-medium tracking-wider hover:bg-[var(--primary-hover)] transition-colors"
             >
               SEND
@@ -237,7 +237,7 @@ const HomeContent = observer(() => {
 
       {isDragging && (
         <div className="fixed inset-0 bg-[var(--primary)]/10 flex items-center justify-center z-50">
-          <div className="rounded-[14px] p-16 text-center bg-[var(--bg-surface)]">
+          <div className="rounded-2xl p-16 text-center bg-[var(--bg-surface)]">
             <Upload size={64} className="text-[var(--accent)] mx-auto mb-4" />
             <p className="text-xl text-[var(--text-primary)] font-medium">Release to upload</p>
           </div>

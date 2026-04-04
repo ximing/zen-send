@@ -49,7 +49,7 @@ const SetupContent = observer(() => {
               placeholder="https://zensend.example.com"
               className="w-full h-12 px-4 bg-[var(--bg-surface)]
                          rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
-                         focus:outline-none focus:border-[var(--border-focus)]"
+                         focus:outline-none focus:outline-2 focus:outline-offset-2 focus:outline-[var(--border-focus)]"
               required
             />
           </div>
@@ -64,7 +64,7 @@ const SetupContent = observer(() => {
             type="submit"
             disabled={service.isLoading}
             className="w-full h-12 bg-[var(--primary)] text-[var(--on-primary)]
-                       rounded-md font-medium tracking-wider uppercase text-sm
+                       rounded-xl font-medium tracking-wider uppercase text-sm
                        hover:bg-[var(--primary-hover)] transition-colors
                        disabled:opacity-50 disabled:cursor-not-allowed"
           >

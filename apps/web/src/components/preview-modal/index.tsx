@@ -162,7 +162,7 @@ const PreviewModalComponent = observer(() => {
     >
       <div
         ref={modalRef}
-        className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-[var(--bg-surface)] rounded-[12px] shadow-2xl overflow-hidden"
+        className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-[var(--bg-surface)] rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

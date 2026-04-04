@@ -89,7 +89,7 @@ const DevicesPage = observer(() => {
           </p>
 
           {/* QR Code Section */}
-          <div className="mt-8 bg-[var(--bg-secondary)] rounded-xl p-6">
+          <div className="mt-8 bg-[var(--bg-surface)] rounded-xl p-6">
             <h2 className="text-lg font-medium text-[var(--text-primary)]">Scan to Add Device</h2>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
               Open Zen Send on your mobile device and scan this QR code to pair
@@ -98,13 +98,13 @@ const DevicesPage = observer(() => {
               {qrCodeUrl ? (
                 <img src={qrCodeUrl} alt="Pairing QR Code" className="rounded-lg" />
               ) : (
-                <div className="w-[200px] h-[200px] flex items-center justify-center bg-[var(--bg-tertiary)] rounded-lg">
+                <div className="w-[200px] h-[200px] flex items-center justify-center bg-[var(--bg-elevated)] rounded-lg">
                   <RefreshCw className="w-8 h-8 animate-spin text-[var(--text-secondary)]" />
                 </div>
               )}
               <button
                 onClick={generateQRCode}
-                className="mt-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
+                className="mt-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] rounded-xl transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh QR Code
@@ -130,7 +130,7 @@ const DevicesPage = observer(() => {
           </div>
 
           {/* Device List Section */}
-          <div className="mt-8 bg-[var(--bg-secondary)] rounded-xl p-6">
+          <div className="mt-8 bg-[var(--bg-surface)] rounded-xl p-6">
             <h2 className="text-lg font-medium text-[var(--text-primary)]">Registered Devices</h2>
             <div className="mt-4 space-y-3">
               {deviceService.loading ? (
@@ -146,10 +146,10 @@ const DevicesPage = observer(() => {
                 deviceService.devices.map((device) => (
                   <div
                     key={device.id}
-                    className="flex items-center justify-between p-4 bg-[var(--bg-tertiary)] rounded-lg"
+                    className="flex items-center justify-between p-4 bg-[var(--bg-elevated)] rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-[var(--bg-secondary)] rounded-lg text-[var(--text-secondary)]">
+                      <div className="p-2 bg-[var(--bg-elevated)] rounded-lg text-[var(--text-secondary)]">
                         {getDeviceIcon(device.type)}
                       </div>
                       <div>
@@ -184,7 +184,7 @@ const DevicesPage = observer(() => {
                     {!deviceService.isCurrentDevice(device.id) && (
                       <button
                         onClick={() => setDeviceToRemove(device)}
-                        className="p-2 text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="p-2 text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -199,7 +199,7 @@ const DevicesPage = observer(() => {
         {/* Remove Device Confirmation Modal */}
         {deviceToRemove && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[var(--bg-secondary)] rounded-xl p-6 w-full max-w-md mx-4">
+            <div className="bg-[var(--bg-surface)] rounded-xl p-6 w-full max-w-md mx-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[var(--text-primary)]">Remove Device</h3>
                 <button
@@ -216,14 +216,14 @@ const DevicesPage = observer(() => {
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => setDeviceToRemove(null)}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleRemoveDevice}
                   disabled={removing}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 rounded-xl transition-colors"
                 >
                   {removing ? 'Removing...' : 'Remove Device'}
                 </button>

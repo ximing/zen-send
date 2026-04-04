@@ -64,7 +64,7 @@ const FilterTabsComponent = observer(() => {
           className={`py-2 px-4 rounded-lg text-xs tracking-wider transition-colors
             ${service.filter === f.value
               ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
-              : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
+              : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
             }`}
         >
           {f.label}
@@ -145,7 +145,7 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
   return (
     <div
       className={`py-[14px] px-4 bg-[var(--bg-surface)] rounded-xl transition-colors
-        ${isDeleteConfirm ? 'bg-[var(--color-error)]/10' : 'hover:bg-[var(--border-default)]'}`}
+        ${isDeleteConfirm ? 'bg-[var(--color-error)]/10' : 'hover:bg-[var(--bg-elevated)]'}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -242,7 +242,7 @@ const TransferListContent = observer(() => {
               <button
                 onClick={() => service.loadMoreTransfers()}
                 disabled={service.isLoading}
-                className="px-6 py-2 text-sm bg-[var(--bg-elevated)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--border-default)] disabled:opacity-50"
+                className="px-6 py-2 text-sm bg-[var(--bg-elevated)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--bg-elevated)] disabled:opacity-50"
               >
                 {service.isLoading ? 'Loading...' : 'Load More'}
               </button>
