@@ -26,6 +26,13 @@ const PreviewModalComponent = observer(() => {
   const isImage = firstItem?.type === 'file' && firstItem?.mimeType?.startsWith('image/');
   const isText = firstItem?.type === 'text' || transfer?.contentType?.startsWith('text/');
 
+  // Size limits for preview (show info+download only beyond these)
+  const IMAGE_PREVIEW_MAX_SIZE = 50 * 1024 * 1024; // 50MB
+  const TEXT_PREVIEW_MAX_SIZE = 10 * 1024 * 1024; // 10MB
+  const totalSize = transfer?.totalSize || 0;
+  const canPreviewImage = isImage && totalSize <= IMAGE_PREVIEW_MAX_SIZE;
+  const canPreviewText = isText && totalSize <= TEXT_PREVIEW_MAX_SIZE;
+
   // Load file blob when modal opens
   useEffect(() => {
     if (!transfer) {
@@ -155,7 +162,7 @@ const PreviewModalComponent = observer(() => {
     >
       <div
         ref={modalRef}
-        className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-[var(--bg-surface)] rounded-xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-[var(--bg-surface)] rounded-[12px] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -164,7 +171,7 @@ const PreviewModalComponent = observer(() => {
             {transfer?.originalFileName || 'Preview'}
           </h3>
           <div className="flex items-center gap-2">
-            {isImage && (
+            {canPreviewImage && (
               <>
                 <button
                   onClick={() => setScale((s) => Math.min(s + 0.25, 4))}
@@ -229,7 +236,7 @@ const PreviewModalComponent = observer(() => {
             </div>
           )}
 
-          {!isLoading && !error && isImage && blobUrl && (
+          {!isLoading && !error && canPreviewImage && blobUrl && (
             <img
               src={blobUrl}
               alt={transfer?.originalFileName || 'Preview'}
@@ -241,11 +248,18 @@ const PreviewModalComponent = observer(() => {
             />
           )}
 
-          {!isLoading && !error && isText && firstItem?.content && (
+          {!isLoading && !error && canPreviewText && firstItem?.content && (
             <div className="w-full h-full overflow-auto p-4">
               <pre className="text-[var(--text-primary)] whitespace-pre-wrap font-mono text-sm">
                 {firstItem.content}
               </pre>
+            </div>
+          )}
+
+          {!isLoading && !error && !canPreviewImage && !canPreviewText && (
+            <div className="text-center text-[var(--text-muted)]">
+              <p className="text-sm mb-2">{transfer?.originalFileName || 'File'}</p>
+              <p className="text-xs">File too large to preview. Please download to view.</p>
             </div>
           )}
 
@@ -259,7 +273,7 @@ const PreviewModalComponent = observer(() => {
         </div>
 
         {/* Footer with scale indicator for images */}
-        {isImage && (
+        {canPreviewImage && (
           <div className="px-4 py-2 border-t border-[var(--border-default)] text-center">
             <span className="text-xs text-[var(--text-muted)]">
               {Math.round(scale * 100)}%

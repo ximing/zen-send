@@ -16,7 +16,7 @@ const ToastContent = observer(() => {
           key={toast.id}
           className={`px-4 py-3 rounded-lg border shadow-lg text-sm
             ${toast.type === 'success'
-              ? 'bg-[var(--bg-surface)] border-[var(--color-success)] text-[var(--color-success)]'
+              ? 'bg-[var(--bg-surface)] border-[var(--accent)] text-[var(--accent)]'
               : toast.type === 'error'
               ? 'bg-[var(--bg-surface)] border-[var(--color-error)] text-[var(--color-error)]'
               : toast.type === 'warning'

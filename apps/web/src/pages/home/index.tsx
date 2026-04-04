@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { HomeService, UploadingFile } from './home.service';
 import { AuthService } from '../../services/auth.service';
 import { SendToolbarService } from '../../components/send-toolbar/send-toolbar.service';
-import { TransferListService } from '../../components/transfer-list/transfer-list.service';
 import { SocketService } from '../../services/socket.service';
 import SendToolbar from '../../components/send-toolbar';
 import TransferList from '../../components/transfer-list';
@@ -118,6 +117,16 @@ const HomeContent = observer(() => {
     }
   }, [service]);
 
+  const formatSize = (bytes: number): string => {
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    if (bytes >= 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${bytes} B`;
+  };
+
   const renderUploadProgress = (upload: UploadingFile) => {
     const icon = upload.status === 'completed' ? CheckCircle :
                  upload.status === 'failed' ? AlertCircle : Upload;
@@ -135,9 +144,9 @@ const HomeContent = observer(() => {
           <div className="text-sm text-[var(--text-primary)] truncate">{upload.name}</div>
           {upload.status === 'uploading' && (
             <>
-              <div className="mt-1 h-1 bg-[var(--bg-primary)] rounded-full overflow-hidden">
+              <div className="mt-1 h-[3px] bg-[var(--border-subtle)] rounded-[2px] overflow-hidden">
                 <div
-                  className="h-full bg-[var(--primary)] transition-all duration-300"
+                  className="h-full bg-[var(--accent)] transition-[width] duration-200 ease"
                   style={{ width: `${upload.progress}%` }}
                 />
               </div>
@@ -151,8 +160,21 @@ const HomeContent = observer(() => {
               </div>
             </>
           )}
+          {upload.status === 'completed' && (
+            <div className="text-xs text-[var(--text-secondary)] mt-1">
+              {formatSize(upload.size)}
+            </div>
+          )}
           {upload.status === 'failed' && (
-            <div className="text-xs text-[var(--color-error)] mt-1">{upload.error}</div>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="text-xs text-[var(--color-error)]">{upload.error}</div>
+              <button
+                onClick={() => service.retryUpload(upload.id)}
+                className="text-xs font-medium text-[var(--primary)] hover:text-[var(--primary-hover)]"
+              >
+                Retry
+              </button>
+            </div>
           )}
         </div>
         {(upload.status === 'uploading' || upload.status === 'pending') && (
@@ -213,8 +235,8 @@ const HomeContent = observer(() => {
 
       {isDragging && (
         <div className="fixed inset-0 bg-[var(--primary)]/10 flex items-center justify-center z-50">
-          <div className="border-2 border-dashed border-[var(--primary)] rounded-2xl p-16 text-center">
-            <Upload size={64} className="text-[var(--primary)] mx-auto mb-4" />
+          <div className="border-[1.5px] border-dashed border-[var(--border-default)] rounded-[14px] p-16 text-center bg-[var(--bg-surface)]">
+            <Upload size={64} className="text-[var(--accent)] mx-auto mb-4" />
             <p className="text-xl text-[var(--text-primary)] font-medium">Release to upload</p>
           </div>
         </div>
@@ -225,4 +247,4 @@ const HomeContent = observer(() => {
   );
 });
 
-export default bindServices(HomeContent, [HomeService, SendToolbarService, TransferListService]);
+export default bindServices(HomeContent, [HomeService, SendToolbarService]);
