@@ -45,6 +45,7 @@ export const transferItems = mysqlTable('transferItems', {
   size: bigint('size', { mode: 'number' }).notNull(),
   content: text('content'),
   thumbnailKey: varchar('thumbnailKey', { length: 500 }),
+  storageType: varchar('storageType', { length: 10 }).$type<'db' | 's3'>().notNull(),
   createdAt: int('createdAt').notNull(),
 });
 
