@@ -1,8 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { HashRouter } from 'react-router';
 import { register } from '@rabjs/react';
-import App from './app';
+import App from './App';
 import './index.css';
 
 // Global Services
@@ -21,8 +20,6 @@ register(ConfigService);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <HashRouter>
-      <App />
-    </HashRouter>
+    <App />
   </React.StrictMode>
 );
