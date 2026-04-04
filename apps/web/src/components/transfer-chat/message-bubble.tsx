@@ -8,35 +8,27 @@ import {
   Download,
   Eye,
   Copy,
-  Globe,
-  Smartphone,
-  Tablet,
-  Monitor,
 } from 'lucide-react';
 import type { TransferSession, TransferItemType, DeviceType } from '@zen-send/shared';
 import { DeviceTag } from './device-tag';
 import { useTransferBubble } from './hooks/use-transfer-bubble';
 import { HomeService, type UploadingFile } from '../../pages/home/home.service';
 import { ApiService } from '../../services/api.service';
+import { ThemeService } from '../../services/theme.service';
+import iconSprite from '../../assets/icon.png';
 
 const TYPE_ICONS: Record<TransferItemType, React.ReactNode> = {
   file: <FileText size={24} className="text-[var(--text-secondary)]" />,
   text: <Pencil size={24} className="text-[var(--text-secondary)]" />,
 };
 
-const DEVICE_TYPE_ICONS: Record<DeviceType, React.ReactNode> = {
-  web: <Globe size={18} />,
-  android: <Smartphone size={18} />,
-  ios: <Tablet size={18} />,
-  desktop: <Monitor size={18} />,
-};
-
-// Device type colors for icon borders
-const DEVICE_TYPE_COLORS: Record<DeviceType, string> = {
-  web: '#3B82F6',    // blue
-  android: '#22C55E', // green
-  ios: '#A855F7',     // purple
-  desktop: '#F97316', // orange
+// Sprite map: each icon is 120x120px (including background)
+// Light theme (left): 0-480px, Dark theme (right): 480-960px
+const DEVICE_SPRITE_POSITIONS: Record<DeviceType, number> = {
+  web: 0,       // First icon (0px)
+  android: 120, // Second icon (120px)
+  ios: 240,     // Third icon (240px)
+  desktop: 360, // Fourth icon (360px)
 };
 
 const isImageType = (contentType?: string) => {
@@ -47,17 +39,24 @@ const isImageType = (contentType?: string) => {
 interface DeviceIconProps {
   deviceType: DeviceType;
   className?: string;
+  isDarkTheme?: boolean;
 }
 
-const DeviceIcon: React.FC<DeviceIconProps> = ({ deviceType, className }) => {
-  const borderColor = DEVICE_TYPE_COLORS[deviceType];
+const DeviceIcon: React.FC<DeviceIconProps> = ({ deviceType, className, isDarkTheme = false }) => {
+  const bgPosition = DEVICE_SPRITE_POSITIONS[deviceType];
+  // Dark theme uses right half of sprite (add 480px offset)
+  const spriteOffsetX = isDarkTheme ? 480 : 0;
+  
   return (
     <div
-      className={`w-10 h-10 rounded-full border-2 bg-white dark:bg-[var(--bg-elevated)] shadow-md flex items-center justify-center flex-shrink-0 ${className || ''}`}
-      style={{ borderColor }}
-    >
-      {DEVICE_TYPE_ICONS[deviceType]}
-    </div>
+      className={`w-10 h-10 flex-shrink-0 ${className || ''}`}
+      style={{
+        backgroundImage: `url(${iconSprite})`,
+        backgroundPosition: `${-(bgPosition + spriteOffsetX)}px 0`,
+        backgroundSize: '960px 120px',
+        backgroundRepeat: 'no-repeat',
+      }}
+    />
   );
 };
 
@@ -90,7 +89,9 @@ interface MessageBubbleProps {
 export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer, uploadingFile }) => {
   const homeService = useService(HomeService);
   const apiService = useService(ApiService);
+  const themeService = useService(ThemeService);
   const { direction, device, isSent } = useTransferBubble(transfer);
+  const isDarkTheme = themeService.resolvedTheme === 'dark';
 
   const firstItem = transfer.items?.[0];
   const itemType = firstItem?.type || 'file';
@@ -186,7 +187,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
     >
       <div className={`flex items-start ${isSent ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Device Icon - external on the side */}
-        <DeviceIcon deviceType={device?.type || 'web'} className={isSent ? 'ml-2' : 'mr-2'} />
+        <DeviceIcon deviceType={device?.type || 'web'} isDarkTheme={isDarkTheme} className={isSent ? 'ml-2' : 'mr-2'} />
 
         {/* Tail - CSS triangle pointing to icon, matches bubble background */}
         <div

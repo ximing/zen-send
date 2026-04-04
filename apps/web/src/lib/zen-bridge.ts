@@ -3,6 +3,7 @@ export interface ZenBridgeFile {
   path: string;
   name: string;
   size: number;
+  type?: string;
   data?: ArrayBuffer;
 }
 
@@ -68,6 +69,7 @@ export async function browserOpenFileDialog(options?: {
         files.push({
           name: file.name,
           size: file.size,
+          type: file.type,
           path: '', // Browser cannot get real path
           data,
         });
