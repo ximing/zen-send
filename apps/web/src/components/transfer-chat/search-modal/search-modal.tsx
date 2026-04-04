@@ -15,39 +15,29 @@ const TIME_FILTERS = [
 const SearchModal = observer(() => {
   const homeService = useService(HomeService);
   const chatService = useService(TransferChatService);
-  const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // Listen for open event from BottomToolbar
-  useEffect(() => {
-    const handleOpen = () => {
-      setIsOpen(true);
-      setQuery('');
-      setTimeFilter('all');
-    };
-    document.addEventListener('open-search-modal', handleOpen);
-    return () => document.removeEventListener('open-search-modal', handleOpen);
-  }, []);
-
   // Focus input when opened
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (chatService.searchModalOpen && inputRef.current) {
       const timeout = setTimeout(() => inputRef.current?.focus(), 100);
       return () => clearTimeout(timeout);
     }
     return undefined;
-  }, [isOpen]);
+  }, [chatService.searchModalOpen]);
 
   // Handle dialog show/close
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    if (isOpen) {
+    if (chatService.searchModalOpen) {
       dialog.showModal();
+      setQuery('');
+      setTimeFilter('all');
     } else {
       dialog.close();
     }
@@ -57,11 +47,11 @@ const SearchModal = observer(() => {
         dialog.close();
       }
     };
-  }, [isOpen]);
+  }, [chatService.searchModalOpen]);
 
   const handleClose = useCallback(() => {
-    setIsOpen(false);
-  }, []);
+    chatService.closeSearchModal();
+  }, [chatService]);
 
   // Get filtered results
   const results = chatService.filterTransfers(
@@ -83,7 +73,7 @@ const SearchModal = observer(() => {
   return (
     <dialog
       ref={dialogRef}
-      className="fixed inset-0 w-full max-w-lg mx-auto h-fit max-h-[70vh] bg-[var(--bg-elevated)] rounded-2xl shadow-xl p-0 backdrop:bg-black/50"
+      className="max-w-2xl w-[90vw] mx-auto my-auto bg-[var(--bg-surface)] rounded-2xl shadow-xl p-0 backdrop:bg-black/30"
     >
       <div className="p-4">
         {/* Search Input */}
@@ -95,7 +85,7 @@ const SearchModal = observer(() => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜索文件名或内容..."
-            className="flex-1 bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none"
+            className="flex-1 bg-[var(--bg-elevated)] text-[var(--text-primary)] placeholder-[var(--text-muted)] rounded-lg px-3 py-2 focus:outline-none focus:border-[var(--border-focus)] border border-[var(--border-subtle)]"
           />
           <button
             onClick={handleClose}
@@ -150,5 +140,5 @@ const SearchModal = observer(() => {
   );
 });
 
-export default bindServices(SearchModal, []);
 export { SearchModal };
+export default SearchModal;

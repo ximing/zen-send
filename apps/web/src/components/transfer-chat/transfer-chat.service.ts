@@ -13,6 +13,15 @@ interface DateGroup {
 export class TransferChatService extends Service {
   searchQuery = '';
   timeFilter: ChatTimeFilter = 'all';
+  searchModalOpen = false;
+
+  openSearchModal() {
+    this.searchModalOpen = true;
+  }
+
+  closeSearchModal() {
+    this.searchModalOpen = false;
+  }
 
   // Access parent page's HomeService
   get homeService() {

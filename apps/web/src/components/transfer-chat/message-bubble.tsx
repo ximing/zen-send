@@ -31,10 +31,13 @@ const DEVICE_TYPE_ICONS: Record<DeviceType, React.ReactNode> = {
   desktop: <Monitor size={18} />,
 };
 
-const DEVICE_ICON_COLORS = {
-  sent: '#8B9A7D',
-  received: '#8A8880',
-} as const;
+// Device type colors for icon borders
+const DEVICE_TYPE_COLORS: Record<DeviceType, string> = {
+  web: '#3B82F6',    // blue
+  android: '#22C55E', // green
+  ios: '#A855F7',     // purple
+  desktop: '#F97316', // orange
+};
 
 const isImageType = (contentType?: string) => {
   if (!contentType) return false;
@@ -43,15 +46,14 @@ const isImageType = (contentType?: string) => {
 
 interface DeviceIconProps {
   deviceType: DeviceType;
-  isSent: boolean;
 }
 
-const DeviceIcon: React.FC<DeviceIconProps> = ({ deviceType, isSent }) => {
-  const color = isSent ? DEVICE_ICON_COLORS.sent : DEVICE_ICON_COLORS.received;
+const DeviceIcon: React.FC<DeviceIconProps> = ({ deviceType }) => {
+  const borderColor = DEVICE_TYPE_COLORS[deviceType];
   return (
     <div
       className="w-10 h-10 rounded-full border-2 bg-white dark:bg-[var(--bg-elevated)] shadow-md flex items-center justify-center flex-shrink-0"
-      style={{ borderColor: color, color }}
+      style={{ borderColor, color: borderColor }}
     >
       {DEVICE_TYPE_ICONS[deviceType]}
     </div>
@@ -180,7 +182,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer,
     >
       <div className={`flex items-start ${isSent ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Device Icon - external on the side */}
-        <DeviceIcon deviceType={device?.type || 'web'} isSent={isSent} />
+        <DeviceIcon deviceType={device?.type || 'web'} />
 
         {/* Tail - CSS triangle pointing to icon, matches bubble background */}
         <div
