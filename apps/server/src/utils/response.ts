@@ -30,6 +30,10 @@ export function notFound(res: Response, message: string): Response {
   return error(res, message, 'NotFound', 404);
 }
 
+export function forbidden(res: Response, message = 'Forbidden'): Response {
+  return error(res, message, 'Forbidden', 403);
+}
+
 export function gone(res: Response, message: string): Response {
   return error(res, message, 'Gone', 410);
 }
