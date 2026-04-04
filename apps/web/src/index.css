@@ -60,15 +60,13 @@
    ============================================ */
 .dark {
   /* Backgrounds */
-  --bg-primary: #1C1C1E;
-  --bg-surface: #242426;
-  --bg-elevated: #2C2C2E;
+  --bg-primary: #121214;
+  --bg-surface: #1C1C1E;
+  --bg-elevated: #262628;
   --bg-header: #3A3A3C;
   --bg-overlay: rgba(0, 0, 0, 0.7);
 
   /* Borders */
-  --border-default: #3A3A3C;
-  --border-subtle: #2E2E30;
   --border-focus: #8B9A7D;
 
   /* Text — Dark */
@@ -128,7 +126,6 @@ body {
 /* Smooth transitions */
 button, input, .card {
   transition: background-color var(--transition-fast),
-              border-color var(--transition-fast),
               color var(--transition-fast),
               box-shadow var(--transition-fast);
 }
@@ -144,7 +141,7 @@ button, input, .card {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-default);
+  background: var(--bg-elevated);
   border-radius: 4px;
 }
 
