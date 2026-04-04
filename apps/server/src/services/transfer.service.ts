@@ -77,13 +77,24 @@ export class TransferService {
     const s3Key = `transfers/${sessionId}/`;
     const contentType = input.contentType || 'application/octet-stream';
     const fileName = input.fileName || 'untitled';
-    const chunkCount = input.chunkCount ?? 0;
+    const TEXT_INLINE_MAX_SIZE = 10 * 1024; // 10KB
 
+    // 判断是否内联存储（文本且 <=10KB 且有 content）
+    const isInlineText = input.type === 'text' &&
+                         input.totalSize <= TEXT_INLINE_MAX_SIZE &&
+                         input.content !== undefined;
+
+    let chunkCount = 0;
     const presignedUrls: { chunkIndex: number; url: string; s3Key: string }[] = [];
-    for (let i = 0; i < chunkCount; i++) {
-      const chunkS3Key = `transfers/${sessionId}/chunk_${i}`;
-      const url = await this.s3Service.getPresignedUploadUrl(chunkS3Key, contentType);
-      presignedUrls.push({ chunkIndex: i, url, s3Key: chunkS3Key });
+
+    if (!isInlineText) {
+      // S3 上传模式
+      chunkCount = input.chunkCount ?? 0;
+      for (let i = 0; i < chunkCount; i++) {
+        const chunkS3Key = `transfers/${sessionId}/chunk_${i}`;
+        const url = await this.s3Service.getPresignedUploadUrl(chunkS3Key, contentType);
+        presignedUrls.push({ chunkIndex: i, url, s3Key: chunkS3Key });
+      }
     }
 
     await this.db.insert(transferSessions).values({
@@ -102,6 +113,22 @@ export class TransferService {
       ttlExpiresAt,
       createdAt: now,
     });
+
+    // 如果是内联文本，直接插入 transferItem
+    if (isInlineText) {
+      const itemId = generateItemId();
+      await this.db.insert(transferItems).values({
+        id: itemId,
+        sessionId,
+        type: 'text',
+        name: fileName,
+        mimeType: contentType,
+        size: input.totalSize,
+        content: input.content,
+        storageType: 'db',
+        createdAt: now,
+      });
+    }
 
     return {
       sessionId,
