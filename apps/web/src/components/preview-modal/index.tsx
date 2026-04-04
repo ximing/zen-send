@@ -166,7 +166,7 @@ const PreviewModalComponent = observer(() => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)]">
+        <div className="flex items-center justify-between px-4 py-3">
           <h3 className="text-lg font-medium text-[var(--text-primary)] truncate">
             {transfer?.originalFileName || 'Preview'}
           </h3>
@@ -274,7 +274,7 @@ const PreviewModalComponent = observer(() => {
 
         {/* Footer with scale indicator for images */}
         {canPreviewImage && (
-          <div className="px-4 py-2 border-t border-[var(--border-default)] text-center">
+          <div className="px-4 py-2 text-center">
             <span className="text-xs text-[var(--text-muted)]">
               {Math.round(scale * 100)}%
             </span>
