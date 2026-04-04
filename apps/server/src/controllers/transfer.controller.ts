@@ -76,9 +76,10 @@ export class TransferController {
   @Get()
   async list(
     @CurrentUser() user: TokenPayload,
-    @QueryParams('limit') limit?: string,
-    @QueryParams('offset') offset?: string
+    @QueryParams() query: { limit?: string; offset?: string }
   ) {
+    const limit = query.limit;
+    const offset = query.offset;
     const parsedLimit = limit ? parseInt(limit, 10) : 50;
     const parsedOffset = offset ? parseInt(offset, 10) : 0;
 

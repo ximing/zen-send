@@ -1,8 +1,9 @@
-import { Action, ExpressRequest } from 'routing-controllers';
+import { Action } from 'routing-controllers';
+import type { Request } from 'express';
 import { verifyAccessToken, type TokenPayload } from '../config/jwt.js';
 
 export async function currentUserChecker(action: Action): Promise<TokenPayload | null> {
-  const request = action.request as ExpressRequest;
+  const request = action.request as Request;
   const authHeader = request.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { useExpressServer, useContainer } from 'routing-controllers';
@@ -8,14 +9,15 @@ import { setupSocket } from './socket/socket.js';
 import { initIOC } from './ioc.js';
 import { controllers } from './controllers/index.js';
 import { currentUserChecker } from './middlewares/auth.middleware.js';
-import { errorHandler } from './middleware/error.js';
 
 useContainer(Container);
 
-export async function createApp(): Promise<{ app: ReturnType<typeof useExpressServer>; io: SocketIOServer }> {
+export async function createApp(): Promise<{ app: express.Application; io: SocketIOServer }> {
   await initIOC();
 
-  const httpServer = createServer();
+  const app = express();
+
+  const httpServer = createServer(app);
 
   const io = new SocketIOServer(httpServer, {
     cors: {
@@ -26,12 +28,11 @@ export async function createApp(): Promise<{ app: ReturnType<typeof useExpressSe
 
   setupSocket(io);
 
-  const app = useExpressServer(httpServer, {
+  useExpressServer(app, {
     controllers,
     validation: true,
     defaultErrorHandler: false,
     currentUserChecker,
-    errorHandler,
   });
 
   const PORT = process.env.PORT || 3110;

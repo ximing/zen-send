@@ -1,6 +1,6 @@
 import { parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import glob from 'glob';
+import { glob } from 'glob';
 import { logger } from '@zen-send/logger';
 
 const __dirname = parse(fileURLToPath(import.meta.url)).dir;
@@ -18,14 +18,14 @@ export async function initIOC() {
 
   for (const globString of patterns) {
     const filePaths = findFileNamesFromGlob(globString);
-    logger.info('IOC: Loading files', { pattern: globString, count: filePaths.length });
+    logger.info({ pattern: globString, count: filePaths.length }, 'IOC: Loading files');
 
     for (const fileName of filePaths) {
       try {
         const module = await import(fileName);
-        logger.debug('Loaded module', { module: module.default?.name || module.name });
+        logger.debug({ module: module.default?.name || module.name }, 'Loaded module');
       } catch (error: any) {
-        logger.error(`Failed to import ${fileName}: ${error.message}`);
+        logger.error({ err: error.message, file: fileName }, 'Failed to import');
       }
     }
   }

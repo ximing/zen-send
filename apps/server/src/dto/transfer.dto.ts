@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsEnum, Min, IsInt, Positive } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsEnum, Min, MinLength, IsInt, IsPositive } from 'class-validator';
 
 export class InitTransferDto {
   @IsString()
@@ -21,12 +21,12 @@ export class InitTransferDto {
 
   @IsNumber()
   @IsInt()
-  @Positive()
+  @IsPositive()
   totalSize!: number;
 
   @IsNumber()
   @IsInt()
-  @Positive()
+  @IsPositive()
   chunkCount!: number;
 }
 
