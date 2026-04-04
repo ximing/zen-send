@@ -9,6 +9,7 @@ import TransferChat from '../../components/transfer-chat';
 import Sidebar from '../../components/sidebar';
 import Toast from '../../components/toast';
 import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { getMimeTypeFromExtension } from '../../lib/zen-bridge';
 
 const formatSpeed = (bytesPerSec: number): string => {
   if (bytesPerSec > 1024 * 1024) {
@@ -76,10 +77,12 @@ const HomeContent = observer(() => {
           if (file.name.startsWith('.')) return;
 
           const buffer = await file.arrayBuffer();
+          // Fallback to inferring type from extension if file.type is empty
+          const type = file.type || getMimeTypeFromExtension(file.name);
           files.push({
             name: file.name,
             size: file.size,
-            type: file.type,
+            type,
             data: buffer,
           });
         } else if (entry.isDirectory) {
@@ -104,10 +107,12 @@ const HomeContent = observer(() => {
           const file = item.getAsFile();
           if (file && !file.name.startsWith('.')) {
             const buffer = await file.arrayBuffer();
+            // Fallback to inferring type from extension if file.type is empty
+            const type = file.type || getMimeTypeFromExtension(file.name);
             files.push({
               name: file.name,
               size: file.size,
-              type: file.type,
+              type,
               data: buffer,
             });
           }
