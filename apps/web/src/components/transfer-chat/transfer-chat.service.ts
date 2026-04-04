@@ -32,7 +32,7 @@ export class TransferChatService extends Service {
     await this.homeService.sendText(content);
   }
 
-  addFiles(files: { name: string; size: number; data?: ArrayBuffer }[]) {
+  addFiles(files: { name: string; size: number; type?: string; data?: ArrayBuffer }[]) {
     this.homeService.addFiles(files);
     this.homeService.uploadFiles();
   }
