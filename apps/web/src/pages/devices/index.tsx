@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { observer } from '@rabjs/react';
+import { observer, bindServices, useService } from '@rabjs/react';
 import QRCode from 'qrcode';
 import Sidebar from '../../components/sidebar';
 import { DeviceService } from '../../services/device.service';
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 const DevicesPage = observer(() => {
-  const deviceService = new DeviceService();
+  const deviceService = useService(DeviceService);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [deviceToRemove, setDeviceToRemove] = useState<Device | null>(null);
   const [removing, setRemoving] = useState(false);
@@ -31,7 +31,7 @@ const DevicesPage = observer(() => {
     const deviceName = navigator.userAgent.includes('Mobile') ? 'Web Mobile' : 'Web Browser';
     await deviceService.generatePairToken(deviceName);
     if (deviceService.pairToken) {
-      const url = `zen-send://pair?token=${deviceService.pairToken}`;
+      const url = `https://zensend.dev/pair?token=${deviceService.pairToken}`;
       const qr = await QRCode.toDataURL(url, { width: 200, margin: 2 });
       setQrCodeUrl(qr);
     }
@@ -89,7 +89,7 @@ const DevicesPage = observer(() => {
           </p>
 
           {/* QR Code Section */}
-          <div className="mt-8 bg-[var(--bg-secondary)] rounded-xl p-6 border border-[var(--border-color)]">
+          <div className="mt-8 bg-[var(--bg-secondary)] rounded-xl p-6">
             <h2 className="text-lg font-medium text-[var(--text-primary)]">Scan to Add Device</h2>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
               Open Zen Send on your mobile device and scan this QR code to pair
@@ -110,10 +110,27 @@ const DevicesPage = observer(() => {
                 Refresh QR Code
               </button>
             </div>
+            {/* Step Instructions */}
+            <div className="mt-6 pt-6">
+              <ol className="space-y-2 text-sm text-[var(--text-secondary)]">
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">1</span>
+                  <span>Open Zen Send on target device</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">2</span>
+                  <span>Scan the QR code</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">3</span>
+                  <span>Start transferring</span>
+                </li>
+              </ol>
+            </div>
           </div>
 
           {/* Device List Section */}
-          <div className="mt-8 bg-[var(--bg-secondary)] rounded-xl p-6 border border-[var(--border-color)]">
+          <div className="mt-8 bg-[var(--bg-secondary)] rounded-xl p-6">
             <h2 className="text-lg font-medium text-[var(--text-primary)]">Registered Devices</h2>
             <div className="mt-4 space-y-3">
               {deviceService.loading ? (
@@ -137,7 +154,9 @@ const DevicesPage = observer(() => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-[var(--text-primary)]">{device.name}</span>
+                          <span className="font-medium text-[var(--text-primary)]">
+                            {device.name}
+                          </span>
                           {deviceService.isCurrentDevice(device.id) && (
                             <span className="px-2 py-0.5 text-xs font-medium bg-[var(--accent-color)] text-white rounded-full">
                               Current device
@@ -180,7 +199,7 @@ const DevicesPage = observer(() => {
         {/* Remove Device Confirmation Modal */}
         {deviceToRemove && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[var(--bg-secondary)] rounded-xl p-6 w-full max-w-md mx-4 border border-[var(--border-color)]">
+            <div className="bg-[var(--bg-secondary)] rounded-xl p-6 w-full max-w-md mx-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[var(--text-primary)]">Remove Device</h3>
                 <button
@@ -191,7 +210,8 @@ const DevicesPage = observer(() => {
                 </button>
               </div>
               <p className="text-[var(--text-secondary)]">
-                Are you sure you want to remove <strong>{deviceToRemove.name}</strong>? This action cannot be undone.
+                Are you sure you want to remove <strong>{deviceToRemove.name}</strong>? This action
+                cannot be undone.
               </p>
               <div className="mt-6 flex gap-3">
                 <button
@@ -216,4 +236,4 @@ const DevicesPage = observer(() => {
   );
 });
 
-export default DevicesPage;
+export default bindServices(DevicesPage, [DeviceService]);
