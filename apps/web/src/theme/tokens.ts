@@ -17,8 +17,6 @@ export const theme = {
     textMuted: '#B5AFA8',
     textDisabled: '#DDD8D0',
     onSurface: '#2C2C2C',
-    borderDefault: '#DDD8D0',
-    borderSubtle: '#EDEBE7',
     borderFocus: '#8B9A7D',
     success: '#16a34a',
     warning: '#ca8a04',
@@ -26,9 +24,9 @@ export const theme = {
     info: '#2563eb',
   },
   dark: {
-    bgPrimary: '#1C1C1E',
-    bgSurface: '#242426',
-    bgElevated: '#2C2C2E',
+    bgPrimary: '#121214',
+    bgSurface: '#1C1C1E',
+    bgElevated: '#262628',
     bgHeader: '#3A3A3C',
     bgOverlay: 'rgba(0, 0, 0, 0.7)',
     primary: '#E5E2DC',
@@ -45,8 +43,6 @@ export const theme = {
     textFaint: '#4A4A4C',
     textDisabled: '#5A5A5C',
     onSurface: '#E5E2DC',
-    borderDefault: '#3A3A3C',
-    borderSubtle: '#2E2E30',
     borderFocus: '#8B9A7D',
     success: '#4ade80',
     warning: '#fbbf24',
@@ -75,8 +71,6 @@ export type Theme = {
   textFaint?: string;
   textDisabled: string;
   onSurface: string;
-  borderDefault: string;
-  borderSubtle: string;
   borderFocus: string;
   success: string;
   warning: string;
