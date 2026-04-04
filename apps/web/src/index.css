@@ -1,1 +1,139 @@
 @import "tailwindcss";
+
+/* Google Font: Fira Code */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
+
+/* ============================================
+   CSS Custom Properties — Light Mode (default)
+   ============================================ */
+:root {
+  /* Typography */
+  --font-mono: 'Fira Code', 'SF Mono', 'Cascadia Code', ui-monospace, monospace;
+
+  /* Backgrounds */
+  --bg-primary: #fafafa;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f5f5f5;
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Borders */
+  --border-default: #e5e5e5;
+  --border-subtle: #f0f0f0;
+  --border-focus: #1a1a1a;
+
+  /* Text — Light */
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-disabled: #cccccc;
+  --on-surface: #1a1a1a;
+
+  /* Semantic */
+  --color-error: #dc2626;
+  --color-success: #16a34a;
+  --color-warning: #ca8a04;
+  --color-info: #2563eb;
+
+  /* Inverted (for primary buttons) */
+  --on-primary: #ffffff;
+  --primary: #1a1a1a;
+  --primary-hover: #333333;
+  --primary-pressed: #000000;
+}
+
+/* ============================================
+   CSS Custom Properties — Dark Mode
+   ============================================ */
+.dark {
+  /* Backgrounds */
+  --bg-primary: #0f0f0f;
+  --bg-surface: #141414;
+  --bg-elevated: #1a1a1a;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Borders */
+  --border-default: #2a2a2a;
+  --border-subtle: #1f1f1f;
+  --border-focus: #e5e5e5;
+
+  /* Text — Dark */
+  --text-primary: #e5e5e5;
+  --text-secondary: #888888;
+  --text-muted: #555555;
+  --text-disabled: #333333;
+  --on-surface: #e5e5e5;
+
+  /* Semantic */
+  --color-error: #f87171;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-info: #60a5fa;
+
+  /* Inverted */
+  --on-primary: #0f0f0f;
+  --primary: #e5e5e5;
+  --primary-hover: #d4d4d4;
+  --primary-pressed: #a3a3a3;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+/* Monospace labels */
+.label {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Focus visible */
+*:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+button, input, .card {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

@@ -48,16 +48,6 @@ export const transferItems = mysqlTable('transferItems', {
   createdAt: int('createdAt').notNull(),
 });
 
-export const downloadHistory = mysqlTable('downloadHistory', {
-  id: varchar('id', { length: 24 }).primaryKey(),
-  userId: varchar('userId', { length: 24 }).notNull(),
-  sessionId: varchar('sessionId', { length: 24 }).notNull(),
-  deviceId: varchar('deviceId', { length: 24 }).notNull(),
-  localPath: varchar('localPath', { length: 500 }),
-  downloadedAt: int('downloadedAt').notNull(),
-  status: varchar('status', { length: 20 }).notNull(),
-});
-
 export const chunkUploads = mysqlTable('chunkUploads', {
   id: varchar('id', { length: 24 }).primaryKey(),
   sessionId: varchar('sessionId', { length: 24 }).notNull(),

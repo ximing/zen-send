@@ -15,7 +15,6 @@ const HomeContent = observer(() => {
   const authService = useService(AuthService);
   const navigate = useNavigate();
 
-  // Redirect to login if not authenticated
   if (!authService.isAuthenticated) {
     navigate('/login');
     return null;
@@ -26,19 +25,17 @@ const HomeContent = observer(() => {
   }, [service]);
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen bg-[var(--bg-primary)]">
       <Header />
 
-      <main className="max-w-4xl mx-auto p-5">
+      <main className="max-w-2xl mx-auto px-6 py-10">
         <SendToolbar />
         <TransferList />
 
         {/* Online devices */}
-        <div className="mt-8 p-4 bg-surface border border-border-default rounded-lg">
-          <h3 className="text-sm font-medium text-text-primary mb-2">
-            📱 Online Devices
-          </h3>
-          <p className="text-text-muted text-sm">No devices online</p>
+        <div className="mt-10 p-5 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl">
+          <h3 className="label mb-2">ONLINE_DEVICES</h3>
+          <p className="text-sm text-[var(--text-muted)]">No devices online</p>
         </div>
       </main>
 

@@ -16,75 +16,89 @@ const RegisterContent = observer(() => {
   };
 
   return (
-    <div className="min-h-screen bg-bg-primary flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-text-primary mb-2">Zen Send</h1>
-          <p className="text-text-secondary">Create your account</p>
+    <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="text-center mb-10">
+          <h1 className="text-base font-semibold tracking-widest text-[var(--text-primary)] mb-2">
+            ZEN_SEND
+          </h1>
+          <p className="label">CREATE_ACCOUNT</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email */}
+          <div className="space-y-2">
+            <label className="label block">EMAIL</label>
             <input
               type="email"
               value={service.email}
               onChange={(e) => { service.email = e.target.value; }}
-              placeholder="Email"
+              placeholder="email@example.com"
               autoComplete="email"
-              className="w-full px-4 py-3 bg-surface border border-border-default rounded-lg
-                         text-text-primary placeholder-text-muted
-                         focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
+                         rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
+                         focus:outline-none focus:border-[var(--border-focus)]"
               required
             />
           </div>
 
-          <div>
+          {/* Password */}
+          <div className="space-y-2">
+            <label className="label block">PASSWORD</label>
             <input
               type="password"
               value={service.password}
               onChange={(e) => { service.password = e.target.value; }}
-              placeholder="Password"
+              placeholder="••••••••"
               autoComplete="new-password"
-              className="w-full px-4 py-3 bg-surface border border-border-default rounded-lg
-                         text-text-primary placeholder-text-muted
-                         focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
+                         rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
+                         focus:outline-none focus:border-[var(--border-focus)]"
               required
             />
           </div>
 
-          <div>
+          {/* Confirm Password */}
+          <div className="space-y-2">
+            <label className="label block">CONFIRM_PASSWORD</label>
             <input
               type="password"
               value={service.confirmPassword}
               onChange={(e) => { service.confirmPassword = e.target.value; }}
-              placeholder="Confirm password"
+              placeholder="••••••••"
               autoComplete="new-password"
-              className="w-full px-4 py-3 bg-surface border border-border-default rounded-lg
-                         text-text-primary placeholder-text-muted
-                         focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
+                         rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
+                         focus:outline-none focus:border-[var(--border-focus)]"
               required
             />
           </div>
 
+          {/* Error */}
           {service.error && (
-            <p className="text-error text-sm">{service.error}</p>
+            <p className="text-xs text-[var(--color-error)]">{service.error}</p>
           )}
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={service.isLoading}
-            className="w-full py-3 bg-primary text-on-primary rounded-lg font-medium
-                       hover:bg-primary-hover transition-colors
+            className="w-full h-12 bg-[var(--primary)] text-[var(--on-primary)]
+                       rounded-md font-medium tracking-wider uppercase text-sm
+                       hover:bg-[var(--primary-hover)] transition-colors
                        disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {service.isLoading ? 'Creating account...' : 'Sign up'}
+            {service.isLoading ? 'CREATING...' : 'CREATE_ACCOUNT'}
           </button>
         </form>
 
-        <p className="text-center text-text-secondary text-sm mt-6">
+        {/* Link */}
+        <p className="text-center text-sm text-[var(--text-secondary)] mt-8">
           Already have an account?{' '}
-          <Link to="/login" className="text-primary hover:underline">
-            Sign in
+          <Link to="/login" className="text-[var(--text-primary)] hover:underline">
+            SIGN_IN
           </Link>
         </p>
       </div>
@@ -92,4 +106,4 @@ const RegisterContent = observer(() => {
   );
 });
 
-export default bindServices(RegisterContent, [RegisterService]); 
+export default bindServices(RegisterContent, [RegisterService]);

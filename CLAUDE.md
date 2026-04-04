@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 Zen Send - Cross-platform clipboard, text, and file transfer tool (like LocalSend)
 
 ## Project Overview
@@ -14,7 +16,8 @@ Zen Send is a monorepo containing a server, web frontend, and React Native mobil
 - **apps/mobile**: React Native (Expo) for Android and iOS
 
 ### Packages
-- **packages/shared**: Shared TypeScript types and DTOs
+- **packages/dto**: Shared TypeScript interface types for request/response DTOs (RegisterRequest, LoginRequest, etc.)
+- **packages/shared**: Re-exports from `@zen-send/dto` plus domain types (Device, TransferSession, Socket events)
 - **packages/logger**: Pino-based logging utility
 
 ### Config
@@ -49,21 +52,30 @@ cd apps/web && pnpm typecheck   # Type-check web only
 
 ## Code Organization
 
-### Server (Express + Socket.io)
-- `src/index.ts` - Entry point, starts HTTP server and Socket.io
-- `src/app.ts` - Express app creation with CORS, JSON parsing, route mounting
-- `src/socket/socket.ts` - Socket.io setup with JWT auth middleware and device management
-- `src/config/` - Configuration modules:
-  - `jwt.ts` - JWT signing/verification (access token: 15m, refresh token: 7d)
-  - `s3.ts` - S3 client and presigned URL generation for chunked uploads
-  - `database.ts` - Drizzle ORM database connection
-- `src/modules/*/` - Feature modules using controller/service/router pattern:
-  - **auth** - Login, register, logout, token refresh
-  - **device** - Device registration and management
-  - **transfer** - File/text/clipboard transfer with S3 multipart upload support
-- `src/middleware/` - Auth middleware and error handlers
-- `src/db/` - Drizzle ORM schema and database config
-- `src/utils/id.ts` - ID generation utilities (sessionId, itemId, chunkId)
+### Server (Express + routing-controllers + Socket.io)
+
+```
+apps/server/src/
+├── index.ts              # Entry point
+├── app.ts                # App factory (creates Express + Socket.io)
+├── ioc.ts                # Manual IOC container setup using glob patterns
+├── controllers/           # routing-controllers @JsonController classes
+├── services/             # typedi @Service classes (business logic)
+├── validators/           # class-validator DTOs (runtime validation)
+├── middlewares/          # Auth middleware
+├── socket/               # Socket.io event handlers
+├── db/                   # Drizzle ORM schema
+└── utils/                # JWT, ID generation, response helpers
+```
+
+**Server Architecture Key Points:**
+- Uses `routing-controllers` for declarative API endpoints with validation
+- Uses `typedi` for dependency injection (IOC via glob-loaded services/controllers)
+- Request validation: `validators/*.validator.ts` classes with class-validator decorators
+- Type definitions: `packages/dto` for compile-time interfaces (server imports from `@zen-send/dto`)
+- `AuthService`, `DeviceService`, `TransferService` contain business logic
+- `DbService` wraps database operations
+- `S3Service` handles S3 presigned URLs
 
 ### Transfer Module (Chunked S3 Multipart Upload)
 - Files are uploaded in 1MB chunks via S3 multipart upload
@@ -72,18 +84,24 @@ cd apps/web && pnpm typecheck   # Type-check web only
 - Supports text and clipboard transfers in addition to files
 - Transfer sessions expire after `TRANSFER_TTL_DAYS` (default 30)
 
-### Shared Package (`packages/shared`)
-- All TypeScript interfaces and DTOs used by server, web, and mobile
-- Device types, TransferSession, TransferItem, Socket events, API response wrappers
+### DTO Architecture
+
+**Two-layer DTO system:**
+1. `packages/dto` - Pure TypeScript interfaces for compile-time type checking
+2. `apps/server/src/validators/` - class-validator decorated classes for runtime validation
+
+```
+packages/dto/src/index.ts      → interface LoginRequest { email: string; password: string }
+apps/server/validators/        → class LoginDto implements LoginRequest { @IsEmail() email!: string }
+```
+
+Web imports types from `@zen-send/dto`, server imports types and adds validation decorators.
 
 ### Web App (React 19 + Vite + Tailwind CSS 4 + @rabjs/react)
-- **Styling**: Tailwind CSS v4 with CSS variables for theming, custom design tokens in `tailwind.config.js`
+- **Styling**: Tailwind CSS v4 with CSS variables for theming
 - **State Management**: @rabjs/react for reactive state with observer/Service patterns
-- **Theme System**: `src/theme/` - Light/dark mode via CSS variables injected on `:root`, `dark` class on `<html>` for Tailwind dark mode
-- **Real-time**: Socket.io client connected to server for device discovery and transfers
-- `src/app.tsx` - Main app entry
-- `src/theme/tokens.ts` - Theme token definitions (light/dark palettes)
-- `src/theme/theme-provider.tsx` - React context for theme with system preference detection
+- **Theme System**: `src/theme/` - Light/dark mode via CSS variables
+- **Real-time**: Socket.io client for device discovery and transfers
 
 ### Real-time Communication (Socket.io)
 **Server events handled:**
@@ -97,13 +115,12 @@ cd apps/web && pnpm typecheck   # Type-check web only
 - `device:list` - List of user's devices (online/offline status)
 - `transfer:new` - New incoming transfer notification
 
-### Mobile App (React Native + Expo + expo-router)
-- Uses file-based routing via expo-router
-
 ## Naming Conventions
 
 - **Files and folders**: Use lowercase English with hyphens as separators (e.g., `feature-name`, `use-auth.ts`)
 - **No camelCase** in file or directory names
+- **Validators**: `*.validator.ts` suffix (e.g., `auth.validator.ts`)
+- **Controllers**: `*.controller.ts` suffix
 
 ### Component Organization (for pages/*/components/)
 
@@ -124,10 +141,11 @@ components/
 
 - **Package Manager**: pnpm with workspaces
 - **Build Tool**: Turbo
-- **Server**: Express.js + Socket.io
+- **Server**: Express.js + routing-controllers + Socket.io + typedi
 - **Web**: React 19 + Vite + Tailwind CSS v4 + @rabjs/react
 - **Mobile**: React Native + Expo
-- **Shared Types**: TypeScript
+- **Validation**: class-validator + class-transformer
+- **Database**: Drizzle ORM + MySQL
 
 ## Development
 
@@ -157,9 +175,9 @@ TRANSFER_TTL_DAYS=30
 ```
 
 ### Web-Specific
-- **Tailwind CSS v4**: Uses `@tailwindcss/postcss` plugin with PostCSS. Custom tokens defined in `tailwind.config.js` extend the default theme with colors, shadows, animations, and fonts
-- **Theme Tokens**: Design tokens in `src/theme/tokens.ts` are applied as CSS variables on `:root`, making them available as Tailwind utilities (e.g., `bg-primary`, `text-text-secondary`)
-- **Dark Mode**: Controlled via `dark` class on `<html>` element. ThemeProvider handles class toggle based on user preference or system setting
+- **Tailwind CSS v4**: Uses `@tailwindcss/postcss` plugin with PostCSS
+- **Theme Tokens**: Design tokens in `src/theme/tokens.ts` are applied as CSS variables on `:root`
+- **Dark Mode**: Controlled via `dark` class on `<html>` element
 - **@rabjs/react**: Service-based state management using observer/view patterns with dependency injection
 
 ### Git Hooks

@@ -14,5 +14,3 @@ export const logger = pino({
       }
     : undefined,
 });
-
-export const createLogger = (name: string) => logger.child({ name });

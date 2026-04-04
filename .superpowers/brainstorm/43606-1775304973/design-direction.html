@@ -1,0 +1,90 @@
+<h2>Zen Send Web 界面重设计</h2>
+<p class="subtitle">选择你的设计方向 — 每种都支持明/暗主题</p>
+
+<div class="cards">
+  <div class="card" data-choice="glass" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white;">
+        <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.2);">
+          <div style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">Zen Send</div>
+          <div style="background: rgba(255,255,255,0.2); border-radius: 8px; padding: 12px; margin-bottom: 8px;">📎 Select File</div>
+          <div style="background: rgba(255,255,255,0.2); border-radius: 8px; padding: 12px; margin-bottom: 8px;">✏️ Enter Text</div>
+          <div style="background: rgba(255,255,255,0.2); border-radius: 8px; padding: 12px;">📋 Clipboard</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Glassmorphism</h3>
+      <p>毛玻璃质感、半透明面板、柔和渐变。科技感强、现代优雅。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="luxury" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: #fafafa; padding: 20px; border-radius: 12px;">
+        <div style="font-family: Georgia, serif; font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 16px; letter-spacing: -0.5px;">Zen Send</div>
+        <div style="background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 16px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #1a1a1a, #333); border-radius: 10px;"></div>
+            <div>
+              <div style="font-weight: 600; color: #1a1a1a;">document.pdf</div>
+              <div style="font-size: 12px; color: #888;">2.4 MB · 2m ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Minimal Luxury</h3>
+      <p>精致字体、大量留白、微妙阴影。高端质感、低调内敛。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="geometric" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: #1a1a1a; padding: 20px; border-radius: 12px;">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+          <div style="width: 32px; height: 32px; background: #d4af37; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);"></div>
+          <div style="font-family: 'Times New Roman', serif; font-size: 24px; font-weight: 700; color: #d4af37; letter-spacing: 2px;">ZEN SEND</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+          <div style="background: #d4af37; border-radius: 8px; padding: 16px; text-align: center; color: #1a1a1a; font-size: 20px;">📎</div>
+          <div style="background: rgba(212,175,55,0.2); border: 1px solid #d4af37; border-radius: 8px; padding: 16px; text-align: center; color: #d4af37; font-size: 20px;">✏️</div>
+          <div style="background: rgba(212,175,55,0.2); border: 1px solid #d4af37; border-radius: 8px; padding: 16px; text-align: center; color: #d4af37; font-size: 20px;">📋</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Art Deco / Geometric</h3>
+      <p>几何形状、菱形图案、金色点缀。复古奢华、几何秩序。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="aurora" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(180deg, #e8f4f8 0%, #f5e6e8 50%, #e8e8f4 100%); padding: 20px; border-radius: 12px;">
+        <div style="font-size: 22px; font-weight: 700; color: #2d3748; margin-bottom: 16px; text-align: center;">Zen Send</div>
+        <div style="background: white; border-radius: 20px; padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <div style="flex: 1; background: linear-gradient(135deg, #ffecd2, #fcb69f); border-radius: 12px; padding: 12px; text-align: center;">📎</div>
+            <div style="flex: 1; background: linear-gradient(135deg, #a8edea, #fed6e3); border-radius: 12px; padding: 12px; text-align: center;">✏️</div>
+            <div style="flex: 1; background: linear-gradient(135deg, #d299c2, #fef9d7); border-radius: 12px; padding: 12px; text-align: center;">📋</div>
+          </div>
+          <div style="background: #f7fafc; border-radius: 12px; padding: 12px;">
+            <div style="font-size: 12px; color: #718096; margin-bottom: 4px;">Recent Transfers</div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #edf2f7;">
+              <span>📎</span><span style="font-size: 13px; color: #2d3748;">photo.jpg</span><span style="font-size: 11px; color: #a0aec0; margin-left: auto;">1h</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 0;">
+              <span>✏️</span><span style="font-size: 13px; color: #2d3748;">note.txt</span><span style="font-size: 11px; color: #a0aec0; margin-left: auto;">3h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Soft Aurora</h3>
+      <p>柔和渐变、圆润卡片、 pastel 色调。温暖友好、现代感强。</p>
+    </div>
+  </div>
+</div>

@@ -152,7 +152,7 @@ export class WindowManager {
     });
 
     this.window.loadURL(VITE_DEV_SERVER_URL);
-    logger.info('[WindowManager] Window created and loading URL:', VITE_DEV_SERVER_URL);
+    logger.info({ url: VITE_DEV_SERVER_URL }, '[WindowManager] Window created and loading URL');
 
     this.window.once('ready-to-show', () => {
       this.window?.show();

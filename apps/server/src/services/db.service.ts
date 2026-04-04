@@ -1,4 +1,4 @@
-import { drizzle } from 'drizzle-orm/mysql2';
+import { drizzle, MySql2Database } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
 import { Service } from 'typedi';
 import * as schema from '../db/schema.js';
@@ -7,7 +7,7 @@ import { logger } from '@zen-send/logger';
 @Service()
 export class DbService {
   private pool: mysql.Pool | null = null;
-  private db: ReturnType<typeof drizzle> | null = null;
+  private db: MySql2Database<typeof schema> | null = null;
 
   async init(): Promise<void> {
     if (this.pool) {
@@ -30,7 +30,7 @@ export class DbService {
     logger.info('Database initialized');
   }
 
-  getDb(): ReturnType<typeof drizzle> {
+  getDb(): MySql2Database<typeof schema> {
     if (!this.db) {
       throw new Error('Database not initialized. Call init() first.');
     }

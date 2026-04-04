@@ -5,31 +5,30 @@ import { ToastService } from './toast.service';
 const ToastContent = observer(() => {
   const service = useService(ToastService);
 
-  if (service.toasts.length === 0) return null;
+  if (service.toasts.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
       {service.toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`px-4 py-3 rounded-lg shadow-lg min-w-[250px] max-w-md
-            ${toast.type === 'success' ? 'bg-success text-white' : ''}
-            ${toast.type === 'error' ? 'bg-error text-white' : ''}
-            ${toast.type === 'info' ? 'bg-info text-white' : ''}`}
+          className={`px-4 py-3 rounded-lg border shadow-lg text-sm
+            ${toast.type === 'success'
+              ? 'bg-[var(--bg-surface)] border-[var(--color-success)] text-[var(--color-success)]'
+              : toast.type === 'error'
+              ? 'bg-[var(--bg-surface)] border-[var(--color-error)] text-[var(--color-error)]'
+              : toast.type === 'warning'
+              ? 'bg-[var(--bg-surface)] border-[var(--color-warning)] text-[var(--color-warning)]'
+              : 'bg-[var(--bg-surface)] border-[var(--color-info)] text-[var(--color-info)]'
+            }`}
         >
-          <div className="flex items-center justify-between">
-            <span>{toast.message}</span>
-            <button
-              onClick={() => service.dismiss(toast.id)}
-              className="ml-2 opacity-70 hover:opacity-100"
-            >
-              ×
-            </button>
-          </div>
+          {toast.message}
         </div>
       ))}
     </div>
   );
 });
 
-export default bindServices(ToastContent, [ToastService]) as React.ComponentType; 
+export default bindServices(ToastContent, [ToastService]);

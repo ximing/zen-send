@@ -1,19 +1,20 @@
 import React from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
+import { FileText, Pencil, Clipboard, MailOpen } from 'lucide-react';
 import { TransferListService, type TransferFilter } from './transfer-list.service';
 import type { TransferSession, TransferItemType } from '@zen-send/shared';
 
 const FILTERS: { label: string; value: TransferFilter }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Files', value: 'file' },
-  { label: 'Text', value: 'text' },
-  { label: 'Clipboard', value: 'clipboard' },
+  { label: 'ALL', value: 'all' },
+  { label: 'FILES', value: 'file' },
+  { label: 'TEXT', value: 'text' },
+  { label: 'CLIPBOARD', value: 'clipboard' },
 ];
 
-const TYPE_ICONS: Record<TransferItemType, string> = {
-  file: '📎',
-  text: '✏️',
-  clipboard: '📋',
+const TYPE_ICONS: Record<TransferItemType, React.ReactNode> = {
+  file: <FileText size={18} className="text-[var(--text-secondary)]" />,
+  text: <Pencil size={18} className="text-[var(--text-secondary)]" />,
+  clipboard: <Clipboard size={18} className="text-[var(--text-secondary)]" />,
 };
 
 function formatSize(bytes: number): string {
@@ -26,15 +27,15 @@ function formatSize(bytes: number): string {
 function formatRelativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return 'JUST_NOW';
+  if (minutes < 60) return `${minutes}M_AGO`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${hours}H_AGO`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${days}D_AGO`;
 }
 
-function getTransferIcon(transfer: TransferSession): string {
+function getTransferIcon(transfer: TransferSession): React.ReactNode {
   const firstItem = transfer.items?.[0];
   if (firstItem?.type) {
     return TYPE_ICONS[firstItem.type];
@@ -46,7 +47,7 @@ function getTransferIcon(transfer: TransferSession): string {
 }
 
 function getTransferName(transfer: TransferSession): string {
-  return transfer.items?.[0]?.name || transfer.originalFileName || 'Unknown';
+  return transfer.items?.[0]?.name || transfer.originalFileName || 'UNKNOWN';
 }
 
 // FilterTabs component
@@ -59,10 +60,10 @@ const FilterTabsComponent = observer(() => {
         <button
           key={f.value}
           onClick={() => service.setFilter(f.value)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
+          className={`px-4 py-2 rounded-md text-xs tracking-wider transition-colors
             ${service.filter === f.value
-              ? 'bg-primary text-on-primary'
-              : 'bg-surface border border-border-default text-text-secondary hover:bg-bg-elevated'
+              ? 'bg-[var(--primary)] text-[var(--on-primary)]'
+              : 'bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
             }`}
         >
           {f.label}
@@ -80,18 +81,17 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
   const time = formatRelativeTime(transfer.createdAt);
 
   return (
-    <div className="p-4 bg-surface border border-border-default rounded-lg hover:bg-bg-elevated transition-colors cursor-pointer">
+    <div className="p-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
+                    rounded-lg hover:border-[var(--border-subtle)] transition-colors cursor-pointer">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-xl" role="img" aria-label="transfer type">
-            {icon}
-          </span>
+          <span>{icon}</span>
           <div className="flex flex-col">
-            <span className="text-text-primary font-medium">{name}</span>
-            <span className="text-sm text-text-muted">{size}</span>
+            <span className="text-[var(--text-primary)] font-medium">{name}</span>
+            <span className="text-xs text-[var(--text-muted)]">{size}</span>
           </div>
         </div>
-        <span className="text-sm text-text-muted">{time}</span>
+        <span className="text-xs text-[var(--text-muted)]">{time}</span>
       </div>
     </div>
   );
@@ -100,15 +100,13 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
 // EmptyState component
 const EmptyStateComponent = observer(() => {
   const service = useService(TransferListService);
-  const filterLabel = FILTERS.find((f) => f.value === service.filter)?.label ?? 'All';
+  const filterLabel = FILTERS.find((f) => f.value === service.filter)?.label ?? 'ALL';
 
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <span className="text-4xl mb-4" role="img" aria-label="empty">
-        📭
-      </span>
-      <p className="text-text-muted">
-        No {filterLabel.toLowerCase()} transfers yet
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <MailOpen size={48} className="text-[var(--text-muted)] mb-4" />
+      <p className="text-[var(--text-muted)]">
+        NO_{filterLabel}_TRANSFERS_YET
       </p>
     </div>
   );

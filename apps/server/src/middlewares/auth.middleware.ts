@@ -1,6 +1,6 @@
 import { Action } from 'routing-controllers';
 import type { Request } from 'express';
-import { verifyAccessToken, type TokenPayload } from '../config/jwt.js';
+import { verifyAccessToken, type TokenPayload } from '../utils/jwt.js';
 
 export async function currentUserChecker(action: Action): Promise<TokenPayload | null> {
   const request = action.request as Request;
