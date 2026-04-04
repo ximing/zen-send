@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { transferService } from './transfer.service.js';
-import { created, success, badRequest, notFound, forbidden } from '../../utils/response.js';
+import { created, success, badRequest, notFound } from '../../utils/response.js';
 
 const initTransferSchema = z.object({
   sourceDeviceId: z.string().min(1),
@@ -99,6 +99,11 @@ export const transferController = {
     const userId = req.user!.userId;
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+    if (isNaN(limit) || limit < 0 || isNaN(offset) || offset < 0) {
+      badRequest(res, 'Invalid limit or offset parameter');
+      return;
+    }
 
     try {
       const transfers = await transferService.getTransferList(userId, limit, offset);

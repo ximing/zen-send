@@ -1,4 +1,4 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '../../config/database.js';
 import { transferSessions, transferItems, chunkUploads } from '../../db/schema.js';
 import { generateTransferSessionId, generateTransferItemId, generateChunkId } from '../../utils/id.js';
@@ -116,20 +116,11 @@ export const transferService = {
       uploadedAt: now,
     });
 
-    // Update received chunks count
-    const session = await db
-      .select()
-      .from(transferSessions)
-      .where(eq(transferSessions.id, sessionId))
-      .limit(1);
-
-    if (session.length > 0) {
-      const newReceivedCount = session[0].receivedChunks + 1;
-      await db
-        .update(transferSessions)
-        .set({ receivedChunks: newReceivedCount })
-        .where(eq(transferSessions.id, sessionId));
-    }
+    // Update received chunks count atomically
+    await db
+      .update(transferSessions)
+      .set({ receivedChunks: sql`${transferSessions.receivedChunks} + 1` })
+      .where(eq(transferSessions.id, sessionId));
   },
 
   async completeTransfer(
