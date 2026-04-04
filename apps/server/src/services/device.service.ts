@@ -1,7 +1,7 @@
 // NOTE: Do NOT import 'reflect-metadata' here - only in app.ts/index.ts
 import { eq, and } from 'drizzle-orm';
 import { Service } from 'typedi';
-import { db } from '../config/database.js';
+import { DbService } from './db.service.js';
 import { devices } from '../db/schema.js';
 import { generateDeviceId } from '../utils/id.js';
 
@@ -23,11 +23,17 @@ export interface RegisterDeviceInput {
 
 @Service()
 export class DeviceService {
+  constructor(private dbService: DbService) {}
+
+  private get db() {
+    return this.dbService.getDb();
+  }
+
   async registerDevice(input: RegisterDeviceInput): Promise<DeviceInfo> {
     const id = generateDeviceId();
     const now = Math.floor(Date.now() / 1000);
 
-    await db.insert(devices).values({
+    await this.db.insert(devices).values({
       id,
       userId: input.userId,
       name: input.name,
@@ -49,29 +55,26 @@ export class DeviceService {
   }
 
   async getUserDevices(userId: string): Promise<DeviceInfo[]> {
-    const result = await db.select().from(devices).where(eq(devices.userId, userId));
+    const result = await this.db.select().from(devices).where(eq(devices.userId, userId));
     return result as DeviceInfo[];
   }
 
   async getDeviceById(id: string): Promise<DeviceInfo | null> {
-    const result = await db.select().from(devices).where(eq(devices.id, id)).limit(1);
+    const result = await this.db.select().from(devices).where(eq(devices.id, id)).limit(1);
     return (result[0] as DeviceInfo) ?? null;
   }
 
   async updateDeviceHeartbeat(id: string): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
-    await db
-      .update(devices)
-      .set({ lastSeenAt: now, isOnline: 1 })
-      .where(eq(devices.id, id));
+    await this.db.update(devices).set({ lastSeenAt: now, isOnline: 1 }).where(eq(devices.id, id));
   }
 
   async setDeviceOffline(id: string): Promise<void> {
-    await db.update(devices).set({ isOnline: 0 }).where(eq(devices.id, id));
+    await this.db.update(devices).set({ isOnline: 0 }).where(eq(devices.id, id));
   }
 
   async unbindDevice(id: string, userId: string): Promise<boolean> {
-    const existing = await db
+    const existing = await this.db
       .select()
       .from(devices)
       .where(and(eq(devices.id, id), eq(devices.userId, userId)))
@@ -81,12 +84,12 @@ export class DeviceService {
       return false;
     }
 
-    await db.delete(devices).where(and(eq(devices.id, id), eq(devices.userId, userId)));
+    await this.db.delete(devices).where(and(eq(devices.id, id), eq(devices.userId, userId)));
     return true;
   }
 
   async getOnlineDevices(userId: string): Promise<DeviceInfo[]> {
-    const result = await db
+    const result = await this.db
       .select()
       .from(devices)
       .where(and(eq(devices.userId, userId), eq(devices.isOnline, 1)));

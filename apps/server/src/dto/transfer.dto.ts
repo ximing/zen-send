@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsNumber, IsEnum, Min, MinLength, IsInt, IsPositive } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+  Min,
+  MinLength,
+  IsInt,
+  IsPositive,
+} from 'class-validator';
 
 export class InitTransferDto {
   @IsString()

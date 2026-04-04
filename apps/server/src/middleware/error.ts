@@ -2,12 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HttpError } from 'routing-controllers';
 import { logger } from '@zen-send/logger';
 
-export function errorHandler(
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function errorHandler(error: Error, req: Request, res: Response, next: NextFunction): void {
   logger.error({ err: error, path: req.path, method: req.method }, 'Request error');
 
   if (error instanceof HttpError) {

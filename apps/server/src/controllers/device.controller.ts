@@ -46,7 +46,7 @@ export class DeviceController {
     }
 
     if (device.userId !== user.userId) {
-      throw new HttpError(403, 'Cannot unbind another user\'s device');
+      throw new HttpError(403, "Cannot unbind another user's device");
     }
 
     const deleted = await this.deviceService.unbindDevice(id, user.userId);
@@ -66,7 +66,7 @@ export class DeviceController {
     }
 
     if (device.userId !== user.userId) {
-      throw new HttpError(403, 'Cannot update another user\'s device');
+      throw new HttpError(403, "Cannot update another user's device");
     }
 
     await this.deviceService.updateDeviceHeartbeat(id);

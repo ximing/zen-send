@@ -1,11 +1,4 @@
-import {
-  mysqlTable,
-  varchar,
-  int,
-  bigint,
-  text,
-  tinyint,
-} from 'drizzle-orm/mysql-core';
+import { mysqlTable, varchar, int, bigint, text, tinyint } from 'drizzle-orm/mysql-core';
 
 export const users = mysqlTable('users', {
   id: varchar('id', { length: 24 }).primaryKey(),

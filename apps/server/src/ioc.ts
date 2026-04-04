@@ -24,8 +24,9 @@ export async function initIOC() {
       try {
         const module = await import(fileName);
         logger.debug({ module: module.default?.name || module.name }, 'Loaded module');
-      } catch (error: any) {
-        logger.error({ err: error.message, file: fileName }, 'Failed to import');
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error({ err: message, file: fileName }, 'Failed to import');
       }
     }
   }

@@ -2,9 +2,14 @@
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { Service } from 'typedi';
-import { db } from '../config/database.js';
+import { DbService } from './db.service.js';
 import { users } from '../db/schema.js';
-import { signAccessToken, signRefreshToken, verifyRefreshToken, type TokenPayload } from '../config/jwt.js';
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+  type TokenPayload,
+} from '../utils/jwt.js';
 import { logger } from '@zen-send/logger';
 
 export interface AuthTokens {
@@ -36,6 +41,12 @@ export class AuthError extends Error {
 export class AuthService {
   private invalidatedTokens = new Set<string>();
 
+  constructor(private dbService: DbService) {}
+
+  private get db() {
+    return this.dbService.getDb();
+  }
+
   async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
   }
@@ -53,7 +64,11 @@ export class AuthService {
 
   async register(input: RegisterInput): Promise<AuthTokens> {
     logger.info({ email: input.email }, 'Starting registration');
-    const existingUser = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+    const existingUser = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.email, input.email))
+      .limit(1);
     logger.info({ existingUserCount: existingUser.length }, 'Checked existing user');
 
     if (existingUser.length > 0) {
@@ -66,7 +81,7 @@ export class AuthService {
     const now = Math.floor(Date.now() / 1000);
     logger.info({ id, now }, 'Inserting user');
 
-    await db.insert(users).values({
+    await this.db.insert(users).values({
       id,
       email: input.email,
       passwordHash,
@@ -79,7 +94,7 @@ export class AuthService {
   }
 
   async login(input: LoginInput): Promise<AuthTokens> {
-    const result = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+    const result = await this.db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
     if (result.length === 0) {
       throw new Error('Invalid credentials');

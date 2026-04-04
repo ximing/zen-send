@@ -1,7 +1,9 @@
 import jwt from 'jsonwebtoken';
 
-export const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'access-secret-change-in-production';
-export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh-secret-change-in-production';
+export const JWT_ACCESS_SECRET =
+  process.env.JWT_ACCESS_SECRET || 'access-secret-change-in-production';
+export const JWT_REFRESH_SECRET =
+  process.env.JWT_REFRESH_SECRET || 'refresh-secret-change-in-production';
 
 const ACCESS_TOKEN_EXPIRES_IN = '15m';
 const REFRESH_TOKEN_EXPIRES_IN = '7d';
