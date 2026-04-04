@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { register } from '@rabjs/react';
-import App from './App';
+import App from './app';
 import './index.css';
 
 // Global Services

@@ -18,7 +18,7 @@ const io = new Server(httpServer, {
 
 setupSocket(io);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3110;
 httpServer.listen(PORT, () => {
   logger.info({ port: PORT }, 'Server started');
 });

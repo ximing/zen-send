@@ -47,6 +47,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [resolvedTheme]);
 
+  // Listen for theme changes from ThemeService (e.g., toggleTheme from header)
+  useEffect(() => {
+    const handleThemeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ mode: ThemeMode }>;
+      setModeState(customEvent.detail.mode);
+    };
+
+    window.addEventListener('zen-send:themechange', handleThemeChange);
+    return () => window.removeEventListener('zen-send:themechange', handleThemeChange);
+  }, []);
+
+  // Listen for system preference changes when mode is 'system'
   useEffect(() => {
     if (mode !== 'system') return;
 

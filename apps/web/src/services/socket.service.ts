@@ -79,6 +79,15 @@ export class SocketService extends Service {
     this.socket?.emit('transfer:complete', { sessionId });
   }
 
+  notifyTransfer(targetDeviceId: string | null, sessionId: string): void {
+    if (!this.socket?.connected) return;
+    if (targetDeviceId === null) {
+      this.socket.emit('transfer:notify', { sessionId });
+    } else {
+      this.socket.emit('transfer:notify', { targetDeviceId, sessionId });
+    }
+  }
+
   removeAllListeners() {
     this.socket?.removeAllListeners('device:list');
     this.socket?.removeAllListeners('transfer:new');

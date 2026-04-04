@@ -1,3 +1,4 @@
+import React from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { useNavigate, Link } from 'react-router-dom';
 import { RegisterService } from './register.service';
@@ -91,4 +92,4 @@ const RegisterContent = observer(() => {
   );
 });
 
-export default bindServices(RegisterContent, [RegisterService]);
+export default bindServices(RegisterContent, [RegisterService]); 
