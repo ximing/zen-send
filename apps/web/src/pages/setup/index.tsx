@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
 import { SetupService } from './setup.service';
@@ -12,6 +13,10 @@ const SetupContent = observer(() => {
     navigate('/');
     return null;
   }
+
+  useEffect(() => {
+    service.init();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
