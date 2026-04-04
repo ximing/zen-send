@@ -11,15 +11,15 @@ export function generateDeviceId(): string {
   return `d${generateId()}`;
 }
 
-export function generateTransferSessionId(): string {
+export function generateSessionId(): string {
   return `s${generateId()}`;
 }
 
-export function generateTransferItemId(): string {
+export function generateItemId(): string {
   return `i${generateId()}`;
 }
 
-export function generateDownloadHistoryId(): string {
+export function generateHistoryId(): string {
   return `h${generateId()}`;
 }
 
