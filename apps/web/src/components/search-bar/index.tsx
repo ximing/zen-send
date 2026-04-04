@@ -1,14 +1,9 @@
 import { observer, useService } from '@rabjs/react';
-import { Search, Filter } from 'lucide-react';
-import { HomeService, type TransferFilter, type TimeFilter } from '../../pages/home/home.service';
+import { Search } from 'lucide-react';
+import { HomeService } from '../../pages/home/home.service';
+import { TransferChatService } from '../../components/transfer-chat/transfer-chat.service';
 
-const TYPE_FILTERS: { label: string; value: TransferFilter }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Files', value: 'file' },
-  { label: 'Text', value: 'text' },
-];
-
-const TIME_FILTERS: { label: string; value: TimeFilter }[] = [
+const TIME_FILTERS: { label: string; value: 'all' | 'today' | 'week' | 'month' }[] = [
   { label: 'All time', value: 'all' },
   { label: 'Today', value: 'today' },
   { label: 'This week', value: 'week' },
@@ -16,7 +11,8 @@ const TIME_FILTERS: { label: string; value: TimeFilter }[] = [
 ];
 
 const SearchBarComponent = observer(() => {
-  const service = useService(HomeService);
+  const homeService = useService(HomeService);
+  const chatService = useService(TransferChatService);
 
   return (
     <div className="space-y-3 mb-4">
@@ -29,42 +25,20 @@ const SearchBarComponent = observer(() => {
         <input
           type="text"
           placeholder="Search transfers..."
-          value={service.searchQuery}
-          onChange={(e) => service.setSearchQuery(e.target.value)}
+          value={homeService.searchQuery}
+          onChange={(e) => homeService.setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-2 bg-[var(--bg-surface)] rounded-xl
                      text-[var(--text-primary)] placeholder-[var(--text-muted)]
                      focus:outline-none transition-colors"
         />
       </div>
 
-      {/* Filter Dropdowns */}
+      {/* Time Filter only */}
       <div className="flex gap-3">
-        {/* Type Filter */}
-        <div className="relative flex-1">
-          <Filter
-            size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-          />
-          <select
-            value={service.filter}
-            onChange={(e) => service.setTypeFilter(e.target.value as TransferFilter)}
-            className="w-full pl-9 pr-4 py-2 bg-[var(--bg-surface)] rounded-xl
-                       text-[var(--text-primary)] appearance-none cursor-pointer
-                       focus:outline-none transition-colors"
-          >
-            {TYPE_FILTERS.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Time Filter */}
         <div className="relative flex-1">
           <select
-            value={service.timeFilter}
-            onChange={(e) => service.setTimeFilter(e.target.value as TimeFilter)}
+            value={chatService.timeFilter}
+            onChange={(e) => chatService.setTimeFilter(e.target.value as any)}
             className="w-full px-4 py-2 bg-[var(--bg-surface)] rounded-xl
                        text-[var(--text-primary)] appearance-none cursor-pointer
                        focus:outline-none transition-colors"
