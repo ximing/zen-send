@@ -1,7 +1,8 @@
 // Stub service - will be replaced in Task 3
 import { Service } from '@rabjs/react';
 import { ApiService } from './api.service';
-import type { LoginRequest, RegisterRequest, AuthTokens } from '@zen-send/shared';
+import type { LoginRequest, RegisterRequest } from '@zen-send/dto';
+import type { AuthTokens } from '@zen-send/shared';
 
 const TOKEN_KEY = 'zen_send_tokens';
 
