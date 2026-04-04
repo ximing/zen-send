@@ -238,4 +238,4 @@ const DevicesPage = observer(() => {
   );
 });
 
-export default bindServices(DevicesPage, [DeviceService]);
+export default bindServices(DevicesPage, []);
