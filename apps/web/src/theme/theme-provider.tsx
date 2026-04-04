@@ -13,7 +13,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 function applyCssVariables(colors: Theme) {
   const root = document.documentElement;
   (Object.keys(colors) as Array<keyof Theme>).forEach((key) => {
-    root.style.setProperty(`--color-${key}`, colors[key]);
+    root.style.setProperty(`--color-${key}`, colors[key]!);
   });
 }
 
