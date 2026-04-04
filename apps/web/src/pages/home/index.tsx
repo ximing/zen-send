@@ -1,5 +1,6 @@
 import { observer, useService, bindServices } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { HomeService, type TransferFilter } from './home.service';
 import { AuthService } from '../../services/auth.service';
 import Header from '../../components/header';
@@ -15,6 +16,10 @@ const HomeContent = observer(() => {
     navigate('/login');
     return null;
   }
+
+  useEffect(() => {
+    service.loadTransfers();
+  }, [service]);
 
   const filters: { label: string; value: TransferFilter }[] = [
     { label: 'All', value: 'all' },
