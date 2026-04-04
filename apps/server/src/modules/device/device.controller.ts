@@ -58,10 +58,16 @@ export const deviceController = {
 
   async heartbeat(req: Request, res: Response): Promise<void> {
     const deviceId = req.params.id as string;
+    const userId = req.user!.userId;
 
     const device = await deviceService.getDeviceById(deviceId);
     if (!device) {
       notFound(res, 'Device not found');
+      return;
+    }
+
+    if (device.userId !== userId) {
+      forbidden(res, 'Cannot update another user\'s device');
       return;
     }
 
