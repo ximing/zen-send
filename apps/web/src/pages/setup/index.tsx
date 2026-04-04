@@ -47,7 +47,7 @@ const SetupContent = observer(() => {
               value={service.serverUrl}
               onChange={(e) => { service.serverUrl = e.target.value; }}
               placeholder="https://zensend.example.com"
-              className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-default)]
+              className="w-full h-12 px-4 bg-[var(--bg-surface)]
                          rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
                          focus:outline-none focus:border-[var(--border-focus)]"
               required
