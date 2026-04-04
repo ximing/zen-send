@@ -3,10 +3,9 @@ import { observer, bindServices, useService } from '@rabjs/react';
 import QRCode from 'qrcode';
 import Sidebar from '../../components/sidebar';
 import { DeviceService } from '../../services/device.service';
+import { ThemeService } from '../../services/theme.service';
 import type { Device, DeviceType } from '@zen-send/shared';
 import {
-  Smartphone,
-  Monitor,
   RefreshCw,
   Trash2,
   X,
@@ -14,12 +13,15 @@ import {
   XCircle,
   AlertCircle,
 } from 'lucide-react';
+import iconSprite from '../../assets/icon.png';
 
 const DevicesPage = observer(() => {
   const deviceService = useService(DeviceService);
+  const themeService = useService(ThemeService);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [deviceToRemove, setDeviceToRemove] = useState<Device | null>(null);
   const [removing, setRemoving] = useState(false);
+  const isDarkTheme = themeService.resolvedTheme === 'dark';
 
   useEffect(() => {
     deviceService.registerCurrentDevice();
@@ -52,16 +54,31 @@ const DevicesPage = observer(() => {
     }
   };
 
-  const getDeviceIcon = (type: DeviceType) => {
-    switch (type) {
-      case 'android':
-      case 'ios':
-      case 'web':
-        return <Smartphone className="w-5 h-5" />;
-      case 'desktop':
-      default:
-        return <Monitor className="w-5 h-5" />;
-    }
+  // Sprite map: each icon is 120x120px (including background)
+  // Light theme (left): 0-480px, Dark theme (right): 480-960px
+  const DEVICE_SPRITE_POSITIONS: Record<DeviceType, number> = {
+    web: 0,       // First icon (0px)
+    android: 120, // Second icon (120px)
+    ios: 240,     // Third icon (240px)
+    desktop: 360, // Fourth icon (360px)
+  };
+
+  const getDeviceIcon = (type: DeviceType, isDarkTheme: boolean) => {
+    const bgPosition = DEVICE_SPRITE_POSITIONS[type];
+    const spriteOffsetX = isDarkTheme ? 480 : 0;
+    
+    return (
+      <div
+        style={{
+          backgroundImage: `url(${iconSprite})`,
+          backgroundPosition: `${-(bgPosition + spriteOffsetX)}px 0`,
+          backgroundSize: '960px 120px',
+          backgroundRepeat: 'no-repeat',
+          width: '24px',
+          height: '24px',
+        }}
+      />
+    );
   };
 
   const formatLastSeen = (timestamp: number) => {
@@ -152,7 +169,7 @@ const DevicesPage = observer(() => {
                   >
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-[var(--bg-elevated)] rounded-lg text-[var(--text-secondary)]">
-                        {getDeviceIcon(device.type)}
+                        {getDeviceIcon(device.type, isDarkTheme)}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
