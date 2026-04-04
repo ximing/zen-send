@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { X, Download, Eye, FileText } from 'lucide-react';
 import { HomeService } from '../../pages/home/home.service';
@@ -21,6 +21,32 @@ const PreviewModal = observer(() => {
   const apiService = useService(ApiService);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const transfer = homeService.previewTransfer;
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  // Load image preview for image types
+  useEffect(() => {
+    if (!transfer || !isImageType(transfer.contentType)) {
+      setImageUrl(null);
+      return;
+    }
+
+    let revoked = false;
+    apiService.getTransferFile(transfer.id).then((blob) => {
+      if (revoked) return;
+      const url = URL.createObjectURL(blob);
+      setImageUrl(url);
+    }).catch(() => {
+      if (!revoked) setImageUrl(null);
+    });
+
+    return () => {
+      revoked = true;
+      setImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
+  }, [apiService, transfer?.id, transfer?.contentType]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -93,6 +119,14 @@ const PreviewModal = observer(() => {
                 {firstItem.content}
               </pre>
             </div>
+          ) : imageUrl ? (
+            <div className="bg-[var(--bg-surface)] rounded-xl p-4 text-center">
+              <img
+                src={imageUrl}
+                alt={transfer.originalFileName}
+                className="max-h-[300px] mx-auto rounded-lg object-contain"
+              />
+            </div>
           ) : (
             <div className="bg-[var(--bg-surface)] rounded-xl p-8 text-center">
               <FileText size={48} className="mx-auto text-[var(--text-muted)] mb-2" />
@@ -128,5 +162,5 @@ const PreviewModal = observer(() => {
   );
 });
 
-export default bindServices(PreviewModal, [HomeService, ApiService]);
+export default bindServices(PreviewModal, []);
 export { PreviewModal };
