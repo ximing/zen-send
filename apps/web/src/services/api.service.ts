@@ -3,6 +3,12 @@ import { Service } from '@rabjs/react';
 import { getApiBaseUrl } from '../lib/env';
 import { AuthService } from './auth.service';
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  statusCode: number;
+}
+
 export class ApiService extends Service {
   private baseUrl: string = '';
 
@@ -38,7 +44,15 @@ export class ApiService extends Service {
       throw new Error(error.error || `HTTP ${response.status}`);
     }
 
-    return response.json();
+    const result: ApiResponse<T> = await response.json();
+
+    if (!result.success) {
+      // Server returns { success: false, data: "error message" } for business logic errors
+      const errorMessage = typeof result.data === 'string' ? result.data : 'Request failed';
+      throw new Error(errorMessage);
+    }
+
+    return result.data;
   }
 
   async get<T>(path: string): Promise<T> {
@@ -73,8 +87,7 @@ export class ApiService extends Service {
   }
 
   async getTransferDownloadUrl(transferId: string): Promise<string> {
-    const response = await this.get<{ downloadUrl: string }>(`/api/transfers/${transferId}/download`);
-    return response.downloadUrl;
+    return this.get<{ downloadUrl: string }>(`/api/transfers/${transferId}/download`).then(res => res.downloadUrl);
   }
 
   async getTransferFile(transferId: string): Promise<Blob> {

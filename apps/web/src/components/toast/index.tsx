@@ -1,5 +1,5 @@
 import React from 'react';
-import { observer, useService, bindServices } from '@rabjs/react';
+import { observer, useService } from '@rabjs/react';
 import { ToastService } from './toast.service';
 
 const ToastContent = observer(() => {
@@ -34,4 +34,4 @@ const ToastContent = observer(() => {
   );
 });
 
-export default bindServices(ToastContent, [ToastService]);
+export default ToastContent;

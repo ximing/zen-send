@@ -111,24 +111,32 @@ export class HomeService extends Service {
     this.deleteConfirmId = id;
   }
 
+  markTransferComplete(sessionId: string) {
+    const transfer = this.transfers.find((t) => t.id === sessionId);
+    if (transfer) {
+      transfer.status = 'completed';
+      this.transfers = [...this.transfers];
+    }
+  }
+
   async loadTransfers(offset = 0, limit = 50) {
     this.isLoading = true;
     this.error = null;
     try {
-      const response = await this.apiService.get<{ transfers: TransferSession[] }>(
+      const { transfers } = await this.apiService.get<{ transfers: TransferSession[] }>(
         `/api/transfers?limit=${limit}&offset=${offset}`
       );
 
       if (offset === 0) {
-        this.transfers = response.transfers || [];
+        this.transfers = transfers || [];
       } else {
         // Append and re-sort for merged dataset
         const existingIds = new Set(this.transfers.map((t) => t.id));
-        const newTransfers = (response.transfers || []).filter((t) => !existingIds.has(t.id));
+        const newTransfers = (transfers || []).filter((t) => !existingIds.has(t.id));
         this.transfers = [...this.transfers, ...newTransfers].sort((a, b) => b.createdAt - a.createdAt);
       }
 
-      this._hasMore = (response.transfers || []).length === limit;
+      this._hasMore = (transfers || []).length === limit;
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Failed to load transfers';
     } finally {
@@ -226,7 +234,7 @@ export class HomeService extends Service {
 
       if (file.data && file.size <= TEXT_INLINE_MAX_SIZE) {
         const content = new TextDecoder().decode(file.data);
-        const response = await this.apiService.post<any>('/api/transfers/init', {
+        const { sessionId } = await this.apiService.post<{ sessionId: string }>('/api/transfers/init', {
           sourceDeviceId,
           type: 'text',
           fileName: file.name,
@@ -238,14 +246,14 @@ export class HomeService extends Service {
         this.updateUploadStatus(uploadId, {
           status: 'completed',
           progress: 100,
-          sessionId: response.data.sessionId,
+          sessionId,
           speed: 0,
           eta: 0,
           uploadedBytes: file.size,
         });
       } else {
         const chunkCount = Math.ceil(file.size / CHUNK_SIZE);
-        const initResponse = await this.apiService.post<any>('/api/transfers/init', {
+        const { sessionId, presignedUrls } = await this.apiService.post<{ sessionId: string; presignedUrls: string[] }>('/api/transfers/init', {
           sourceDeviceId,
           type: 'file',
           fileName: file.name,
@@ -254,7 +262,7 @@ export class HomeService extends Service {
           chunkCount,
         });
 
-        const { sessionId, presignedUrls } = initResponse.data;
+        this.updateUploadStatus(uploadId, { sessionId });
         this.updateUploadStatus(uploadId, { sessionId });
 
         const totalChunks = presignedUrls.length;

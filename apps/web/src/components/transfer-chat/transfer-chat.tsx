@@ -73,11 +73,7 @@ const TransferChatContent = observer(() => {
     const handleTransferComplete = (data: unknown) => {
       // Update session status to completed
       const { sessionId } = data as { sessionId: string };
-      const transfer = homeService.transfers.find((t) => t.id === sessionId);
-      if (transfer) {
-        transfer.status = 'completed';
-        homeService.transfers = [...homeService.transfers];
-      }
+      homeService.markTransferComplete(sessionId);
     };
 
     socketService.onTransferNew(handleTransferNew);
@@ -89,13 +85,10 @@ const TransferChatContent = observer(() => {
     };
   }, [deviceService, socketService, homeService]);
 
-  // Get filtered and grouped transfers
-  const filteredTransfers = chatService.filterTransfers(
-    homeService.transfers,
-    homeService.searchQuery,
-    chatService.timeFilter
-  );
-  const dateGroups = chatService.getDateGroups(filteredTransfers);
+  // Get filtered and grouped transfers using Service methods
+  const transfers = homeService.transfers;
+  const filtered = chatService.filterTransfers(transfers, chatService.searchQuery, chatService.timeFilter);
+  const dateGroups = chatService.getDateGroups(filtered);
 
   // Create a map of uploading files by session id
   const uploadingFilesMap = new Map<string, UploadingFile>();
@@ -106,10 +99,10 @@ const TransferChatContent = observer(() => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto space-y-3 px-3 py-3 relative"
+        className="flex-1 min-h-0 overflow-y-auto space-y-3 px-3 py-3 relative"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -166,4 +159,4 @@ const TransferChatContent = observer(() => {
   );
 });
 
-export default bindServices(TransferChatContent, [HomeService, DeviceService, SocketService, TransferChatService]);
+export default bindServices(TransferChatContent, [TransferChatService]);

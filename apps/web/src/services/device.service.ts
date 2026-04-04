@@ -3,8 +3,6 @@ import { ApiService } from './api.service';
 import type { Device, DeviceListResponse } from '@zen-send/shared';
 
 export class DeviceService extends Service {
-  private apiService = this.resolve(ApiService);
-
   private _devices: Device[] = [];
   private _pairToken: string | null = null;
   private _pairTokenExpiry: Date | null = null;
@@ -21,6 +19,10 @@ export class DeviceService extends Service {
   }
   get pairTokenExpiry() {
     return this._pairTokenExpiry;
+  }
+
+  get apiService() {
+    return this.resolve(ApiService);
   }
 
   get currentDeviceId(): string {
