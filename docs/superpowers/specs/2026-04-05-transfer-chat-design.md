@@ -172,7 +172,52 @@
 
 ---
 
-## 7. Service Layer Changes
+## 7. Device Lookup & Message Direction
+
+### Sent vs Received Detection
+```typescript
+const CURRENT_DEVICE_ID = 'web-device'; // 从 AuthService 获取
+
+const isSentMessage = (transfer: TransferSession): boolean => {
+  return transfer.sourceDeviceId === CURRENT_DEVICE_ID;
+};
+
+const getMessageDirection = (transfer: TransferSession): 'sent' | 'received' => {
+  return transfer.sourceDeviceId === CURRENT_DEVICE_ID ? 'sent' : 'received';
+};
+```
+
+### Device Info Resolution
+- 使用 DeviceService 的 deviceList 获取设备信息
+- 设备列表通过 Socket.io 的 `device:list` 事件保持同步
+- 如果设备不在列表中，显示 "Unknown Device" 灰色标签
+
+---
+
+## 8. TransferSession Items 处理
+
+### 多文件 TransferSession
+每个 TransferSession = 一个气泡，多个 items 显示在一个气泡内：
+- 缩略图横向排列（最多显示 4 个，更多显示 +N）
+- 文件名显示第一个文件名 + "等 N 个文件"
+- 体积显示总大小
+
+### Text Content 显示
+- 文本内容截断显示（最多 3 行，超出显示...）
+- 点击气泡打开 PreviewModal 查看完整内容
+
+---
+
+## 9. Real-time Update Behavior
+
+### Socket.io 事件处理
+- `transfer:new`: 添加到列表顶部，更新 "今天" 日期分组
+- `transfer:complete`: 更新对应 session 状态为 completed
+- 新消息从底部滑入动画
+
+---
+
+## 10. Service Layer Changes
 
 ### HomeService Updates
 ```typescript
@@ -187,7 +232,7 @@ uploadingFiles     // 上传中文件
 
 ---
 
-## 8. Technical Approach
+## 11. Technical Approach
 
 ### File Organization
 ```
@@ -212,7 +257,7 @@ components/
 
 ---
 
-## 9. Migration Path
+## 12. Migration Path
 
 1. **Phase 1**: 创建新组件 `transfer-chat/`
 2. **Phase 2**: 更新路由指向新组件
