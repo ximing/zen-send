@@ -221,11 +221,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
           >
             {/* Image message - full width, no gap */}
             {imageUrl && itemType !== 'text' && isImageType(transfer.contentType) ? (
-              <div className="w-full">
+              <div className="w-full -mx-5">
                 <img
                   src={imageUrl}
                   alt={transfer.originalFileName}
-                  className="max-w-full max-h-[300px] rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                  className="w-full max-h-[300px] rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity"
                   onClick={handlePreview}
                 />
               </div>
