@@ -3,9 +3,8 @@ import { observer, useService, bindServices } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
 import { HomeService, UploadingFile } from './home.service';
 import { AuthService } from '../../services/auth.service';
-import { SendToolbarService } from '../../components/send-toolbar/send-toolbar.service';
+import { SendToolbarService } from './send-toolbar.service';
 import { SocketService } from '../../services/socket.service';
-import SendToolbar from '../../components/send-toolbar';
 import TransferChat from '../../components/transfer-chat';
 import Sidebar from '../../components/sidebar';
 import Toast from '../../components/toast';
@@ -54,68 +53,71 @@ const HomeContent = observer(() => {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
 
-    const files: { name: string; size: number; data?: ArrayBuffer }[] = [];
-    const items = e.dataTransfer.items;
+      const files: { name: string; size: number; data?: ArrayBuffer }[] = [];
+      const items = e.dataTransfer.items;
 
-    const MAX_DEPTH = 10;
+      const MAX_DEPTH = 10;
 
-    const processEntry = async (entry: FileSystemEntry, depth: number): Promise<void> => {
-      if (depth > MAX_DEPTH) return;
+      const processEntry = async (entry: FileSystemEntry, depth: number): Promise<void> => {
+        if (depth > MAX_DEPTH) return;
 
-      if (entry.isFile) {
-        const fileEntry = entry as FileSystemFileEntry;
-        const file = await new Promise<File>((resolve, reject) => {
-          fileEntry.file(resolve, reject);
-        });
+        if (entry.isFile) {
+          const fileEntry = entry as FileSystemFileEntry;
+          const file = await new Promise<File>((resolve, reject) => {
+            fileEntry.file(resolve, reject);
+          });
 
-        if (file.name.startsWith('.')) return;
+          if (file.name.startsWith('.')) return;
 
-        const buffer = await file.arrayBuffer();
-        files.push({
-          name: file.name,
-          size: file.size,
-          data: buffer,
-        });
-      } else if (entry.isDirectory) {
-        const dirEntry = entry as FileSystemDirectoryEntry;
-        const reader = dirEntry.createReader();
-
-        const entries = await new Promise<FileSystemEntry[]>((resolve, reject) => {
-          reader.readEntries(resolve, reject);
-        });
-
-        for (const childEntry of entries) {
-          await processEntry(childEntry, depth + 1);
-        }
-      }
-    };
-
-    for (const item of Array.from(items)) {
-      const entry = item.webkitGetAsEntry?.();
-      if (entry) {
-        await processEntry(entry, 0);
-      } else {
-        const file = item.getAsFile();
-        if (file && !file.name.startsWith('.')) {
           const buffer = await file.arrayBuffer();
           files.push({
             name: file.name,
             size: file.size,
             data: buffer,
           });
+        } else if (entry.isDirectory) {
+          const dirEntry = entry as FileSystemDirectoryEntry;
+          const reader = dirEntry.createReader();
+
+          const entries = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+            reader.readEntries(resolve, reject);
+          });
+
+          for (const childEntry of entries) {
+            await processEntry(childEntry, depth + 1);
+          }
+        }
+      };
+
+      for (const item of Array.from(items)) {
+        const entry = item.webkitGetAsEntry?.();
+        if (entry) {
+          await processEntry(entry, 0);
+        } else {
+          const file = item.getAsFile();
+          if (file && !file.name.startsWith('.')) {
+            const buffer = await file.arrayBuffer();
+            files.push({
+              name: file.name,
+              size: file.size,
+              data: buffer,
+            });
+          }
         }
       }
-    }
 
-    if (files.length > 0) {
-      service.addFiles(files);
-    }
-  }, [service]);
+      if (files.length > 0) {
+        service.addFiles(files);
+      }
+    },
+    [service]
+  );
 
   const formatSize = (bytes: number): string => {
     if (bytes >= 1024 * 1024) {
@@ -128,11 +130,18 @@ const HomeContent = observer(() => {
   };
 
   const renderUploadProgress = (upload: UploadingFile) => {
-    const icon = upload.status === 'completed' ? CheckCircle :
-                 upload.status === 'failed' ? AlertCircle : Upload;
-    const iconColor = upload.status === 'completed' ? 'text-[var(--color-success)]' :
-                      upload.status === 'failed' ? 'text-[var(--color-error)]' :
-                      'text-[var(--text-secondary)]';
+    const icon =
+      upload.status === 'completed'
+        ? CheckCircle
+        : upload.status === 'failed'
+          ? AlertCircle
+          : Upload;
+    const iconColor =
+      upload.status === 'completed'
+        ? 'text-[var(--color-success)]'
+        : upload.status === 'failed'
+          ? 'text-[var(--color-error)]'
+          : 'text-[var(--text-secondary)]';
 
     return (
       <div
@@ -185,7 +194,9 @@ const HomeContent = observer(() => {
             <X size={16} />
           </button>
         )}
-        {(upload.status === 'completed' || upload.status === 'cancelled' || upload.status === 'failed') && (
+        {(upload.status === 'completed' ||
+          upload.status === 'cancelled' ||
+          upload.status === 'failed') && (
           <button
             onClick={() => service.removeUpload(upload.id)}
             className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
@@ -199,39 +210,35 @@ const HomeContent = observer(() => {
 
   return (
     <div
-      className={`min-h-screen bg-[var(--bg-primary)] flex ${isDragging ? 'ring-2 ring-[var(--primary)] ring-inset' : ''}`}
+      className={`h-screen bg-[var(--bg-primary)] flex ${isDragging ? 'ring-2 ring-[var(--primary)] ring-inset' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <Sidebar />
 
-      <main className="flex-1 ml-16 px-6 py-10">
-        <div className="max-w-2xl mx-auto">
-          <SendToolbar />
-
-        {service.uploadingFiles.length > 0 && (
-          <div className="mb-8">
-            <div className="label mb-3">UPLOADING</div>
-            <div className="space-y-2">
-              {service.uploadingFiles.map(renderUploadProgress)}
+      <main className="flex-1 ml-16 px-4 py-4 overflow-hidden flex flex-col">
+        <div className="max-w-2xl mx-auto flex flex-col flex-1 min-h-0 overflow-hidden">
+          {service.uploadingFiles.length > 0 && (
+            <div className="mb-8">
+              <div className="label mb-3">UPLOADING</div>
+              <div className="space-y-2">{service.uploadingFiles.map(renderUploadProgress)}</div>
             </div>
-          </div>
-        )}
+          )}
 
-        <TransferChat />
+          <TransferChat />
 
-        {service.selectedFiles.length > 0 && (
-          <div className="mt-10">
-            <button
-              onClick={() => sendToolbarService.sendFiles()}
-              className="w-full py-4 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-xl
+          {service.selectedFiles.length > 0 && (
+            <div className="mt-10">
+              <button
+                onClick={() => sendToolbarService.sendFiles()}
+                className="w-full py-4 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-xl
                          font-medium tracking-wider hover:bg-[var(--primary-hover)] transition-colors"
-            >
-              SEND
-            </button>
-          </div>
-        )}
+              >
+                SEND
+              </button>
+            </div>
+          )}
         </div>
       </main>
 
