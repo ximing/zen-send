@@ -10,11 +10,12 @@ export interface InitTransferInput {
   userId: string;
   sourceDeviceId: string;
   targetDeviceId?: string;
-  type: 'file' | 'text' | 'clipboard';
+  type: 'file' | 'text';
   fileName?: string;
   contentType?: string;
   totalSize: number;
-  chunkCount: number;
+  chunkCount?: number;
+  content?: string;
 }
 
 export interface InitTransferOutput {
@@ -76,9 +77,10 @@ export class TransferService {
     const s3Key = `transfers/${sessionId}/`;
     const contentType = input.contentType || 'application/octet-stream';
     const fileName = input.fileName || 'untitled';
+    const chunkCount = input.chunkCount ?? 0;
 
     const presignedUrls: { chunkIndex: number; url: string; s3Key: string }[] = [];
-    for (let i = 0; i < input.chunkCount; i++) {
+    for (let i = 0; i < chunkCount; i++) {
       const chunkS3Key = `transfers/${sessionId}/chunk_${i}`;
       const url = await this.s3Service.getPresignedUploadUrl(chunkS3Key, contentType);
       presignedUrls.push({ chunkIndex: i, url, s3Key: chunkS3Key });
@@ -94,7 +96,7 @@ export class TransferService {
       s3Key,
       originalFileName: fileName,
       totalSize: input.totalSize,
-      chunkCount: input.chunkCount,
+      chunkCount,
       receivedChunks: 0,
       contentType,
       ttlExpiresAt,
@@ -105,7 +107,7 @@ export class TransferService {
       sessionId,
       s3Bucket: this.s3Service.getBucket(),
       s3Key,
-      chunkCount: input.chunkCount,
+      chunkCount,
       chunkSize: this.CHUNK_SIZE,
       presignedUrls,
     };
@@ -215,12 +217,13 @@ export class TransferService {
 
   async addTransferItem(
     sessionId: string,
-    type: 'file' | 'text' | 'clipboard',
+    type: 'file' | 'text',
     name: string | null,
     mimeType: string | null,
     size: number,
     content: string | null,
-    thumbnailKey: string | null
+    thumbnailKey: string | null,
+    storageType: 'db' | 's3' = 's3'
   ): Promise<TransferItemInfo> {
     const itemId = generateItemId();
     const now = Math.floor(Date.now() / 1000);
@@ -234,6 +237,7 @@ export class TransferService {
       size,
       content,
       thumbnailKey,
+      storageType,
       createdAt: now,
     });
 
