@@ -5,9 +5,10 @@ import { HomeService, UploadingFile } from './home.service';
 import { AuthService } from '../../services/auth.service';
 import { SendToolbarService } from '../../components/send-toolbar/send-toolbar.service';
 import { TransferListService } from '../../components/transfer-list/transfer-list.service';
+import { SocketService } from '../../services/socket.service';
 import SendToolbar from '../../components/send-toolbar';
 import TransferList from '../../components/transfer-list';
-import Header from '../../components/header';
+import Sidebar from '../../components/sidebar';
 import Toast from '../../components/toast';
 import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react';
 
@@ -15,6 +16,7 @@ const HomeContent = observer(() => {
   const service = useService(HomeService);
   const authService = useService(AuthService);
   const sendToolbarService = useService(SendToolbarService);
+  const socketService = useService(SocketService);
   const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
 
@@ -25,7 +27,8 @@ const HomeContent = observer(() => {
 
   useEffect(() => {
     service.loadTransfers();
-  }, [service]);
+    socketService.connect();
+  }, [service, socketService]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -151,14 +154,14 @@ const HomeContent = observer(() => {
 
   return (
     <div
-      className={`min-h-screen bg-[var(--bg-primary)] ${isDragging ? 'ring-2 ring-[var(--primary)] ring-inset' : ''}`}
+      className={`min-h-screen bg-[var(--bg-primary)] flex ${isDragging ? 'ring-2 ring-[var(--primary)] ring-inset' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <Header />
+      <Sidebar />
 
-      <main className="max-w-2xl mx-auto px-6 py-10">
+      <main className="flex-1 ml-16 max-w-2xl mx-auto px-6 py-10">
         <SendToolbar />
 
         {service.uploadingFiles.length > 0 && (
@@ -172,10 +175,17 @@ const HomeContent = observer(() => {
 
         <TransferList />
 
-        <div className="mt-10 p-5 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl">
-          <h3 className="label mb-2">ONLINE_DEVICES</h3>
-          <p className="text-sm text-[var(--text-muted)]">No devices online</p>
-        </div>
+        {service.selectedFiles.length > 0 && (
+          <div className="mt-10">
+            <button
+              onClick={() => sendToolbarService.sendFiles()}
+              className="w-full py-3 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-lg
+                         font-medium tracking-wider hover:bg-[var(--primary-hover)] transition-colors"
+            >
+              SEND
+            </button>
+          </div>
+        )}
       </main>
 
       {isDragging && (
