@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { authRouter } from './modules/auth/index.js';
 import { deviceRouter } from './modules/device/index.js';
+import { transferRouter } from './modules/transfer/index.js';
 
 export function createApp(): express.Application {
   const app = express();
@@ -19,6 +20,9 @@ export function createApp(): express.Application {
 
   // Device routes
   app.use('/api/devices', deviceRouter);
+
+  // Transfer routes
+  app.use('/api/transfers', transferRouter);
 
   return app;
 }
