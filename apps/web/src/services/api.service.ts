@@ -71,4 +71,16 @@ export class ApiService extends Service {
   async deleteTransfer(sessionId: string): Promise<void> {
     await this.delete(`/api/transfers/${sessionId}`);
   }
+
+  async getTransferDownloadUrl(transferId: string): Promise<string> {
+    const response = await this.get<{ downloadUrl: string }>(`/api/transfers/${transferId}/download`);
+    return response.downloadUrl;
+  }
+
+  async getTransferFile(transferId: string): Promise<Blob> {
+    const downloadUrl = await this.getTransferDownloadUrl(transferId);
+    const response = await fetch(downloadUrl);
+    if (!response.ok) throw new Error('Failed to download file');
+    return response.blob();
+  }
 }

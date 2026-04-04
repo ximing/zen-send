@@ -5,6 +5,7 @@ import { SocketService } from '../../services/socket.service';
 import type { TransferSession } from '@zen-send/shared';
 
 export type TransferFilter = 'all' | 'file' | 'text';
+export type TimeFilter = 'all' | 'today' | 'week' | 'month';
 
 export interface UploadingFile {
   id: string;
@@ -25,9 +26,13 @@ export class HomeService extends Service {
   transfers: TransferSession[] = [];
   selectedFiles: { name: string; size: number; data?: ArrayBuffer }[] = [];
   filter: TransferFilter = 'all';
+  timeFilter: TimeFilter = 'all';
+  searchQuery = '';
   isLoading = false;
   error: string | null = null;
   uploadingFiles: UploadingFile[] = [];
+  previewTransfer: TransferSession | null = null;
+  deleteConfirmId: string | null = null;
 
   get authService() {
     return this.resolve(AuthService);
@@ -42,10 +47,62 @@ export class HomeService extends Service {
   }
 
   get filteredTransfers() {
-    if (this.filter === 'all') return this.transfers;
-    return this.transfers.filter((t) =>
-      t.items?.some((item) => item.type === this.filter)
-    );
+    let filtered = this.transfers;
+
+    // Apply type filter
+    if (this.filter !== 'all') {
+      filtered = filtered.filter((t) =>
+        t.items?.some((item) => item.type === this.filter)
+      );
+    }
+
+    // Apply time filter
+    if (this.timeFilter !== 'all') {
+      const now = Date.now();
+      const startOfToday = new Date().setHours(0, 0, 0, 0);
+      const startOfWeek = startOfToday - 7 * 24 * 60 * 60 * 1000;
+      const startOfMonth = startOfToday - 30 * 24 * 60 * 60 * 1000;
+
+      filtered = filtered.filter((t) => {
+        if (this.timeFilter === 'today') return t.createdAt >= startOfToday;
+        if (this.timeFilter === 'week') return t.createdAt >= startOfWeek;
+        if (this.timeFilter === 'month') return t.createdAt >= startOfMonth;
+        return true;
+      });
+    }
+
+    // Apply search query
+    if (this.searchQuery.trim()) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter((t) => {
+        const name = (t.originalFileName || '').toLowerCase();
+        const textContent = t.items?.find((item) => item.type === 'text')?.content?.toLowerCase() || '';
+        return name.includes(query) || textContent.includes(query);
+      });
+    }
+
+    // Sort by time descending (newest first)
+    return [...filtered].sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  setSearchQuery(query: string) {
+    this.searchQuery = query;
+  }
+
+  setTypeFilter(filter: TransferFilter) {
+    this.filter = filter;
+  }
+
+  setTimeFilter(filter: TimeFilter) {
+    this.timeFilter = filter;
+  }
+
+  setPreviewTransfer(transfer: TransferSession | null) {
+    this.previewTransfer = transfer;
+  }
+
+  setDeleteConfirm(id: string | null) {
+    this.deleteConfirmId = id;
   }
 
   async loadTransfers() {
@@ -61,10 +118,6 @@ export class HomeService extends Service {
     } finally {
       this.isLoading = false;
     }
-  }
-
-  setFilter(filter: TransferFilter) {
-    this.filter = filter;
   }
 
   addFiles(files: { name: string; size: number; data?: ArrayBuffer }[]) {
