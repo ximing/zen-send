@@ -20,14 +20,23 @@ export interface RegisterDeviceRequest {
 }
 
 // Transfer DTOs
+export type TransferType = 'file' | 'text';
+
 export interface InitTransferRequest {
   sourceDeviceId: string;
   targetDeviceId?: string;
-  type: 'file' | 'text' | 'clipboard';
+  type: TransferType;
   fileName?: string;
   contentType?: string;
   totalSize: number;
-  chunkCount: number;
+  chunkCount?: number;
+  content?: string;
+}
+
+export interface InitTransferResponse {
+  sessionId: string;
+  presignedUrls?: string[];
+  chunkSize?: number;
 }
 
 export interface UploadChunkRequest {
