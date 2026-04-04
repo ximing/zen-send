@@ -64,7 +64,7 @@ const FilterTabsComponent = observer(() => {
           className={`py-2 px-4 rounded-lg text-xs tracking-wider transition-colors
             ${service.filter === f.value
               ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
-              : 'bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
+              : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
             }`}
         >
           {f.label}
@@ -144,8 +144,8 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
 
   return (
     <div
-      className={`py-[14px] px-4 bg-[var(--bg-surface)] border rounded-xl transition-colors
-        ${isDeleteConfirm ? 'border-[var(--danger)] bg-[var(--danger)]/10' : 'border-[var(--border-subtle)] hover:border-[var(--border-default)]'}`}
+      className={`py-[14px] px-4 bg-[var(--bg-surface)] rounded-xl transition-colors
+        ${isDeleteConfirm ? 'bg-[var(--color-error)]/10' : 'hover:bg-[var(--border-default)]'}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ const TransferItem = observer(({ transfer }: { transfer: TransferSession }) => {
             <>
               <button
                 onClick={handleConfirmDelete}
-                className="p-2 hover:bg-[var(--danger)]/20 rounded-lg transition-colors text-[var(--danger)]"
+                className="p-2 hover:bg-[var(--color-error)]/20 rounded-lg transition-colors text-[var(--color-error)]"
                 title="Confirm delete"
               >
                 <AlertTriangle size={18} />
