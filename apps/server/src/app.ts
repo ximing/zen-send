@@ -1,59 +1,43 @@
-import express from 'express';
-import cors from 'cors';
-import { authRouter } from './modules/auth/index.js';
-import { deviceRouter } from './modules/device/index.js';
-import { transferRouter } from './modules/transfer/index.js';
-import { errorHandler, notFoundHandler } from './middleware/error.js';
+import 'reflect-metadata';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import { useExpressServer, useContainer } from 'routing-controllers';
+import { Container } from 'typedi';
 import { logger } from '@zen-send/logger';
+import { setupSocket } from './socket/socket.js';
+import { initIOC } from './ioc.js';
+import { controllers } from './controllers/index.js';
+import { currentUserChecker } from './middlewares/auth.middleware.js';
+import { errorHandler } from './middleware/error.js';
 
-export function createApp(): express.Application {
-  const app = express();
+useContainer(Container);
 
-  app.use(cors());
-  app.use(express.json());
+export async function createApp(): Promise<{ app: ReturnType<typeof useExpressServer>; io: SocketIOServer }> {
+  await initIOC();
 
-  // Request logging
-  app.use((req, res, next) => {
-    const start = Date.now();
-    res.on('finish', () => {
-      const duration = Date.now() - start;
-      const logData: Record<string, unknown> = {
-        method: req.method,
-        path: req.path,
-        status: res.statusCode,
-        duration,
-      };
-      if (req._error) {
-        logData.error = req._error;
-      }
-      if (res.statusCode >= 400) {
-        logger.error(logData, 'Request failed');
-      } else {
-        logger.info(logData, 'Request completed');
-      }
-    });
-    next();
+  const httpServer = createServer();
+
+  const io = new SocketIOServer(httpServer, {
+    cors: {
+      origin: process.env.CORS_ORIGIN || '*',
+      methods: ['GET', 'POST'],
+    },
   });
 
-  // Health check
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: Date.now() });
+  setupSocket(io);
+
+  const app = useExpressServer(httpServer, {
+    controllers,
+    validation: true,
+    defaultErrorHandler: false,
+    currentUserChecker,
+    errorHandler,
   });
 
-  // Auth routes
-  app.use('/api/auth', authRouter);
+  const PORT = process.env.PORT || 3110;
+  httpServer.listen(PORT, () => {
+    logger.info({ port: PORT }, 'Server started');
+  });
 
-  // Device routes
-  app.use('/api/devices', deviceRouter);
-
-  // Transfer routes
-  app.use('/api/transfers', transferRouter);
-
-  // Error handling
-  app.use(notFoundHandler);
-  app.use(errorHandler);
-
-  return app;
+  return { app, io };
 }
-
-export const app = createApp();
