@@ -1,5 +1,5 @@
 {
-  "extends": "@zen-send/typescript-config/base.json",
+  "extends": "@zen-send/typescript-config/node.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
