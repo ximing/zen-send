@@ -1,19 +1,43 @@
 import { Service } from '@rabjs/react';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { LoginRequest, RegisterRequest } from '@zen-send/dto';
 import type { AuthTokens } from '@zen-send/shared';
 
 const TOKEN_KEY = 'zen_send_tokens';
+const SERVER_URL_KEY = 'zen_send_server_url';
+const DEFAULT_SERVER_URL = 'http://localhost:3110';
 
 export class AuthService extends Service {
   accessToken: string | null = null;
   refreshToken: string | null = null;
   user: { id: string; email: string } | null = null;
-  serverUrl: string = 'http://localhost:3110';
+  serverUrl: string = DEFAULT_SERVER_URL;
 
   constructor() {
     super();
     this.loadTokens();
+    this.loadServerUrl();
+  }
+
+  private async loadServerUrl() {
+    try {
+      const stored = await AsyncStorage.getItem(SERVER_URL_KEY);
+      if (stored) {
+        this.serverUrl = stored;
+      }
+    } catch {
+      // Use default
+    }
+  }
+
+  async saveServerUrl(url: string): Promise<void> {
+    this.serverUrl = url;
+    await AsyncStorage.setItem(SERVER_URL_KEY, url);
+  }
+
+  async getServerUrl(): Promise<string> {
+    return this.serverUrl;
   }
 
   get isAuthenticated() {
@@ -53,8 +77,10 @@ export class AuthService extends Service {
     this.serverUrl = url;
   }
 
-  async login(request: LoginRequest): Promise<void> {
-    const response = await fetch(`${this.serverUrl}/api/auth/login`, {
+  async login(request: LoginRequest, serverUrl: string): Promise<void> {
+    // Save serverUrl before making any API calls
+    await this.saveServerUrl(serverUrl);
+    const response = await fetch(`${serverUrl}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
@@ -71,6 +97,26 @@ export class AuthService extends Service {
     }
 
     this.saveTokens(result.data);
+  }
+
+  async loginWithQrToken(token: string, serverUrl: string): Promise<void> {
+    // Save serverUrl before making any API calls
+    await this.saveServerUrl(serverUrl);
+    // Exchange pair token for auth tokens directly
+    const response = await fetch(`${serverUrl}/api/auth/pair-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Login failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(typeof result.data === 'string' ? result.data : 'Login failed');
+    }
+    await this.saveTokens(result.data);
   }
 
   async register(request: RegisterRequest): Promise<void> {

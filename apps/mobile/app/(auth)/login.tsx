@@ -9,9 +9,11 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useService, observer } from '@rabjs/react';
 import { AuthService } from '../../src/services/auth.service';
 import { ThemeService } from '../../src/services/theme.service';
+import QrScanner from '../../src/components/qr-scanner';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type AuthStackParamList = {
@@ -19,6 +21,7 @@ type AuthStackParamList = {
 };
 
 function LoginScreen() {
+  const router = useRouter();
   const authService = useService(AuthService);
   const themeService = useService(ThemeService);
   const colors = themeService.colors;
@@ -28,6 +31,21 @@ function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showQrScanner, setShowQrScanner] = useState(false);
+
+  const handleQrScan = async ({ token, serverUrl }: { token: string; serverUrl: string }) => {
+    setShowQrScanner(false);
+    setIsLoading(true);
+    setError(null);
+    try {
+      await authService.loginWithQrToken(token, serverUrl);
+      router.replace('/(main)');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'QR login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -39,8 +57,7 @@ function LoginScreen() {
     setError(null);
 
     try {
-      await authService.setServerUrl(serverUrl);
-      await authService.login({ email, password });
+      await authService.login({ email, password }, serverUrl);
       // Navigation will be handled by the root layout observing auth state
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -136,8 +153,18 @@ function LoginScreen() {
               <Text style={[styles.buttonText, { color: colors.bgSurface }]}>Sign In</Text>
             )}
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.qrButton} onPress={() => setShowQrScanner(true)}>
+            <Text style={[styles.qrButtonText, { color: colors.accent }]}>SCAN QR CODE</Text>
+          </TouchableOpacity>
         </View>
       </View>
+
+      <QrScanner
+        visible={showQrScanner}
+        onClose={() => setShowQrScanner(false)}
+        onScan={handleQrScan}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -198,6 +225,16 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  qrButton: {
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  qrButtonText: {
     fontSize: 14,
     fontWeight: '500',
   },
