@@ -128,4 +128,16 @@ export class AuthService {
   logout(refreshToken: string): void {
     this.invalidatedTokens.add(refreshToken);
   }
+
+  async pairLogin(token: string): Promise<AuthTokens> {
+    const { verifyRefreshToken } = await import('../utils/jwt.js');
+
+    const payload = verifyRefreshToken(token);
+
+    if (!payload.userId) {
+      throw new Error('Invalid pair token');
+    }
+
+    return this.generateTokens({ userId: payload.userId });
+  }
 }
