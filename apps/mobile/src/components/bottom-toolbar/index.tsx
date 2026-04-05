@@ -1,4 +1,4 @@
-import { View, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Text } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Text, Alert } from 'react-native';
 import { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import { useService, observer } from '@rabjs/react';
@@ -39,6 +39,19 @@ function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
     }
   };
 
+  const handlePasteClipboard = async () => {
+    try {
+      const content = await homeService.readClipboard();
+      if (content) {
+        setText(content);
+      } else {
+        Alert.alert('剪贴板为空', '没有可粘贴的内容');
+      }
+    } catch (err) {
+      console.error('Clipboard error:', err);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -51,6 +64,9 @@ function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={onSearchPress}>
             <Text style={styles.iconText}>🔍</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={handlePasteClipboard}>
+            <Text style={styles.iconText}>📋</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.inputRow}>
