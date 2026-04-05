@@ -133,7 +133,7 @@ export class HomeService extends Service {
       content: text,
       totalSize: new TextEncoder().encode(text).length,
       contentType: 'text/plain',
-      sourceDeviceId: 'mobile-device',
+      sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
     });
   }
 
@@ -172,7 +172,7 @@ export class HomeService extends Service {
             content,
             totalSize: size,
             contentType: doc.mimeType || 'application/octet-stream',
-            sourceDeviceId: 'mobile-device',
+            sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
           });
           this.updateProgress(sessionId, 100, size, size, 'completed');
         } else {
@@ -187,7 +187,7 @@ export class HomeService extends Service {
             totalSize: size,
             contentType: doc.mimeType || 'application/octet-stream',
             chunkCount: Math.ceil(size / (1024 * 1024)),
-            sourceDeviceId: 'mobile-device',
+            sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
           });
 
           // Upload chunks with parallelization and retry
