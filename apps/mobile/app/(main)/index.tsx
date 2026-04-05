@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useService, observer, bindServices } from '@rabjs/react';
+import Drawer from 'react-native-drawer';
 import { ThemeService } from '../../src/services/theme.service';
 import { HomeService } from '../../src/services/home.service';
 import Header from '../../src/components/header';
+import { DrawerContent } from '../../src/components/drawer';
 import FilterTabs from '../../src/components/filter-tabs';
 import TransferList from '../../src/components/transfer-list';
 import BottomToolbar from '../../src/components/bottom-toolbar';
@@ -20,6 +23,7 @@ interface HomeContentProps {
 
 function HomeContentInner({ homeService }: HomeContentProps) {
   const themeService = useService(ThemeService);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [previewTransfer, setPreviewTransfer] = useState<TransferSession | null>(null);
   const [searchVisible, setSearchVisible] = useState(false);
 
@@ -28,7 +32,6 @@ function HomeContentInner({ homeService }: HomeContentProps) {
     const url = await homeService.downloadTransfer(transfer);
     if (url) {
       try {
-        // For S3 URLs, download the file first then share
         if (url.startsWith('http')) {
           const fileUri = `${FileSystem.documentDirectory}${transfer.items?.[0]?.name ?? 'download'}`;
           const downloadedUri = await FileSystem.downloadAsync(url, fileUri);
@@ -36,7 +39,6 @@ function HomeContentInner({ homeService }: HomeContentProps) {
             await Sharing.shareAsync(downloadedUri.uri);
           }
         } else if (await Sharing.isAvailableAsync()) {
-          // For text content (data URI), share directly
           await Sharing.shareAsync(url);
         }
       } catch (err) {
@@ -46,19 +48,36 @@ function HomeContentInner({ homeService }: HomeContentProps) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]}>
-      <Header />
-      <SelectedFiles />
-      <FilterTabs />
-      <TransferList onItemPress={setPreviewTransfer} />
-      <BottomToolbar onSearchPress={() => setSearchVisible(true)} />
-      <PreviewModal
-        transfer={previewTransfer}
-        onClose={() => setPreviewTransfer(null)}
-        onDownload={handleDownload}
-      />
-      <SearchModal visible={searchVisible} onClose={() => setSearchVisible(false)} />
-    </View>
+    <Drawer
+      type="overlay"
+      content={<DrawerContent />}
+      open={drawerOpen}
+      onClose={() => setDrawerOpen(false)}
+      tapToClose={true}
+      openDrawerOffset={0}
+      panCloseMask={0.6}
+      styles={{
+        drawer: { backgroundColor: themeService.colors.bgSurface },
+        main: { backgroundColor: themeService.colors.bgPrimary },
+      }}
+    >
+      <SafeAreaView style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]} edges={['top', 'left', 'right', 'bottom']}>
+        <Header
+          onMenuPress={() => setDrawerOpen(true)}
+          onSearchPress={() => setSearchVisible(true)}
+        />
+        <SelectedFiles />
+        <FilterTabs />
+        <TransferList onItemPress={setPreviewTransfer} />
+        <BottomToolbar onSearchPress={() => setSearchVisible(true)} />
+        <PreviewModal
+          transfer={previewTransfer}
+          onClose={() => setPreviewTransfer(null)}
+          onDownload={handleDownload}
+        />
+        <SearchModal visible={searchVisible} onClose={() => setSearchVisible(false)} />
+      </SafeAreaView>
+    </Drawer>
   );
 }
 
