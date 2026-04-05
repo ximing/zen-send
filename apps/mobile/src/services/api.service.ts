@@ -16,22 +16,40 @@ export class ApiService extends Service {
     return this.authService.serverUrlWithProtocol;
   }
 
+  private isRefreshing = false;
+
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${path}`;
-    const authHeaders = this.authService.getAuthHeaders();
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-        ...options.headers,
-      },
-    });
+
+    const makeRequest = async (): Promise<Response> => {
+      const authHeaders = this.authService.getAuthHeaders();
+      return fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+          ...options.headers,
+        },
+      });
+    };
+
+    let response = await makeRequest();
+
+    // Handle 401 with token refresh (avoid infinite loops)
+    if (response.status === 401 && !this.isRefreshing && !path.includes('/auth/refresh')) {
+      this.isRefreshing = true;
+      try {
+        await this.authService.doRefreshToken();
+        response = await makeRequest();
+      } catch {
+        this.authService.handleUnauthorized();
+        throw new Error('Unauthorized');
+      } finally {
+        this.isRefreshing = false;
+      }
+    }
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Unauthorized');
-      }
       const error = await response.json().catch(() => ({ error: 'Request failed' }));
       throw new Error(error.error || `HTTP ${response.status}`);
     }

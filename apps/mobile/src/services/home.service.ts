@@ -214,15 +214,37 @@ export class HomeService extends Service {
           await Promise.all(
             chunks.map(async (chunk, idx) => {
               let attempts = 0;
+              let presignedUrl = initResponse.presignedUrls[idx];
               while (attempts < MAX_RETRIES && !uploadedChunks[idx]) {
                 try {
-                  const presignedUrl = initResponse.presignedUrls[idx];
-
-                  await fetch(presignedUrl, {
+                  const response = await fetch(presignedUrl, {
                     method: 'PUT',
                     body: chunk.blob,
                     signal: abortController.signal,
                   });
+
+                  // Re-request presigned URLs on 403/401
+                  if (response.status === 403 || response.status === 401) {
+                    const newInitResponse = await apiService.post<{
+                      sessionId: string;
+                      presignedUrls: string[];
+                      chunkSize: number;
+                    }>('/api/transfers/init', {
+                      type: 'file',
+                      fileName: doc.name,
+                      totalSize: size,
+                      contentType: doc.mimeType || 'application/octet-stream',
+                      chunkCount: Math.ceil(size / (1024 * 1024)),
+                      sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
+                    });
+                    presignedUrl = newInitResponse.presignedUrls[idx];
+                    attempts--;
+                    continue;
+                  }
+
+                  if (!response.ok) {
+                    throw new Error(`Upload failed with status ${response.status}`);
+                  }
 
                   // Report chunk
                   await apiService.post(`/api/transfers/${initResponse.sessionId}/chunks`, {
@@ -298,12 +320,19 @@ export class HomeService extends Service {
   }
 
   // Cancel an upload
-  cancelUpload(sessionId: string) {
+  async cancelUpload(sessionId: string): Promise<void> {
     const abortController = this.abortControllers.get(sessionId);
     if (abortController) {
       abortController.abort();
       this.updateProgress(sessionId, 0, 0, 0, 'cancelled');
     }
+    // Notify server to clean up the transfer
+    await this.apiService.deleteTransfer(sessionId);
+  }
+
+  // Remove an upload from the progress list
+  removeUpload(sessionId: string): void {
+    this.uploadProgress = this.uploadProgress.filter((p) => p.sessionId !== sessionId);
   }
 
   // Download transfer
