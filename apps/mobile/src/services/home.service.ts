@@ -247,7 +247,9 @@ export class HomeService extends Service {
                   }
                   attempts++;
                   if (attempts >= MAX_RETRIES) {
-                    throw new Error(`Chunk ${idx} failed after ${MAX_RETRIES} retries`);
+                    const err = new Error(`Chunk ${idx} failed after ${MAX_RETRIES} retries`);
+                    err.name = 'AbortError';
+                    throw err;
                   }
                 }
               }
