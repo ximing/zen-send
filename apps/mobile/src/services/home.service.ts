@@ -277,7 +277,7 @@ export class HomeService extends Service {
     }
   }
 
-  private updateProgress(
+  updateProgress(
     sessionId: string,
     progress: number,
     speed: number,
@@ -287,6 +287,14 @@ export class HomeService extends Service {
     this.uploadProgress = this.uploadProgress.map((p) =>
       p.sessionId === sessionId ? { ...p, progress, speed, eta, status } : p
     );
+  }
+
+  // Handle progress update from socket events
+  updateProgressFromSocket(sessionId: string, progress: number, speed: number) {
+    const existing = this.uploadProgress.find((p) => p.sessionId === sessionId);
+    if (existing) {
+      this.updateProgress(sessionId, progress, speed, 0, 'uploading');
+    }
   }
 
   // Cancel an upload

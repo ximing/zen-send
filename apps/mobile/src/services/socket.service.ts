@@ -18,6 +18,10 @@ export class SocketService extends Service {
     return this.resolve(NotificationService);
   }
 
+  get homeService() {
+    return this.resolve(HomeService);
+  }
+
   get serverUrl(): string {
     return this.authService.serverUrl.replace(/^http(s)?/, 'ws$1');
   }
@@ -53,8 +57,9 @@ export class SocketService extends Service {
       this.notificationService.showTransferNotification(title, body);
     });
 
-    this.socket.on('transfer:progress', (_data: unknown) => {
-      // Emit event for listeners
+    this.socket.on('transfer:progress', (data: unknown) => {
+      const payload = data as { sessionId: string; progress: number; speed: number };
+      this.homeService.updateProgressFromSocket(payload.sessionId, payload.progress, payload.speed);
     });
 
     this.socket.on('disconnect', () => {
@@ -86,3 +91,4 @@ export class SocketService extends Service {
 
 // Import for type resolution
 import { AuthService } from './auth.service';
+import { HomeService } from './home.service';
