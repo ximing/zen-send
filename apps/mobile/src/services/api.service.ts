@@ -13,7 +13,7 @@ export class ApiService extends Service {
   }
 
   private get baseUrl(): string {
-    return this.authService.getServerUrl();
+    return this.authService.serverUrlWithProtocol;
   }
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -30,9 +30,6 @@ export class ApiService extends Service {
 
     if (!response.ok) {
       if (response.status === 401) {
-        // In React Native, we can't redirect to login via window.location
-        // The auth service should handle token clearing and navigation
-        this.authService.handleUnauthorized();
         throw new Error('Unauthorized');
       }
       const error = await response.json().catch(() => ({ error: 'Request failed' }));
