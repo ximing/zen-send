@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { useService, observer } from '@rabjs/react';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { AuthService } from '../../src/services/auth.service';
 import { SocketService } from '../../src/services/socket.service';
 
@@ -12,7 +13,8 @@ function MainLayoutInner() {
     if (authService.isAuthenticated && authService.user) {
       // Load or generate device ID (loadDeviceId handles persistence)
       authService.loadDeviceId().then((deviceId) => {
-        socketService.connect(deviceId, 'Mobile Device', 'ios');
+        const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
+        socketService.connect(deviceId, 'Mobile Device', deviceType);
       });
     }
     return () => {
