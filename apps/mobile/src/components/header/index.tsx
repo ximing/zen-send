@@ -1,35 +1,25 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
-import { AuthService } from '../../services/auth.service';
 
-function HeaderInner() {
-  const router = useRouter();
+interface HeaderProps {
+  onMenuPress: () => void;
+  onSearchPress: () => void;
+}
+
+function HeaderInner({ onMenuPress, onSearchPress }: HeaderProps) {
   const themeService = useService(ThemeService);
-  const authService = useService(AuthService);
   const colors = themeService.colors;
-
-  const handleThemeToggle = () => {
-    themeService.toggleTheme();
-  };
-
-  const handleLogout = async () => {
-    await authService.logout();
-    router.replace('/(auth)/login');
-  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderSubtle }]}>
+      <TouchableOpacity style={styles.menuButton} onPress={onMenuPress}>
+        <Text style={[styles.menuIcon, { color: colors.textPrimary }]}>☰</Text>
+      </TouchableOpacity>
       <Text style={[styles.logo, { color: colors.textPrimary }]}>ZEN_SEND</Text>
-      <View style={styles.actions}>
-        <TouchableOpacity style={styles.iconButton} onPress={handleThemeToggle}>
-          <Text style={{ fontSize: 18 }}>{themeService.isDark ? '☀️' : '🌙'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={handleLogout}>
-          <Text style={{ fontSize: 18 }}>🚪</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.searchButton} onPress={onSearchPress}>
+        <Text style={{ fontSize: 18 }}>🔍</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -43,17 +33,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderBottomWidth: 1,
   },
+  menuButton: {
+    padding: 8,
+    minWidth: 44,
+  },
+  menuIcon: {
+    fontSize: 20,
+    fontWeight: '500',
+  },
   logo: {
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 1,
   },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  iconButton: {
+  searchButton: {
     padding: 8,
+    minWidth: 44,
+    alignItems: 'flex-end',
   },
 });
 
