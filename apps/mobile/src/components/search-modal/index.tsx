@@ -1,10 +1,31 @@
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { HomeService } from '../../services/home.service';
 import TransferItem from '../transfer-item';
 import type { TransferSession } from '@zen-send/shared';
+
+const TIME_FILTERS = [
+  { label: '全部', value: 'all' },
+  { label: '今天', value: 'today' },
+  { label: '本周', value: 'week' },
+  { label: '本月', value: 'month' },
+];
+
+function isInTimeFilter(transfer: TransferSession, filter: string): boolean {
+  const now = Date.now();
+  const createdAt = transfer.createdAt * 1000;
+  const diff = now - createdAt;
+  const day = 24 * 60 * 60 * 1000;
+
+  switch (filter) {
+    case 'today': return diff < day;
+    case 'week': return diff < 7 * day;
+    case 'month': return diff < 30 * day;
+    default: return true;
+  }
+}
 
 interface SearchModalProps {
   visible: boolean;
@@ -16,6 +37,7 @@ function SearchModalInner({ visible, onClose }: SearchModalProps) {
   const homeService = useService(HomeService);
   const colors = themeService.colors;
   const [query, setQuery] = useState('');
+  const [timeFilter, setTimeFilter] = useState('all');
 
   const handleSearch = (text: string) => {
     setQuery(text);
@@ -24,9 +46,12 @@ function SearchModalInner({ visible, onClose }: SearchModalProps) {
 
   const handleClose = () => {
     setQuery('');
+    setTimeFilter('all');
     homeService.setSearchQuery('');
     onClose();
   };
+
+  const filteredByTime = homeService.filteredTransfers.filter((t) => isInTimeFilter(t, timeFilter));
 
   return (
     <Modal visible={visible} onRequestClose={handleClose} animationType="slide">
@@ -45,8 +70,34 @@ function SearchModalInner({ visible, onClose }: SearchModalProps) {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {TIME_FILTERS.map((filter) => (
+              <TouchableOpacity
+                key={filter.value}
+                style={[
+                  styles.filterTab,
+                  {
+                    backgroundColor: timeFilter === filter.value ? colors.accent : colors.bgSurface,
+                  },
+                ]}
+                onPress={() => setTimeFilter(filter.value)}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    { color: timeFilter === filter.value ? '#FFFFFF' : colors.textPrimary },
+                  ]}
+                >
+                  {filter.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
         <FlatList
-          data={homeService.filteredTransfers}
+          data={filteredByTime}
           renderItem={({ item }) => (
             <TransferItem
               transfer={item}
@@ -82,6 +133,20 @@ const styles = StyleSheet.create({
   },
   cancel: {
     fontSize: 14,
+    fontWeight: '500',
+  },
+  filterContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  filterTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  filterText: {
+    fontSize: 13,
     fontWeight: '500',
   },
   list: {

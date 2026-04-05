@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { register } from '@rabjs/react';
+import { register, useService, observer } from '@rabjs/react';
 import { StatusBar } from 'expo-status-bar';
 import { ApiService } from '../src/services/api.service';
 import { AuthService } from '../src/services/auth.service';
@@ -12,10 +12,12 @@ register(AuthService);
 register(ThemeService);
 register(SocketService);
 
-export default function RootLayout() {
+function RootLayoutInner() {
+  const themeService = useService(ThemeService);
+
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar style={themeService.isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)/login" />
         <Stack.Screen name="(main)" />
@@ -23,3 +25,5 @@ export default function RootLayout() {
     </>
   );
 }
+
+export default observer(RootLayoutInner);

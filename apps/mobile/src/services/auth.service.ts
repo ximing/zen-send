@@ -167,6 +167,36 @@ export class AuthService extends Service {
     }
   }
 
+  async doRefreshToken(): Promise<void> {
+    if (!this.refreshToken) {
+      throw new Error('No refresh token');
+    }
+    const response = await fetch(`${this.serverUrl}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: this.refreshToken }),
+    });
+
+    if (!response.ok) {
+      this.handleUnauthorized();
+      throw new Error('Token refresh failed');
+    }
+
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error('Token refresh failed');
+    }
+
+    await this.saveTokens(result.data);
+  }
+
+  handleUnauthorized(): void {
+    this.accessToken = null;
+    this.refreshToken = null;
+    this.user = null;
+    SecureStore.deleteItemAsync(TOKEN_KEY).catch(console.error);
+  }
+
   getAuthHeaders(): Record<string, string> {
     if (!this.accessToken) return {};
     return { Authorization: `Bearer ${this.accessToken}` };
