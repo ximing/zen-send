@@ -10,8 +10,10 @@ function MainLayoutInner() {
 
   useEffect(() => {
     if (authService.isAuthenticated && authService.user) {
-      const deviceId = 'mobile-' + Math.random().toString(36).slice(2);
-      socketService.connect(deviceId, 'Mobile Device', 'ios');
+      // Load or generate device ID (loadDeviceId handles persistence)
+      authService.loadDeviceId().then((deviceId) => {
+        socketService.connect(deviceId, 'Mobile Device', 'ios');
+      });
     }
     return () => {
       socketService.disconnect();
