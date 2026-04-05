@@ -6,6 +6,8 @@ import { HomeService } from '../../src/services/home.service';
 import Header from '../../src/components/header';
 import FilterTabs from '../../src/components/filter-tabs';
 import TransferList from '../../src/components/transfer-list';
+import BottomToolbar from '../../src/components/bottom-toolbar';
+import SelectedFiles from '../../src/components/selected-files';
 import type { TransferSession } from '@zen-send/shared';
 
 interface HomeContentProps {
@@ -19,8 +21,10 @@ function HomeContentInner({ homeService }: HomeContentProps) {
   return (
     <View style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]}>
       <Header />
+      <SelectedFiles />
       <FilterTabs />
       <TransferList onItemPress={setPreviewTransfer} />
+      <BottomToolbar />
     </View>
   );
 }
