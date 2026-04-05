@@ -13,8 +13,12 @@
     "lint": "eslint app/"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "@rabjs/react": "^9.0.5",
+    "@zen-send/dto": "workspace:*",
     "@zen-send/shared": "workspace:*",
     "expo": "~55.0.0",
+    "expo-constants": "~17.0.0",
     "expo-status-bar": "~2.0.0",
     "react": "^19.0.0",
     "react-native": "^0.84.1",
