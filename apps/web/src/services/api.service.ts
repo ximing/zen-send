@@ -37,7 +37,7 @@ export class ApiService extends Service {
       // Handle 401 by redirecting to login
       if (response.status === 401) {
         localStorage.removeItem('zen_send_tokens');
-        window.location.href = '/login';
+        window.location.href = '/#/login';
         throw new Error('Unauthorized');
       }
       const error = await response.json().catch(() => ({ error: 'Request failed' }));
