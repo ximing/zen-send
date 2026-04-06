@@ -203,7 +203,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
 
     return (
       <div
-        className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-2 px-3`}
+        className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-2 px-1`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         title={new Date(transfer.createdAt).toLocaleString('zh-CN')}
@@ -230,14 +230,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
 
           {/* Bubble */}
           <div
-            className={`relative max-w-[75%] min-w-[180px] rounded-2xl px-5 py-3 transition-all duration-150
+            className={`relative max-w-[70%] min-w-[180px] rounded-2xl px-4 py-2.5 transition-all duration-150
             ${isPending ? 'bg-[var(--bg-surface)] opacity-50' : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80'}
             ${isHovered ? 'shadow-lg' : ''}
           `}
           >
             {/* Image message - full width, no gap */}
             {imageUrl && itemType !== 'text' && isImageType(effectiveContentType) ? (
-              <div className="w-full -mx-5">
+              <div className="w-full -mx-4">
                 <img
                   src={imageUrl}
                   alt={transfer.originalFileName}

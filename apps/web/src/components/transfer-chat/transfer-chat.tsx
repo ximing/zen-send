@@ -122,10 +122,10 @@ const TransferChatContent = observer(() => {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 w-full items-stretch">
+    <div className="flex flex-col flex-1 min-h-0 w-full overflow-hidden">
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 overflow-y-auto space-y-3 py-3"
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden space-y-3 py-2"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

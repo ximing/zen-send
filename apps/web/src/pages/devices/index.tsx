@@ -4,13 +4,15 @@ import QRCode from 'qrcode';
 import Sidebar from '../../components/sidebar';
 import { DeviceService } from '../../services/device.service';
 import { ThemeService } from '../../services/theme.service';
-import type { Device, DeviceType } from '@zen-send/shared';
+import { AuthService } from '../../services/auth.service';
+import type { Device, DeviceType, AuthTokens } from '@zen-send/shared';
 import { RefreshCw, Trash2, X, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import iconSprite from '../../assets/icon.png';
 
 const DevicesPage = observer(() => {
   const deviceService = useService(DeviceService);
   const themeService = useService(ThemeService);
+  const authService = useService(AuthService);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [deviceToRemove, setDeviceToRemove] = useState<Device | null>(null);
   const [removing, setRemoving] = useState(false);
@@ -25,14 +27,19 @@ const DevicesPage = observer(() => {
   }, []);
 
   const generateQRCode = useCallback(async () => {
-    const deviceName = navigator.userAgent.includes('Mobile') ? 'Web Mobile' : 'Web Browser';
-    await deviceService.generatePairToken(deviceName);
-    if (deviceService.pairToken) {
-      const serverUrl = window.location.origin;
-      const url = `${serverUrl}/pair?token=${deviceService.pairToken}`;
-      const qr = await QRCode.toDataURL(url, { width: 200, margin: 2 });
-      setQrCodeUrl(qr);
+    if (!authService.isAuthenticated || !authService.accessToken) {
+      return;
     }
+    // QR code contains full auth tokens for direct login on mobile
+    const tokens: AuthTokens = {
+      accessToken: authService.accessToken,
+      refreshToken: authService.refreshToken || '',
+      user: authService.user!,
+    };
+    const serverUrl = window.location.origin;
+    const url = `${serverUrl}/api/auth/qr-login?data=${encodeURIComponent(JSON.stringify(tokens))}`;
+    const qr = await QRCode.toDataURL(url, { width: 200, margin: 2 });
+    setQrCodeUrl(qr);
   }, []);
 
   const handleRemoveDevice = async () => {

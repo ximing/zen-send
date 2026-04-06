@@ -78,9 +78,9 @@ const BottomToolbarContent = observer(() => {
   }, []);
 
   return (
-    <div className="w-full bg-[var(--bg-surface)]/90 backdrop-blur-xl rounded-3xl px-6 py-4 shadow-lg">
+    <div className="w-full bg-[var(--bg-surface)]/90 backdrop-blur-xl rounded-3xl px-4 py-3 shadow-lg overflow-hidden shrink-0" style={{ maxWidth: '100%', minHeight: '88px' }}>
       {/* Icons row */}
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center gap-3 mb-1.5">
         <button
           type="button"
           onClick={handlePaperclipClick}

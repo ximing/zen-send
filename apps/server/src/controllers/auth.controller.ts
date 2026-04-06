@@ -3,7 +3,6 @@ import { JsonController, Post, Body, HttpCode, HttpError } from 'routing-control
 import { Service } from 'typedi';
 import { AuthService, AuthError } from '../services/auth.service.js';
 import { RegisterDto, LoginDto, RefreshTokenDto } from '../validators/auth.validator.js';
-import { PairLoginDto } from '../validators/pair-login.validator.js';
 import { ResponseUtil } from '../utils/response.js';
 
 @JsonController('/api/auth')
@@ -55,17 +54,6 @@ export class AuthController {
       return ResponseUtil.success({ message: 'Logged out successfully' });
     } catch (error) {
       throw new HttpError(500, 'Logout failed');
-    }
-  }
-
-  @Post('/pair-login')
-  @HttpCode(200)
-  async pairLogin(@Body() dto: PairLoginDto) {
-    try {
-      const tokens = await this.authService.pairLogin(dto.token);
-      return ResponseUtil.success(tokens);
-    } catch (error) {
-      throw new HttpError(401, 'Pair login failed');
     }
   }
 }

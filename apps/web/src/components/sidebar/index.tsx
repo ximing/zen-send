@@ -97,7 +97,7 @@ const SidebarContent = observer(() => {
 
   return (
     <aside
-      className="fixed left-0 top-0 h-full w-[68px] flex flex-col
+      className="fixed left-0 top-0 h-full w-16 flex flex-col
                  bg-[var(--bg-surface)]
                  z-40"
     >

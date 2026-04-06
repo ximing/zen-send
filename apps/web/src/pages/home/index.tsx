@@ -115,22 +115,22 @@ const HomeContent = observer(() => {
 
   return (
     <div
-      className={`h-screen bg-[var(--bg-primary)] flex ${isDragging ? 'ring-2 ring-[var(--primary)] ring-inset' : ''}`}
+      className={`h-screen bg-[var(--bg-primary)] flex overflow-hidden ${isDragging ? 'ring-2 ring-[var(--primary)] ring-inset' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <Sidebar />
 
-      <main className="flex-1 ml-16 px-4 py-4 overflow-hidden flex flex-col">
-        <div className="max-w-2xl mx-auto flex flex-col flex-1 min-h-0 overflow-hidden">
+      <main className="flex-1 ml-16 px-2 py-2 flex flex-col min-h-0 overflow-hidden">
+        <div className="w-full flex flex-col flex-1 min-h-0 overflow-hidden">
           <TransferChat />
 
           {service.selectedFiles.length > 0 && (
-            <div className="mt-10">
+            <div className="shrink-0 pt-2">
               <button
                 onClick={() => sendToolbarService.sendFiles()}
-                className="w-full py-4 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-xl
+                className="w-full py-3 px-4 bg-[var(--primary)] text-[var(--on-primary)] rounded-xl
                          font-medium tracking-wider hover:bg-[var(--primary-hover)] transition-colors"
               >
                 SEND
