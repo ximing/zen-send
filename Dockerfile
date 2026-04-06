@@ -22,14 +22,14 @@ COPY apps/server/.env.example ./apps/server/
 RUN pnpm install --prod=false
 
 # Build workspace packages in dependency order
-# Clear incremental build cache for all packages and build
-RUN rm -f packages/dto/tsconfig.tsbuildinfo packages/logger/tsconfig.tsbuildinfo packages/shared/tsconfig.tsbuildinfo apps/server/tsconfig.tsbuildinfo 2>/dev/null || true && \
-    echo "=== Building dto ===" && pnpm --filter @zen-send/dto build && \
-    echo "=== Building logger ===" && pnpm --filter @zen-send/logger build && \
-    echo "=== Building shared ===" && pnpm --filter @zen-send/shared build && \
-    echo "=== Building server ===" && pnpm --filter @zen-send/server build && \
-    echo "=== Build complete ===" && \
-    ls -la apps/server/dist/ 2>&1 || echo "Server dist missing!"
+# Clear incremental build cache for all packages first
+RUN rm -f packages/dto/tsconfig.tsbuildinfo packages/logger/tsconfig.tsbuildinfo packages/shared/tsconfig.tsbuildinfo apps/server/tsconfig.tsbuildinfo
+
+# Build each package separately to ensure proper dependency order
+RUN pnpm --filter @zen-send/dto build
+RUN pnpm --filter @zen-send/logger build
+RUN pnpm --filter @zen-send/shared build
+RUN pnpm --filter @zen-send/server build
 
 # Production stage
 FROM node:22-alpine AS production
