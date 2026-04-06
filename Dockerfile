@@ -67,7 +67,7 @@ COPY --from=builder /app/packages/logger/dist ./packages/logger/dist
 # Copy server source (needed for runtime)
 COPY config ./config
 COPY apps/server/src ./apps/server/src
-COPY apps/server/public ./apps/server/public
+COPY --from=builder /app/apps/server/public ./apps/server/public
 COPY apps/server/drizzle.config.ts ./apps/server/
 COPY apps/server/.env.example ./apps/server/
 
