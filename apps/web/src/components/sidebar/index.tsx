@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { isElectron } from '../../lib/env';
 import { SidebarService } from './sidebar-service';
+import { SocketService } from '../../services/socket.service';
 
 interface NavItem {
   icon: LucideIcon;
@@ -79,8 +80,11 @@ const NavButton: React.FC<NavButtonProps> = ({ item, isActive, onClick }) => {
 
 const SidebarContent = observer(() => {
   const service = useService(SidebarService);
+  const socketService = useService(SocketService);
   const navigate = useNavigate();
   const location = useLocation();
+
+  console.log('[Sidebar] socketService.isConnected:', socketService.isConnected);
 
   const handleLogout = async () => {
     await service.logout();
@@ -114,8 +118,20 @@ const SidebarContent = observer(() => {
         ))}
       </div>
 
-      {/* Bottom: Settings, Theme, User, Logout */}
+      {/* Bottom: Connection Status, Settings, Theme, User, Logout */}
       <div className="flex flex-col items-center gap-2 py-4 mt-auto">
+        {/* Connection status */}
+        <Tooltip label={socketService.isConnected ? 'WebSocket connected' : 'WebSocket disconnected'} position="right">
+          <div
+            className="w-10 h-10 flex items-center justify-center rounded-md"
+          >
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: socketService.isConnected ? '#22C55E' : '#EF4444' }}
+            />
+          </div>
+        </Tooltip>
+
         {/* Settings (placeholder, disabled) */}
         <Tooltip label="Settings (coming soon)" position="right">
           <button

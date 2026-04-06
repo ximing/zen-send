@@ -26,6 +26,11 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
     router.replace('/(auth)/login');
   };
 
+  const handleDownloads = () => {
+    onClose?.();
+    router.push('/(main)/downloads');
+  };
+
   const user = authService.user;
   const serverUrl = authService.serverUrl;
 
@@ -51,6 +56,16 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
 
       {/* Actions Section */}
       <View style={styles.actionsSection}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={handleDownloads}
+        >
+          <Ionicons name="cloud-download-outline" size={20} color={colors.textPrimary} />
+          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
+            下载
+          </Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.actionButton}
           onPress={handleThemeToggle}

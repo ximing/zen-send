@@ -89,9 +89,9 @@ export class WindowManager {
     this.window = new BrowserWindow({
       x: bounds.x,
       y: bounds.y,
-      width: bounds.width ?? 1200,
+      width: bounds.width ?? 460,
       height: bounds.height ?? 800,
-      minWidth: 800,
+      minWidth: 460,
       minHeight: 600,
       show: false,
       title: 'Zen Send',

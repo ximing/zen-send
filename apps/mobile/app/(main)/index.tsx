@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Modal, View, TouchableOpacity, Text, Animated, Dimensions } from 'react-native';
+import { StyleSheet, Modal, View, TouchableOpacity, Text, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useService, observer, bindServices } from '@rabjs/react';
+import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../src/services/theme.service';
 import { HomeService } from '../../src/services/home.service';
 import Header from '../../src/components/header';
@@ -13,16 +13,11 @@ import SelectedFiles from '../../src/components/selected-files';
 import PreviewModal from '../../src/components/preview-modal';
 import DrawerContent from '../../src/components/drawer/drawer-content';
 import type { TransferSession } from '@zen-send/shared';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 
-interface HomeContentProps {
-  homeService: HomeService;
-}
-
-function HomeContentInner({ homeService }: HomeContentProps) {
+function HomeContentInner() {
   const router = useRouter();
   const themeService = useService(ThemeService);
+  const homeService = useService(HomeService);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [previewTransfer, setPreviewTransfer] = useState<TransferSession | null>(null);
   const drawerTranslateX = useRef(new Animated.Value(-280)).current;
@@ -59,22 +54,8 @@ function HomeContentInner({ homeService }: HomeContentProps) {
   }, [drawerVisible]);
 
   const handleDownload = async (transfer: TransferSession) => {
-    const url = await homeService.downloadTransfer(transfer);
-    if (url) {
-      try {
-        if (url.startsWith('http')) {
-          const fileUri = `${FileSystem.documentDirectory}${transfer.items?.[0]?.name ?? 'download'}`;
-          const downloadedUri = await FileSystem.downloadAsync(url, fileUri);
-          if (downloadedUri.uri && (await Sharing.isAvailableAsync())) {
-            await Sharing.shareAsync(downloadedUri.uri);
-          }
-        } else if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(url);
-        }
-      } catch (err) {
-        console.error('Failed to share download:', err);
-      }
-    }
+    homeService.startDownload(transfer);
+    router.push('/(main)/downloads');
   };
 
   return (
@@ -91,7 +72,7 @@ function HomeContentInner({ homeService }: HomeContentProps) {
           onDownload={(t) => handleDownload(t)}
           onPreview={setPreviewTransfer}
         />
-        <BottomToolbar onSearchPress={() => router.push('/(main)/search')} />
+        <BottomToolbar />
         <PreviewModal
           transfer={previewTransfer}
           onClose={() => setPreviewTransfer(null)}
@@ -123,12 +104,6 @@ function HomeContentInner({ homeService }: HomeContentProps) {
   );
 }
 
-const HomeContent = bindServices(HomeContentInner, [HomeService]);
-
-function HomeScreen() {
-  return <HomeContent />;
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -153,4 +128,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default observer(HomeScreen);
+export default observer(HomeContentInner);

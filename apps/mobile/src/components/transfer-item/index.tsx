@@ -1,11 +1,19 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { observer } from '@rabjs/react';
 import { useService } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
+import { ApiService } from '../../services/api.service';
 import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
+import { useState, useEffect } from 'react';
+
+// Check if mime type is an image
+const isImageMimeType = (mimeType: string | null): boolean => {
+  if (!mimeType) return false;
+  return mimeType.startsWith('image/');
+};
 
 interface TransferItemProps {
   transfer: TransferSession;
@@ -16,14 +24,41 @@ interface TransferItemProps {
 
 function TransferItemInner({ transfer, onPress, onDownload, onPreview }: TransferItemProps) {
   const themeService = useService(ThemeService);
+  const apiService = useService(ApiService);
   const colors = themeService.colors;
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
 
   const firstItem = transfer.items?.[0];
   const isText = firstItem?.type === 'text';
+  const isImage = !isText && isImageMimeType(firstItem?.mimeType ?? null);
   const name = isText ? firstItem?.content?.slice(0, 30) || 'Text' : firstItem?.name || 'File';
   const size = isText ? 'Text' : firstItem?.size ? formatSize(firstItem.size) : 'File';
 
   const timeAgo = getRelativeTime(transfer.createdAt);
+
+  // Load thumbnail for images
+  useEffect(() => {
+    if (!isImage || !firstItem?.id) {
+      setThumbnailUrl(null);
+      return;
+    }
+
+    // For images stored in S3, get the download URL using ApiService
+    if (firstItem.storageType === 's3') {
+      apiService.getTransferDownloadUrl(transfer.id)
+        .then((url) => {
+          setThumbnailUrl(url);
+        })
+        .catch(() => setThumbnailUrl(null));
+    } else if (firstItem.storageType === 'db' && firstItem.content) {
+      // For small images stored in DB (base64 or text content)
+      if (firstItem.content.startsWith('data:image')) {
+        setThumbnailUrl(firstItem.content);
+      } else if (firstItem.content.startsWith('http')) {
+        setThumbnailUrl(firstItem.content);
+      }
+    }
+  }, [isImage, firstItem, transfer.id, apiService]);
 
   const handleCopy = async () => {
     if (firstItem?.content) {
@@ -46,11 +81,19 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
       onPress={onPress}
     >
       <View style={[styles.iconContainer, { backgroundColor: colors.bgElevated }]}>
-        <Ionicons
-          name={isText ? 'create-outline' : 'document-outline'}
-          size={20}
-          color={colors.textSecondary}
-        />
+        {isImage && thumbnailUrl ? (
+          <Image
+            source={{ uri: thumbnailUrl }}
+            style={styles.thumbnail}
+            resizeMode="cover"
+          />
+        ) : (
+          <Ionicons
+            name={isText ? 'create-outline' : isImage ? 'image-outline' : 'document-outline'}
+            size={20}
+            color={colors.textSecondary}
+          />
+        )}
       </View>
       <View style={styles.content}>
         <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
@@ -114,6 +157,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  thumbnail: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
   },
   content: {
     flex: 1,

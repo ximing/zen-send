@@ -1,28 +1,15 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { observer, useService, bindServices } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
-import { HomeService, UploadingFile } from './home.service';
+import { HomeService } from './home.service';
 import { AuthService } from '../../services/auth.service';
 import { SendToolbarService } from './send-toolbar.service';
 import { SocketService } from '../../services/socket.service';
 import TransferChat from '../../components/transfer-chat';
 import Sidebar from '../../components/sidebar';
 import Toast from '../../components/toast';
-import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { getMimeTypeFromExtension } from '../../lib/zen-bridge';
-
-const formatSpeed = (bytesPerSec: number): string => {
-  if (bytesPerSec > 1024 * 1024) {
-    return `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`;
-  }
-  return `${(bytesPerSec / 1024).toFixed(1)} KB/s`;
-};
-
-const formatEta = (seconds: number): string => {
-  if (seconds < 60) return `${Math.ceil(seconds)}s`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.ceil(seconds % 60)}s`;
-  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
-};
 
 const HomeContent = observer(() => {
   const service = useService(HomeService);
@@ -126,95 +113,6 @@ const HomeContent = observer(() => {
     [service]
   );
 
-  const formatSize = (bytes: number): string => {
-    if (bytes >= 1024 * 1024) {
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    }
-    if (bytes >= 1024) {
-      return `${(bytes / 1024).toFixed(1)} KB`;
-    }
-    return `${bytes} B`;
-  };
-
-  const renderUploadProgress = (upload: UploadingFile) => {
-    const icon =
-      upload.status === 'completed'
-        ? CheckCircle
-        : upload.status === 'failed'
-          ? AlertCircle
-          : Upload;
-    const iconColor =
-      upload.status === 'completed'
-        ? 'text-[var(--color-success)]'
-        : upload.status === 'failed'
-          ? 'text-[var(--color-error)]'
-          : 'text-[var(--text-secondary)]';
-
-    return (
-      <div
-        key={upload.id}
-        className="flex items-center gap-3 p-3 bg-[var(--bg-elevated)] rounded-lg"
-      >
-        {React.createElement(icon, { size: 16, className: iconColor })}
-        <div className="flex-1 min-w-0">
-          <div className="text-sm text-[var(--text-primary)] truncate">{upload.name}</div>
-          {upload.status === 'uploading' && (
-            <>
-              <div className="mt-1 h-[3px] bg-[var(--border-subtle)] rounded-[2px] overflow-hidden">
-                <div
-                  className="h-full bg-[var(--accent)] transition-[width] duration-200 ease"
-                  style={{ width: `${upload.progress}%` }}
-                />
-              </div>
-              <div className="flex items-center gap-2 mt-1 text-xs text-[var(--text-secondary)]">
-                {upload.speed !== undefined && upload.speed > 0 && (
-                  <span>{formatSpeed(upload.speed)}</span>
-                )}
-                {upload.eta !== undefined && upload.eta > 0 && (
-                  <span>ETA {formatEta(upload.eta)}</span>
-                )}
-              </div>
-            </>
-          )}
-          {upload.status === 'completed' && (
-            <div className="text-xs text-[var(--text-secondary)] mt-1">
-              {formatSize(upload.size)}
-            </div>
-          )}
-          {upload.status === 'failed' && (
-            <div className="flex items-center gap-2 mt-1">
-              <div className="text-xs text-[var(--color-error)]">{upload.error}</div>
-              <button
-                onClick={() => service.retryUpload(upload.id)}
-                className="text-xs font-medium text-[var(--primary)] hover:text-[var(--primary-hover)]"
-              >
-                Retry
-              </button>
-            </div>
-          )}
-        </div>
-        {(upload.status === 'uploading' || upload.status === 'pending') && (
-          <button
-            onClick={() => service.cancelUpload(upload.id)}
-            className="text-[var(--text-muted)] hover:text-[var(--color-error)]"
-          >
-            <X size={16} />
-          </button>
-        )}
-        {(upload.status === 'completed' ||
-          upload.status === 'cancelled' ||
-          upload.status === 'failed') && (
-          <button
-            onClick={() => service.removeUpload(upload.id)}
-            className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-          >
-            <X size={16} />
-          </button>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div
       className={`h-screen bg-[var(--bg-primary)] flex ${isDragging ? 'ring-2 ring-[var(--primary)] ring-inset' : ''}`}
@@ -226,13 +124,6 @@ const HomeContent = observer(() => {
 
       <main className="flex-1 ml-16 px-4 py-4 overflow-hidden flex flex-col">
         <div className="max-w-2xl mx-auto flex flex-col flex-1 min-h-0 overflow-hidden">
-          {service.uploadingFiles.length > 0 && (
-            <div className="mb-8">
-              <div className="label mb-3">UPLOADING</div>
-              <div className="space-y-2">{service.uploadingFiles.map(renderUploadProgress)}</div>
-            </div>
-          )}
-
           <TransferChat />
 
           {service.selectedFiles.length > 0 && (

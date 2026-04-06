@@ -71,11 +71,13 @@ export class AuthService extends Service {
   private async loadTokens() {
     try {
       const stored = await SecureStore.getItemAsync(TOKEN_KEY);
+      console.log('[Auth] Stored tokens:', stored ? JSON.parse(stored) : null);
       if (stored) {
         const tokens: AuthTokens = JSON.parse(stored);
         this.accessToken = tokens.accessToken;
         this.refreshToken = tokens.refreshToken;
         this.user = tokens.user;
+        console.log('[Auth] Loaded user:', this.user);
       }
     } catch {
       await SecureStore.deleteItemAsync(TOKEN_KEY);
@@ -109,7 +111,7 @@ export class AuthService extends Service {
       throw new Error(typeof result.data === 'string' ? result.data : 'Login failed');
     }
 
-    this.saveTokens(result.data);
+    await this.saveTokens(result.data);
   }
 
   async loginWithQrToken(token: string, serverUrl: string): Promise<void> {
@@ -147,7 +149,7 @@ export class AuthService extends Service {
       throw new Error(typeof result.data === 'string' ? result.data : 'Registration failed');
     }
 
-    this.saveTokens(result.data);
+    await this.saveTokens(result.data);
   }
 
   async logout(): Promise<void> {

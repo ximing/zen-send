@@ -21,10 +21,11 @@ const PreviewModalComponent = observer(() => {
   const transfer = homeService.previewTransfer;
   const isOpen = transfer !== null;
 
-  // Determine content type
+  // Determine content type - prefer item mimeType over session contentType
   const firstItem = transfer?.items?.[0];
-  const isImage = firstItem?.type === 'file' && firstItem?.mimeType?.startsWith('image/');
-  const isText = firstItem?.type === 'text' || transfer?.contentType?.startsWith('text/');
+  const effectiveContentType = firstItem?.mimeType || transfer?.contentType;
+  const isImage = firstItem?.type === 'file' && effectiveContentType?.startsWith('image/');
+  const isText = firstItem?.type === 'text' || effectiveContentType?.startsWith('text/');
 
   // Size limits for preview (show info+download only beyond these)
   const IMAGE_PREVIEW_MAX_SIZE = 50 * 1024 * 1024; // 50MB

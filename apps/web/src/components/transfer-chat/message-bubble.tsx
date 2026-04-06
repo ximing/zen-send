@@ -31,6 +31,19 @@ const isImageType = (contentType?: string) => {
   return contentType.startsWith('image/');
 };
 
+const formatSpeed = (bytesPerSec: number): string => {
+  if (bytesPerSec > 1024 * 1024) {
+    return `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`;
+  }
+  return `${(bytesPerSec / 1024).toFixed(1)} KB/s`;
+};
+
+const formatEta = (seconds: number): string => {
+  if (seconds < 60) return `${Math.ceil(seconds)}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.ceil(seconds % 60)}s`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+};
+
 interface DeviceIconProps {
   deviceType: DeviceType;
   className?: string;
@@ -100,6 +113,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
     const itemType = firstItem?.type || 'file';
     const icon = TYPE_ICONS[itemType];
 
+    // Determine content type for image detection - prefer item mimeType over session contentType
+    const effectiveContentType = firstItem?.mimeType || transfer.contentType;
+
     // Multi-file detection
     const itemCount = transfer.items?.length ?? 1;
     const isMultiFile = itemCount > 1;
@@ -117,7 +133,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
 
     // Load image preview for image types
     useEffect(() => {
-      if (!isImageType(transfer.contentType)) {
+      if (!isImageType(effectiveContentType)) {
         setImageUrl(null);
         return;
       }
@@ -141,7 +157,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
           return null;
         });
       };
-    }, [apiService, transfer.id, transfer.contentType]);
+    }, [apiService, transfer.id, effectiveContentType]);
 
     const textContent = firstItem?.content || '';
     const isLongText = textContent.length > 150;
@@ -214,13 +230,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
 
           {/* Bubble */}
           <div
-            className={`relative max-w-[90%] min-w-[260px] rounded-2xl px-5 py-3 transition-all duration-150
+            className={`relative max-w-[calc(100vw-140px)] min-w-[180px] rounded-2xl px-5 py-3 transition-all duration-150
             ${isPending ? 'bg-[var(--bg-surface)] opacity-50' : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80'}
             ${isHovered ? 'shadow-lg' : ''}
           `}
           >
             {/* Image message - full width, no gap */}
-            {imageUrl && itemType !== 'text' && isImageType(transfer.contentType) ? (
+            {imageUrl && itemType !== 'text' && isImageType(effectiveContentType) ? (
               <div className="w-full -mx-5">
                 <img
                   src={imageUrl}
@@ -267,14 +283,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
                     </div>
                   ) : (
                     <div
-                      className={`text-sm font-medium truncate leading-relaxed ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}
+                      className={`text-sm font-medium truncate leading-relaxed max-w-full w-full ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}
                     >
                       {displayFileName}
                     </div>
                   )}
                   <div className="flex items-center gap-3 text-xs text-[var(--text-muted)] mt-1">
                     <span>{formatSize(transfer.totalSize)}</span>
-                    {isCompleted && (
+                    {isCompleted && !isUploading && (
                       <span className="flex items-center gap-1 text-[var(--color-success)]">
                         <CheckCircle size={10} /> Done
                       </span>
@@ -285,6 +301,29 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
                       </span>
                     )}
                   </div>
+
+                  {/* Upload progress bar */}
+                  {isUploading && uploadingFile && (
+                    <div className="mt-2">
+                      <div className="h-1.5 bg-[var(--border-subtle)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[var(--accent)] transition-all duration-300 ease-out"
+                          style={{ width: `${uploadingFile.progress}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between mt-1.5 text-xs text-[var(--text-muted)]">
+                        <span>{uploadingFile.progress}%</span>
+                        {uploadingFile.speed !== undefined && uploadingFile.speed > 0 && (
+                          <span>
+                            {formatSpeed(uploadingFile.speed)}
+                            {uploadingFile.eta !== undefined && uploadingFile.eta > 0 && (
+                              <> · ETA {formatEta(uploadingFile.eta)}</>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Action buttons */}

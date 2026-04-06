@@ -1,7 +1,7 @@
 // Stub service - will be replaced in Task 3
 import { Service } from '@rabjs/react';
 import { io, Socket } from 'socket.io-client';
-import { getSocketUrl } from '../lib/env';
+import { getSocketUrl, getApiBaseUrl } from '../lib/env';
 import { AuthService } from './auth.service';
 import type { Device } from '@zen-send/shared';
 
@@ -16,18 +16,33 @@ export class SocketService extends Service {
   connect() {
     if (this.socket?.connected) return;
 
+    const apiBaseUrl = getApiBaseUrl();
     const socketUrl = getSocketUrl();
+    console.log('[Socket] API base URL:', apiBaseUrl);
+    console.log('[Socket] Window location origin:', window.location.origin);
+    console.log('[Socket] Connecting to:', socketUrl);
+    console.log('[Socket] Auth token exists:', !!this.authService.accessToken);
+
     this.socket = io(socketUrl, {
       transports: ['websocket'],
       autoConnect: true,
+      auth: {
+        token: this.authService.accessToken,
+      },
     });
 
     this.socket.on('connect', () => {
+      console.log('[Socket] Connected, socket ID:', this.socket?.id);
       this.isConnected = true;
       this.registerDevice();
     });
 
-    this.socket.on('disconnect', () => {
+    this.socket.on('connect_error', (error) => {
+      console.log('[Socket] Connect error:', error.message);
+    });
+
+    this.socket.on('disconnect', (reason) => {
+      console.log('[Socket] Disconnected:', reason);
       this.isConnected = false;
     });
   }

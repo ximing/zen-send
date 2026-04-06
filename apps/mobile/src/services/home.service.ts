@@ -1,10 +1,21 @@
 import { Service } from '@rabjs/react';
 import * as Clipboard from 'expo-clipboard';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as AsyncStorage from '@react-native-async-storage/async-storage';
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
 import type { TransferSession } from '@zen-send/shared';
 
 export type TransferFilter = 'all' | 'file' | 'text';
+
+// Download progress tracking
+export interface DownloadProgress {
+  sessionId: string;
+  transfer: TransferSession;
+  progress: number;
+  status: 'downloading' | 'completed' | 'failed';
+  localUri?: string;
+}
 
 // Upload progress tracking
 export interface UploadProgress {
@@ -16,6 +27,8 @@ export interface UploadProgress {
   status: 'uploading' | 'completed' | 'failed' | 'cancelled';
 }
 
+const DOWNLOADS_STORAGE_KEY = '@zen-send/downloads';
+
 export class HomeService extends Service {
   transfers: TransferSession[] = [];
   filter: TransferFilter = 'all';
@@ -26,6 +39,7 @@ export class HomeService extends Service {
   hasMore = true;
   searchQuery = '';
   uploadProgress: UploadProgress[] = [];
+  downloads: DownloadProgress[] = [];
 
   private readonly LIMIT = 50;
   private abortControllers: Map<string, AbortController> = new Map();
@@ -33,6 +47,7 @@ export class HomeService extends Service {
   constructor() {
     super();
     this.loadTransfers();
+    this.loadDownloadsFromStorage();
   }
 
   get apiService() {
@@ -155,6 +170,8 @@ export class HomeService extends Service {
       contentType: 'text/plain',
       sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
     });
+    // Refresh to update the transfer list with the new text
+    await this.refresh();
   }
 
   // Upload files with progress, retry, and cancellation
@@ -195,6 +212,8 @@ export class HomeService extends Service {
             sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
           });
           this.updateProgress(sessionId, 100, size, size, 'completed');
+          // Refresh to update the transfer list with the new file
+          await this.refresh();
         } else {
           // Initialize transfer for S3 upload
           const initResponse = await apiService.post<{
@@ -359,16 +378,139 @@ export class HomeService extends Service {
   async downloadTransfer(transfer: TransferSession): Promise<string | null> {
     const apiService = this.resolve(ApiService);
 
+    console.log('[Download] transfer:', JSON.stringify(transfer, null, 2));
+    console.log('[Download] items:', transfer.items);
+
     for (const item of transfer.items ?? []) {
+      console.log('[Download] item:', item.id, 'storageType:', item.storageType, 'hasContent:', !!item.content);
       if (item.storageType === 'db' && item.content) {
         return item.content;
       } else if (item.storageType === 's3') {
-        const { url } = await apiService.get<{ url: string }>(
+        console.log('[Download] Fetching download URL for:', transfer.id);
+        const response = await apiService.get<{ downloadUrl: string }>(
           `/api/transfers/${transfer.id}/download`
         );
-        return url;
+        console.log('[Download] API response:', response);
+        return response.downloadUrl;
       }
     }
+    console.log('[Download] No valid item found for download');
     return null;
+  }
+
+  // Load downloads from local storage
+  private async loadDownloadsFromStorage(): Promise<void> {
+    try {
+      const stored = await AsyncStorage.default.getItem(DOWNLOADS_STORAGE_KEY);
+      if (stored) {
+        const parsed: DownloadProgress[] = JSON.parse(stored);
+        // Filter out downloads that are still in downloading state (they should be restarted)
+        this.downloads = parsed.filter((d) => d.status !== 'downloading');
+        console.log('[Downloads] Loaded from storage:', this.downloads.length);
+      }
+    } catch (err) {
+      console.error('[Downloads] Failed to load from storage:', err);
+    }
+  }
+
+  // Save downloads to local storage
+  private async saveDownloadsToStorage(): Promise<void> {
+    try {
+      // Only save completed downloads (not downloading ones)
+      const toSave = this.downloads.filter((d) => d.status === 'completed' && d.localUri);
+      await AsyncStorage.default.setItem(DOWNLOADS_STORAGE_KEY, JSON.stringify(toSave));
+    } catch (err) {
+      console.error('[Downloads] Failed to save to storage:', err);
+    }
+  }
+
+  // Add transfer to downloads list and start downloading
+  startDownload(transfer: TransferSession): void {
+    console.log('[Download] startDownload called with:', transfer.id, transfer.items?.[0]?.name);
+    const existing = this.downloads.find((d) => d.sessionId === transfer.id);
+    if (existing) {
+      console.log('[Download] Already downloading, skipping');
+      return;
+    }
+
+    const download: DownloadProgress = {
+      sessionId: transfer.id,
+      transfer,
+      progress: 0,
+      status: 'downloading',
+    };
+    this.downloads = [...this.downloads, download];
+    console.log('[Download] Added to downloads list, count:', this.downloads.length);
+    this.executeDownload(transfer.id);
+  }
+
+  private async executeDownload(sessionId: string): Promise<void> {
+    const download = this.downloads.find((d) => d.sessionId === sessionId);
+    if (!download) return;
+
+    const index = this.downloads.findIndex((d) => d.sessionId === sessionId);
+    console.log('[Download] Starting download for:', sessionId, 'index:', index);
+
+    try {
+      const url = await this.downloadTransfer(download.transfer);
+      console.log('[Download] Got URL:', url);
+      if (!url) {
+        console.log('[Download] No URL returned, marking as failed');
+        if (index !== -1) {
+          this.downloads[index] = { ...this.downloads[index], status: 'failed' };
+          this.downloads = [...this.downloads];
+        }
+        return;
+      }
+
+      const fileName = download.transfer.items?.[0]?.name ?? 'download';
+      const baseDir = FileSystem.documentDirectory || FileSystem.cacheDirectory || '';
+      const fileUri = `${baseDir}${fileName}`;
+      console.log('[Download] Saving to:', fileUri);
+
+      // Download file to local storage
+      if (url.startsWith('http')) {
+        const downloadedUri = await FileSystem.downloadAsync(url, fileUri);
+        console.log('[Download] Downloaded URI:', downloadedUri.uri);
+        if (downloadedUri.uri) {
+          if (index !== -1) {
+            this.downloads[index] = { ...this.downloads[index], progress: 100, status: 'completed', localUri: downloadedUri.uri };
+            this.downloads = [...this.downloads];
+            this.saveDownloadsToStorage();
+          }
+        } else {
+          if (index !== -1) {
+            this.downloads[index] = { ...this.downloads[index], status: 'failed' };
+            this.downloads = [...this.downloads];
+          }
+        }
+      } else {
+        // DB content - save to file
+        await FileSystem.writeAsStringAsync(fileUri, url);
+        if (index !== -1) {
+          this.downloads[index] = { ...this.downloads[index], progress: 100, status: 'completed', localUri: fileUri };
+          this.downloads = [...this.downloads];
+          this.saveDownloadsToStorage();
+        }
+      }
+    } catch (err) {
+      console.error('[Download] Download failed:', err);
+      if (index !== -1) {
+        this.downloads[index] = { ...this.downloads[index], status: 'failed' };
+        this.downloads = [...this.downloads];
+      }
+    }
+  }
+
+  // Remove a download from the list
+  removeDownload(sessionId: string): void {
+    this.downloads = this.downloads.filter((d) => d.sessionId !== sessionId);
+    this.saveDownloadsToStorage();
+  }
+
+  // Clear completed/failed downloads
+  clearDownloads(): void {
+    this.downloads = this.downloads.filter((d) => d.status === 'downloading');
+    this.saveDownloadsToStorage();
   }
 }

@@ -3,6 +3,7 @@ import { Container } from 'typedi';
 import { verifyAccessToken, type TokenPayload } from '../utils/jwt.js';
 import { DeviceService, type DeviceInfo } from '../services/device.service.js';
 import { logger } from '@zen-send/logger';
+import { setSocketIO } from './socket-instance.js';
 
 interface AuthenticatedSocket extends Socket {
   user?: TokenPayload;
@@ -39,42 +40,23 @@ export function setupSocket(io: Server): void {
 
   io.on('connection', (socket: AuthenticatedSocket) => {
     const userId = socket.user?.userId;
-    const deviceId = socket.user?.deviceId;
 
-    logger.info({ socketId: socket.id, userId, deviceId }, 'Client connected');
+    logger.info({ socketId: socket.id, userId }, 'Client connected');
 
-    if (!userId || !deviceId) {
+    if (!userId) {
       socket.disconnect();
       return;
     }
 
-    // Store device socket mapping
-    socket.deviceId = deviceId;
-
-    // Update device heartbeat and mark online
-    Container.get(DeviceService)
-      .updateDeviceHeartbeat(deviceId)
-      .catch((err) => {
-        logger.error({ error: err, deviceId }, 'Failed to update device heartbeat on connect');
-      });
-
-    // Get device info and store socket
-    Container.get(DeviceService)
-      .getDeviceById(deviceId)
-      .then((device) => {
-        if (device) {
-          deviceSockets.set(deviceId, { socketId: socket.id, device });
-        }
-      })
-      .catch((err) => {
-        logger.error({ error: err, deviceId }, 'Failed to get device info on connect');
-      });
+    // Join user-specific room for broadcasting transfers
+    socket.join(`user:${userId}`);
 
     // Emit device list to the connected user
     emitDeviceList(io, userId, socket.id);
 
     // Handle device heartbeat
     socket.on('device:heartbeat', async () => {
+      const deviceId = socket.deviceId;
       if (!deviceId) return;
 
       try {
@@ -135,6 +117,7 @@ export function setupSocket(io: Server): void {
 
     // Handle disconnect
     socket.on('disconnect', async () => {
+      const deviceId = socket.deviceId;
       logger.info({ socketId: socket.id, deviceId }, 'Client disconnected');
 
       if (deviceId) {

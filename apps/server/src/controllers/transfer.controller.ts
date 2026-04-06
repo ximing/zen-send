@@ -17,6 +17,7 @@ import { TransferService } from '../services/transfer.service.js';
 import { InitTransferDto, UploadChunkDto } from '../validators/transfer.validator.js';
 import { ResponseUtil } from '../utils/response.js';
 import type { TokenPayload } from '../utils/jwt.js';
+import { getSocketIO } from '../socket/socket-instance.js';
 
 @JsonController('/api/transfers')
 @Service()
@@ -46,6 +47,20 @@ export class TransferController {
 
       // 根据是否内联文本返回不同响应
       if (isInlineText) {
+        // Emit transfer:new to all user's devices (for inline text, transfer is complete immediately)
+        const io = getSocketIO();
+        if (io) {
+          // Get transfer details for notification
+          const transfer = await this.transferService.getTransferById(result.sessionId, user.userId);
+          const sourceDevice = transfer?.sourceDeviceId || 'Unknown';
+          const firstItem = transfer?.items?.[0];
+          io.to(`user:${user.userId}`).emit('transfer:new', {
+            session: {
+              sourceDeviceName: sourceDevice,
+              items: firstItem ? [{ name: firstItem.name || 'Text' }] : [],
+            },
+          });
+        }
         return ResponseUtil.created({
           sessionId: result.sessionId,
           storageType: 'db',
@@ -87,6 +102,20 @@ export class TransferController {
   async complete(@CurrentUser() user: TokenPayload, @Param('id') id: string) {
     try {
       const result = await this.transferService.completeTransfer(id, user.userId);
+      // Emit transfer:new to all user's devices
+      const io = getSocketIO();
+      if (io) {
+        // Get transfer details for notification
+        const transfer = await this.transferService.getTransferById(id, user.userId);
+        const sourceDevice = transfer?.sourceDeviceId || 'Unknown';
+        const firstItem = transfer?.items?.[0];
+        io.to(`user:${user.userId}`).emit('transfer:new', {
+          session: {
+            sourceDeviceName: sourceDevice,
+            items: firstItem ? [{ name: firstItem.name || 'File' }] : [],
+          },
+        });
+      }
       return ResponseUtil.success(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to complete transfer';

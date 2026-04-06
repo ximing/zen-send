@@ -1,8 +1,16 @@
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
+import { ApiService } from '../../services/api.service';
 import type { TransferSession } from '@zen-send/shared';
+import { useState, useEffect } from 'react';
+
+// Check if mime type is an image
+const isImageMimeType = (mimeType: string | null): boolean => {
+  if (!mimeType) return false;
+  return mimeType.startsWith('image/');
+};
 
 interface PreviewModalProps {
   transfer: TransferSession | null;
@@ -18,19 +26,64 @@ function formatSize(bytes: number): string {
 
 function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps) {
   const themeService = useService(ThemeService);
+  const apiService = useService(ApiService);
   const colors = themeService.colors;
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [loadingImage, setLoadingImage] = useState(false);
 
+  // Derive values from transfer (safe even if transfer is null)
+  const firstItem = transfer?.items?.[0] ?? null;
+  const isText = firstItem?.type === 'text';
+  const isImage = !isText && isImageMimeType(firstItem?.mimeType ?? null);
+  const transferId = transfer?.id;
+  const storageType = firstItem?.storageType;
+  const itemContent = firstItem?.content;
+
+  // Load image URL for preview - must be called before any early returns
+  useEffect(() => {
+    if (!isImage || !firstItem?.id || !transferId) {
+      setImageUrl(null);
+      setLoadingImage(false);
+      return;
+    }
+
+    setLoadingImage(true);
+
+    // For images stored in S3, get the download URL using ApiService
+    if (storageType === 's3') {
+      apiService.getTransferDownloadUrl(transferId)
+        .then((url) => {
+          setImageUrl(url);
+          setLoadingImage(false);
+        })
+        .catch(() => {
+          setImageUrl(null);
+          setLoadingImage(false);
+        });
+    } else if (storageType === 'db' && itemContent) {
+      // For small images stored in DB
+      if (itemContent.startsWith('data:image')) {
+        setImageUrl(itemContent);
+      } else if (itemContent.startsWith('http')) {
+        setImageUrl(itemContent);
+      }
+      setLoadingImage(false);
+    } else {
+      setLoadingImage(false);
+    }
+  }, [isImage, firstItem?.id, transferId, storageType, itemContent, apiService]);
+
+  // Early returns AFTER all hooks
   if (!transfer) return null;
-
-  const firstItem = transfer.items?.[0];
   if (!firstItem) return null;
-
-  const isText = firstItem.type === 'text';
-  const isImage = firstItem.mimeType?.startsWith('image/');
 
   return (
     <Modal visible={!!transfer} onRequestClose={onClose} animationType="slide" transparent>
-      <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+      <TouchableOpacity
+        style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+        activeOpacity={1}
+        onPress={onClose}
+      >
         <View style={[styles.container, { backgroundColor: colors.bgSurface }]}>
           <View style={[styles.header, { borderBottomColor: colors.borderSubtle }]}>
             <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
@@ -41,11 +94,31 @@ function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps)
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.content}>
+          <ScrollView style={styles.content} contentContainerStyle={isImage ? styles.imageContentContainer : undefined}>
             {isText ? (
               <Text style={[styles.textContent, { color: colors.textPrimary }]}>
                 {firstItem.content}
               </Text>
+            ) : isImage ? (
+              <View style={styles.imageContainer}>
+                {loadingImage ? (
+                  <ActivityIndicator size="large" color={colors.accent} />
+                ) : imageUrl ? (
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.image}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <View style={styles.fileInfo}>
+                    <Ionicons name="image-outline" size={48} color={colors.textSecondary} style={styles.fileIcon} />
+                    <Text style={[styles.fileName, { color: colors.textPrimary }]}>{firstItem.name}</Text>
+                    <Text style={[styles.fileSize, { color: colors.textSecondary }]}>
+                      {formatSize(firstItem.size)}
+                    </Text>
+                  </View>
+                )}
+              </View>
             ) : (
               <View style={styles.fileInfo}>
                 <Ionicons name="document-outline" size={48} color={colors.textSecondary} style={styles.fileIcon} />
@@ -74,7 +147,7 @@ function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps)
             )}
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -109,9 +182,18 @@ const styles = StyleSheet.create({
     padding: 16,
     maxHeight: 400,
   },
+  imageContentContainer: {
+    flexGrow: 1,
+  justifyContent: 'center',
+  },
+  imageContainer: {
+    alignItems: 'center',
+    minHeight: 200,
+  },
   image: {
     width: '100%',
     height: 300,
+    borderRadius: 8,
   },
   textContent: {
     fontSize: 14,
