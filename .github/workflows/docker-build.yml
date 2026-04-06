@@ -79,7 +79,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           no-cache: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
       - name: Output image tags
         if: github.event_name != 'pull_request'
