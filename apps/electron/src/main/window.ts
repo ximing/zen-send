@@ -131,9 +131,9 @@ export class WindowManager {
     // Drag and drop handling
     // @ts-expect-error - drag events not fully typed
     this.window.webContents.on('drag-enter', (event) => event.preventDefault());
-    // @ts-expect-error
+    // @ts-expect-error - drag events not fully typed
     this.window.webContents.on('drag-over', (event) => event.preventDefault());
-    // @ts-expect-error
+    // @ts-expect-error - drag events not fully typed
     this.window.webContents.on('drop', (event, files: string[]) => {
       event.preventDefault();
       if (!files || !Array.isArray(files)) return;

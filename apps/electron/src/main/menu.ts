@@ -38,7 +38,11 @@ export class MenuManager {
       { label: 'Zoom In', role: 'zoomIn', accelerator: 'CmdOrCtrl+Plus' },
       { label: 'Zoom Out', role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
       { type: 'separator' },
-      { label: 'Toggle Full Screen', role: 'togglefullscreen', accelerator: isMac ? 'Ctrl+Cmd+F' : 'F11' },
+      {
+        label: 'Toggle Full Screen',
+        role: 'togglefullscreen',
+        accelerator: isMac ? 'Ctrl+Cmd+F' : 'F11',
+      },
     ];
   }
 
