@@ -58,7 +58,7 @@ function LoginScreen() {
 
     try {
       await authService.login({ email, password }, serverUrl);
-      // Navigation will be handled by the root layout observing auth state
+      router.replace('/(main)');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
