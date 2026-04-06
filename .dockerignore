@@ -72,9 +72,6 @@ apps/web/*.css
 !.eslintrc.cjs
 !.prettierrc.cjs
 
-# Turborepo
-turbo.json
-
 # Changesets
 .changeset
 CHANGELOG.md
