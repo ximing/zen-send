@@ -111,6 +111,23 @@ src/
 - **无边框** — 用背景色差代替边框
 - **无渐变** — 除非必要
 
+### 图标规范
+
+使用 `@expo/vector-icons` 的 `Ionicons`，**禁止使用 emoji 作为图标**：
+
+```typescript
+import { Ionicons } from '@expo/vector-icons';
+
+// ✅ 正确
+<Ionicons name="attach" size={22} color={colors.textPrimary} />
+<Ionicons name="send" size={18} color={colors.accent} />
+<Ionicons name={themeService.isDark ? 'sunny' : 'moon-outline'} size={20} color={colors.textPrimary} />
+
+// ❌ 错误：使用 emoji 作为图标
+<Text style={styles.icon}>📎</Text>
+<Text>🔍</Text>
+```
+
 ### 颜色
 
 **Accent - Sage Green**: `#8B9A7D`

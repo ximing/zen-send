@@ -1,4 +1,5 @@
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import type { TransferSession } from '@zen-send/shared';
@@ -36,7 +37,7 @@ function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps)
               {isText ? (firstItem.content?.slice(0, 50) || 'Text') : (firstItem.name || 'File')}
             </Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeIcon}>✕</Text>
+              <Ionicons name="close" size={22} color={colors.textPrimary} />
             </TouchableOpacity>
           </View>
 
@@ -47,7 +48,7 @@ function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps)
               </Text>
             ) : (
               <View style={styles.fileInfo}>
-                <Text style={styles.fileIcon}>📎</Text>
+                <Ionicons name="document-outline" size={48} color={colors.textSecondary} style={styles.fileIcon} />
                 <Text style={[styles.fileName, { color: colors.textPrimary }]}>{firstItem.name}</Text>
                 <Text style={[styles.fileSize, { color: colors.textSecondary }]}>
                   {formatSize(firstItem.size)}
@@ -121,7 +122,6 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   fileIcon: {
-    fontSize: 48,
     marginBottom: 12,
   },
   fileName: {

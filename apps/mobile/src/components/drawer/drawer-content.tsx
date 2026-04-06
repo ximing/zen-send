@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useService, observer } from '@rabjs/react';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 
@@ -54,7 +55,11 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
           style={styles.actionButton}
           onPress={handleThemeToggle}
         >
-          <Text style={styles.actionIcon}>{themeService.isDark ? '☀️' : '🌙'}</Text>
+          <Ionicons
+            name={themeService.isDark ? 'sunny' : 'moon-outline'}
+            size={20}
+            color={colors.textPrimary}
+          />
           <Text style={[styles.actionText, { color: colors.textPrimary }]}>
             {themeService.isDark ? 'Light Mode' : 'Dark Mode'}
           </Text>
@@ -64,7 +69,7 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
           style={styles.actionButton}
           onPress={handleLogout}
         >
-          <Text style={styles.actionIcon}>🚪</Text>
+          <Ionicons name="log-out-outline" size={20} color={colors.textPrimary} />
           <Text style={[styles.actionText, { color: colors.textPrimary }]}>
             Logout
           </Text>
@@ -120,11 +125,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     gap: 12,
-  },
-  actionIcon: {
-    fontSize: 18,
-    width: 28,
-    textAlign: 'center',
   },
   actionText: {
     fontSize: 16,

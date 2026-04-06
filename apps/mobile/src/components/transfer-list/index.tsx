@@ -1,4 +1,5 @@
 import { FlatList, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { HomeService } from '../../services/home.service';
@@ -7,15 +8,22 @@ import type { TransferSession } from '@zen-send/shared';
 
 interface TransferListProps {
   onItemPress: (transfer: TransferSession) => void;
+  onDownload: (transfer: TransferSession) => void;
+  onPreview: (transfer: TransferSession) => void;
 }
 
-function TransferListInner({ onItemPress }: TransferListProps) {
+function TransferListInner({ onItemPress, onDownload, onPreview }: TransferListProps) {
   const themeService = useService(ThemeService);
   const homeService = useService(HomeService);
   const colors = themeService.colors;
 
   const renderItem = ({ item }: { item: TransferSession }) => (
-    <TransferItem transfer={item} onPress={() => onItemPress(item)} />
+    <TransferItem
+      transfer={item}
+      onPress={() => onItemPress(item)}
+      onDownload={() => onDownload(item)}
+      onPreview={() => onPreview(item)}
+    />
   );
 
   const renderFooter = () => {
@@ -29,7 +37,7 @@ function TransferListInner({ onItemPress }: TransferListProps) {
 
   const renderEmpty = () => (
     <View style={styles.empty}>
-      <Text style={styles.emptyIcon}>📭</Text>
+      <Ionicons name="mail-open-outline" size={48} color={colors.textSecondary} style={styles.emptyIcon} />
       <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No transfers yet</Text>
     </View>
   );
@@ -52,6 +60,8 @@ function TransferListInner({ onItemPress }: TransferListProps) {
       ListEmptyComponent={renderEmpty}
       onEndReached={() => homeService.loadMore()}
       onEndReachedThreshold={0.5}
+      refreshing={homeService.isRefreshing}
+      onRefresh={() => homeService.refresh()}
     />
   );
 }
@@ -77,7 +87,6 @@ const styles = StyleSheet.create({
     paddingTop: 80,
   },
   emptyIcon: {
-    fontSize: 48,
     marginBottom: 12,
   },
   emptyText: {

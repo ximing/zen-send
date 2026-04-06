@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { HomeService, UploadProgress } from '../../services/home.service';
@@ -58,12 +59,12 @@ function SelectedFilesItemInner({ progress, onCancel, onRemove }: SelectedFilesI
       <View style={styles.itemActions}>
         {progress.status === 'uploading' && (
           <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
-            <Text style={styles.cancelText}>✕</Text>
+            <Ionicons name="close" size={18} color="#9A958F" />
           </TouchableOpacity>
         )}
         {progress.status !== 'uploading' && (
           <TouchableOpacity onPress={onRemove} style={styles.cancelButton}>
-            <Text style={styles.cancelText}>✕</Text>
+            <Ionicons name="close" size={18} color="#9A958F" />
           </TouchableOpacity>
         )}
         {progress.status === 'uploading' && (
@@ -134,10 +135,6 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     padding: 4,
-  },
-  cancelText: {
-    fontSize: 16,
-    color: '#9A958F',
   },
   progressBar: {
     width: 60,
