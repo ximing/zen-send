@@ -1,6 +1,8 @@
 import { Service } from '@rabjs/react';
 import { io, Socket } from 'socket.io-client';
 import { NotificationService } from './notification.service';
+import { AuthService } from './auth.service';
+import { HomeService } from './home.service';
 
 export class SocketService extends Service {
   socket: Socket | null = null;
@@ -88,7 +90,3 @@ export class SocketService extends Service {
     }
   }
 }
-
-// Import for type resolution
-import { AuthService } from './auth.service';
-import { HomeService } from './home.service';

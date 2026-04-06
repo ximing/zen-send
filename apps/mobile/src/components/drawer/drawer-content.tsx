@@ -4,7 +4,11 @@ import { useService, observer } from '@rabjs/react';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 
-function DrawerContentInner() {
+interface DrawerContentProps {
+  onClose?: () => void;
+}
+
+function DrawerContentInner({ onClose }: DrawerContentProps) {
   const router = useRouter();
   const authService = useService(AuthService);
   const themeService = useService(ThemeService);
@@ -12,10 +16,12 @@ function DrawerContentInner() {
 
   const handleThemeToggle = () => {
     themeService.toggleTheme();
+    onClose?.();
   };
 
   const handleLogout = async () => {
     await authService.logout();
+    onClose?.();
     router.replace('/(auth)/login');
   };
 
@@ -125,4 +131,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default observer(DrawerContent);
+export default DrawerContent;
