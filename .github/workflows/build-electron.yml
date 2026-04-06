@@ -347,7 +347,7 @@ jobs:
           fi
 
       - name: Create Release
-        uses: ncipollo/release-action@v4
+        uses: ncipollo/release-action@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           artifacts: artifacts/*
@@ -360,7 +360,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release for master
-        uses: ncipollo/release-action@v4
+        uses: ncipollo/release-action@v1
         if: github.ref == 'refs/heads/master'
         with:
           artifacts: artifacts/*
