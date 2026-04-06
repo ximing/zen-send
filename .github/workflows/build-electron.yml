@@ -41,8 +41,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages (in dependency order)
-        run: pnpm --filter "@zen-send/shared..." --sort build
+      - name: Build packages (dto first, then shared)
+        run: |
+          pnpm --filter "@zen-send/dto" build
+          pnpm --filter "@zen-send/shared" build
 
       - name: Upload packages artifacts
         uses: actions/upload-artifact@v4
