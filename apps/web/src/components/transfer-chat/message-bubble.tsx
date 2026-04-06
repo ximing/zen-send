@@ -106,6 +106,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
     const homeService = useService(HomeService);
     const apiService = useService(ApiService);
     const themeService = useService(ThemeService);
+    const toastService = useService(ToastService);
     const { direction, device, isSent } = useTransferBubble(transfer);
     const isDarkTheme = themeService.resolvedTheme === 'dark';
 
@@ -199,12 +200,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = observer(
       try {
         const { url } = await apiService.getTransferExternalLink(transfer.id);
         await navigator.clipboard.writeText(url);
-        const toastService = useService(ToastService);
         toastService.show('Link copied, valid for 6 hours', 'success');
       } catch (err) {
         console.error('Failed to copy link:', err);
       }
-    }, [apiService, transfer.id]);
+    }, [apiService, transfer.id, toastService]);
 
     const getProgress = () => {
       if (uploadingFile) return uploadingFile.progress;
