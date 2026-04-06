@@ -7,6 +7,7 @@ import { getMimeTypeFromExtension } from '../../../lib/zen-bridge';
 const BottomToolbarContent = observer(() => {
   const chatService = useService(TransferChatService);
   const [text, setText] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -52,15 +53,18 @@ const BottomToolbarContent = observer(() => {
 
   const handleSendText = useCallback(async () => {
     const trimmedText = text.trim();
-    if (!trimmedText) return;
+    if (!trimmedText || isSending) return;
 
+    setIsSending(true);
     try {
       await chatService.sendText(trimmedText);
       setText('');
     } catch (err) {
       console.error('Failed to send text:', err);
+    } finally {
+      setIsSending(false);
     }
-  }, [text, chatService]);
+  }, [text, chatService, isSending]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -70,6 +74,7 @@ const BottomToolbarContent = observer(() => {
   }, [handleSendText]);
 
   const hasText = text.trim().length > 0;
+  const canSend = hasText && !isSending;
 
   const handleTextareaInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
     const target = e.target as HTMLTextAreaElement;
@@ -126,14 +131,14 @@ const BottomToolbarContent = observer(() => {
         <button
           type="button"
           onClick={handleSendText}
-          disabled={!hasText}
+          disabled={!canSend}
           className={`p-2 rounded-xl transition-all duration-150 hover:-translate-y-0.5 ${
-            hasText
+            canSend
               ? 'bg-[var(--primary)] text-[var(--on-primary)] shadow-[0_2px_8px_rgba(0,0,0,0.15)]'
               : 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'
           }`}
         >
-          {hasText ? <ArrowUp size={20} /> : <Send size={20} />}
+          {canSend ? <ArrowUp size={20} /> : <Send size={20} />}
         </button>
       </div>
     </div>
