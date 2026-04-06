@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -15,6 +17,9 @@ import { Action } from 'routing-controllers';
 import { DbService } from './services/db.service.js';
 import { S3Service } from './services/s3.service.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 export async function createApp(): Promise<{ app: express.Application; io: SocketIOServer }> {
   await initIOC();
 
@@ -27,6 +32,10 @@ export async function createApp(): Promise<{ app: express.Application; io: Socke
   await s3Service.init();
 
   const app = express();
+
+  // Serve static files from public directory (web build artifacts)
+  const publicPath = join(__dirname, '../public');
+  app.use(express.static(publicPath));
 
   const httpServer = createServer(app);
 
@@ -49,6 +58,11 @@ export async function createApp(): Promise<{ app: express.Application; io: Socke
       const user = await currentUserChecker(action);
       return !!user;
     },
+  });
+
+  // SPA fallback: serve index.html for client-side routes
+  app.get('*', (_req, res) => {
+    res.sendFile(join(publicPath, 'index.html'));
   });
 
   const PORT = process.env.PORT || 3110;

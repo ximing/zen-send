@@ -17,6 +17,12 @@ COPY apps/server/tsconfig.json ./apps/server/
 COPY apps/server/src ./apps/server/src
 COPY apps/server/drizzle.config.ts ./apps/server/
 COPY apps/server/.env.example ./apps/server/
+COPY apps/web/package.json ./apps/web/
+COPY apps/web/tsconfig.json ./apps/web/
+COPY apps/web/vite.config.ts ./apps/web/
+COPY apps/web/src ./apps/web/src
+COPY apps/web/postcss.config.js ./apps/web/
+COPY apps/web/tailwind.config.js ./apps/web/
 
 # Install dependencies (allow workspace symlinks to be created properly)
 RUN pnpm install --prod=false
@@ -29,6 +35,7 @@ RUN rm -f packages/dto/tsconfig.tsbuildinfo packages/logger/tsconfig.tsbuildinfo
 RUN pnpm --filter @zen-send/dto build
 RUN pnpm --filter @zen-send/logger build
 RUN pnpm --filter @zen-send/shared build
+RUN pnpm --filter @zen-send/web build
 RUN pnpm --filter @zen-send/server build
 
 # Production stage
