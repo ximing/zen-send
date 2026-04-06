@@ -18,11 +18,11 @@ COPY apps/server/src ./apps/server/src
 COPY apps/server/drizzle.config.ts ./apps/server/
 COPY apps/server/.env.example ./apps/server/
 
-# Install dependencies (production only for smaller image)
-RUN pnpm install --frozen-lockfile --prod=false
+# Install dependencies (allow workspace symlinks to be created properly)
+RUN pnpm install --prod=false
 
-# Build workspace packages using turbo (builds all packages in dependency order)
-RUN pnpm turbo build
+# Build workspace packages in dependency order using pnpm recursive build
+RUN pnpm -r build
 
 # Production stage
 FROM node:22-alpine AS production
