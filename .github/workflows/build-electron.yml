@@ -42,6 +42,10 @@ jobs:
 
       - name: Build packages
         run: |
+          # Clean incremental build cache for fresh builds
+          find packages -name "tsconfig.tsbuildinfo" -delete
+          find packages -name "*.tsbuildinfo" -delete
+          rm -rf packages/*/dist
           pnpm --filter "@zen-send/dto" build
           pnpm --filter "@zen-send/logger" build
           pnpm --filter "@zen-send/shared" build
