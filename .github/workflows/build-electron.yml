@@ -328,6 +328,17 @@ jobs:
       - name: List artifacts
         run: ls -la artifacts/
 
+      - name: Get version from package.json (for master branch)
+        if: github.ref == 'refs/heads/master'
+        id: version
+        run: echo "VERSION=v$(node -p \"require('./apps/electron/package.json').version\")" >> $GITHUB_OUTPUT
+
+      - name: Create tag for master branch
+        if: github.ref == 'refs/heads/master'
+        run: |
+          git tag ${{ steps.version.outputs.VERSION }} || true
+          git push origin ${{ steps.version.outputs.VERSION }}
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
