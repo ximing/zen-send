@@ -22,7 +22,7 @@ COPY apps/server/.env.example ./apps/server/
 RUN pnpm install --frozen-lockfile --prod=false
 
 # Build workspace packages in dependency order
-RUN pnpm -r build --filter @zen-send/dto --filter @zen-send/logger --filter @zen-send/shared
+RUN pnpm --filter @zen-send/dto --filter @zen-send/logger --filter @zen-send/shared -r build
 
 # Build server
 RUN pnpm --filter @zen-send/server build
