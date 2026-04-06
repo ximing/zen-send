@@ -9,7 +9,7 @@ RUN corepack enable && corepack prepare pnpm@10.22.0 --activate
 WORKDIR /app
 
 # Copy workspace files for dependency installation
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY config ./config
 COPY packages ./packages
 COPY apps/server/package.json ./apps/server/
