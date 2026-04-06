@@ -386,4 +386,49 @@ export class TransferService {
 
     return true;
   }
+
+  async getExternalLink(sessionId: string, userId: string): Promise<{ url: string; expiresAt: number }> {
+    const session = await this.db.query.transferSessions.findFirst({
+      where: eq(transferSessions.id, sessionId),
+    });
+
+    if (!session) {
+      throw new Error('Transfer not found');
+    }
+
+    // Verify transfer belongs to current user
+    if (session.userId !== userId) {
+      throw new Error('Transfer does not belong to current user');
+    }
+
+    if (session.status !== 'completed') {
+      throw new Error('Transfer is not completed');
+    }
+
+    // Check if this is S3 storage type (inline text has no S3 object)
+    const items = await this.db.query.transferItems.findMany({
+      where: eq(transferItems.sessionId, sessionId),
+    });
+
+    if (items.length === 0 || items[0].storageType !== 's3') {
+      throw new Error('External link is only available for S3-stored files');
+    }
+
+    // 6 hours expiry (in seconds)
+    const EXTERNAL_LINK_EXPIRY = 6 * 60 * 60;
+    const expiresAt = Math.floor(Date.now() / 1000) + EXTERNAL_LINK_EXPIRY;
+
+    // Determine S3 key: single chunk file is transfers/${sessionId}/chunk_0, multi chunk is transfers/${sessionId}
+    const s3Key = session.chunkCount === 1
+      ? `transfers/${sessionId}/chunk_0`
+      : session.s3Key;
+
+    const url = await this.s3Service.getPresignedDownloadUrl(
+      s3Key,
+      session.originalFileName || 'download',
+      EXTERNAL_LINK_EXPIRY
+    );
+
+    return { url, expiresAt };
+  }
 }
