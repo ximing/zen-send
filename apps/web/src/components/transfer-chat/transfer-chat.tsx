@@ -122,7 +122,7 @@ const TransferChatContent = observer(() => {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col flex-1 min-h-0 w-full items-stretch">
       <div
         ref={containerRef}
         className="flex-1 min-h-0 overflow-y-auto space-y-3 py-3"
