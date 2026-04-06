@@ -21,8 +21,12 @@ COPY apps/server/.env.example ./apps/server/
 # Install dependencies (allow workspace symlinks to be created properly)
 RUN pnpm install --prod=false
 
-# Build workspace packages in dependency order using pnpm recursive build
-RUN pnpm -r build
+# Build workspace packages in dependency order
+# First build dto to ensure its dist exists
+RUN pnpm --filter @zen-send/dto build && \
+    ls -la packages/dto/dist/ && \
+    pnpm --filter @zen-send/logger build && \
+    pnpm --filter @zen-send/shared build
 
 # Production stage
 FROM node:22-alpine AS production
