@@ -22,12 +22,10 @@ COPY apps/server/.env.example ./apps/server/
 RUN pnpm install --prod=false
 
 # Build workspace packages in dependency order
-# First build dto to ensure its dist exists
-RUN pnpm --filter @zen-send/dto build && \
-    echo "=== Checking dist contents ===" && \
-    ls -la packages/dto/dist/ 2>&1 || echo "dist folder missing!" && \
-    echo "=== Listing all files in dto ===" && \
-    ls -la packages/dto/ && \
+# Build dto first with --force to ensure fresh build
+RUN rm -f packages/dto/tsconfig.tsbuildinfo packages/logger/tsconfig.tsbuildinfo packages/shared/tsconfig.tsbuildinfo 2>/dev/null || true && \
+    pnpm --filter @zen-send/dto build && \
+    ls -la packages/dto/dist/ 2>&1 && \
     pnpm --filter @zen-send/logger build && \
     pnpm --filter @zen-send/shared build
 
