@@ -60,7 +60,6 @@ apps/electron
 # Note: web source files are needed by the builder stage to run the web build
 # The build output goes to apps/server/public which is copied to the production image
 apps/web/public
-apps/web/index.html
 
 # ESLint & Prettier
 .eslintrc*
