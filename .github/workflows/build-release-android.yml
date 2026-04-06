@@ -57,20 +57,20 @@ jobs:
 
       - name: 🔑 Restore keystore from secret
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/zen-send-release.keystore
-          ls -lh android/app/zen-send-release.keystore
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > apps/mobile/android/app/zen-send-release.keystore
+          ls -lh apps/mobile/android/app/zen-send-release.keystore
 
       - name: 🔑 Grant execute permission to gradlew
-        run: chmod +x android/gradlew
+        run: chmod +x apps/mobile/android/gradlew
 
       - name: ⚙️ Configure JVM memory for Gradle
         run: |
-          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" >> android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" >> apps/mobile/android/gradle.properties
 
       - name: 🏗 Build signed Android APK (Release)
-        working-directory: android
+        working-directory: apps/mobile
         env:
-          KEYSTORE_PATH: app/zen-send-release.keystore
+          KEYSTORE_PATH: android/app/zen-send-release.keystore
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -91,7 +91,7 @@ jobs:
       - name: 🔍 Locate APK
         id: apk
         run: |
-          APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -1)
+          APK_PATH=$(find apps/mobile/android/app/build/outputs/apk/release -name "*.apk" | head -1)
           echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
           echo "Found APK: $APK_PATH"
           ls -lh "$APK_PATH"
@@ -160,7 +160,7 @@ jobs:
 
       - name: 🧹 Clean up keystore
         if: always()
-        run: rm -f android/app/zen-send-release.keystore
+        run: rm -f apps/mobile/android/app/zen-send-release.keystore
 
       - name: 📦 Build Summary
         if: always()
