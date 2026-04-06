@@ -10,9 +10,13 @@ WORKDIR /app
 
 # Copy workspace files for dependency installation
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY config ./config
 COPY packages ./packages
 COPY apps/server/package.json ./apps/server/
 COPY apps/server/tsconfig.json ./apps/server/
+COPY apps/server/src ./apps/server/src
+COPY apps/server/drizzle.config.ts ./apps/server/
+COPY apps/server/.env.example ./apps/server/
 
 # Install dependencies (production only for smaller image)
 RUN pnpm install --frozen-lockfile --prod=false
@@ -30,8 +34,12 @@ WORKDIR /app
 
 # Copy package files for production deps
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY config ./config
 COPY packages ./packages
 COPY apps/server/package.json ./apps/server/
+COPY apps/server/src ./apps/server/src
+COPY apps/server/drizzle.config.ts ./apps/server/
+COPY apps/server/.env.example ./apps/server/
 
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
@@ -43,6 +51,7 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/logger/dist ./packages/logger/dist
 
 # Copy server source (needed for runtime)
+COPY config ./config
 COPY apps/server/src ./apps/server/src
 COPY apps/server/public ./apps/server/public
 COPY apps/server/drizzle.config.ts ./apps/server/
