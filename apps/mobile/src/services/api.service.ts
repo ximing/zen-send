@@ -21,6 +21,8 @@ export class ApiService extends Service {
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${path}`;
+    console.log('[API] Request:', options.method || 'GET', url);
+    console.log('[API] BaseUrl:', this.baseUrl);
 
     const makeRequest = async (): Promise<Response> => {
       const authHeaders = this.authService.getAuthHeaders();
@@ -71,6 +73,7 @@ export class ApiService extends Service {
     }
 
     const result: ApiResponse<T> = await response.json();
+    console.log('[API] Response:', options.method || 'GET', url, 'status:', response.status, 'success:', result.success);
 
     if (!result.success) {
       const errorMessage = typeof result.data === 'string' ? result.data : 'Request failed';
