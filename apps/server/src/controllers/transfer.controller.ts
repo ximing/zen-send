@@ -73,7 +73,7 @@ export class TransferController {
         s3Key: result.s3Key,
         chunkCount: result.chunkCount,
         chunkSize: result.chunkSize,
-        presignedUrls: result.presignedUrls?.map(u => u.url),
+        presignedUrls: result.presignedUrls,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to initialize transfer';
