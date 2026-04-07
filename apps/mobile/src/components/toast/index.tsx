@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Text, StyleSheet, Animated } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Text, StyleSheet, View, Modal } from 'react-native';
 import { useService } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 
@@ -14,59 +14,47 @@ function ToastInner() {
   const colors = themeService.colors;
   const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState('');
-  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     toastRef = (msg: string) => {
       setMessage(msg);
       setVisible(true);
-      opacity.setValue(0);
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }).start(() => {
-        setTimeout(() => {
-          Animated.timing(opacity, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => setVisible(false));
-        }, 1500);
-      });
+      setTimeout(() => setVisible(false), 2000);
     };
     return () => {
       toastRef = null;
     };
-  }, [opacity]);
-
-  if (!visible) return null;
+  }, []);
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        { backgroundColor: colors.textPrimary, opacity },
-      ]}
-      pointerEvents="none"
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setVisible(false)}
     >
-      <Text style={[styles.text, { color: colors.bgPrimary }]}>{message}</Text>
-    </Animated.View>
+      <View style={styles.container} pointerEvents="none">
+        <View style={[styles.toastBox, { backgroundColor: colors.textPrimary }]}>
+          <Text style={[styles.text, { color: colors.bgPrimary }]}>{message}</Text>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: 100,
-    left: 24,
-    right: 24,
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingBottom: 100,
+  },
+  toastBox: {
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 999,
   },
   text: {
     fontSize: 14,

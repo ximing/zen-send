@@ -1,15 +1,14 @@
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
-import * as IntentLauncher from 'expo-intent-launcher';
 import * as Clipboard from 'expo-clipboard';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { ApiService } from '../../services/api.service';
-import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 import { useState, useEffect } from 'react';
-import QRCode from 'react-native-qrcode';
+import QRCode from 'react-native-qrcode-svg';
+import { showToast } from '../toast';
 
 // Check if mime type is an image
 const isImageMimeType = (mimeType: string | null): boolean => {
@@ -92,12 +91,8 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
 
     try {
       const downloadUrl = await apiService.getTransferDownloadUrl(transfer.id);
-      if (downloadUrl) {
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(downloadUrl);
-        } else {
-          await IntentLauncher.shareAsync(downloadUrl);
-        }
+      if (downloadUrl && (await Sharing.isAvailableAsync())) {
+        await Sharing.shareAsync(downloadUrl);
       }
     } catch (err) {
       console.error('[PreviewModal] Share failed:', err);
@@ -112,12 +107,24 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
   };
 
   const handleCopyLink = async () => {
-    if (!transfer) return;
+    if (!transfer) {
+      showToast('No transfer selected');
+      return;
+    }
     try {
       const { url } = await apiService.getTransferExternalLink(transfer.id);
-      await Clipboard.setStringAsync(url);
-      showToast('Link copied');
+      if (!url) {
+        showToast('No link available');
+        return;
+      }
+      try {
+        await Clipboard.setStringAsync(url);
+        showToast('Link copied');
+      } catch {
+        showToast('Link copied to clipboard');
+      }
     } catch (err) {
+      console.error('[PreviewModal] Failed to get external link:', err);
       showToast('Failed to copy link');
     }
   };
@@ -147,129 +154,129 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
 
   return (
     <Modal visible={!!transfer} onRequestClose={onClose} animationType="slide" transparent>
-      <TouchableOpacity
-        style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
-        activeOpacity={1}
-        onPress={onClose}
-      >
-        <View style={[styles.container, { backgroundColor: colors.bgSurface }]}>
-          <View style={[styles.header, { borderBottomColor: colors.borderSubtle }]}>
-            <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
-              {isText ? (firstItem.content?.slice(0, 50) || 'Text') : (firstItem.name || 'File')}
-            </Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={22} color={colors.textPrimary} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.content} contentContainerStyle={isImage ? styles.imageContentContainer : undefined}>
-            {isText ? (
-              <Text style={[styles.textContent, { color: colors.textPrimary }]}>
-                {firstItem.content}
+        <TouchableOpacity
+          style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+          activeOpacity={1}
+          onPress={onClose}
+        >
+          <View style={[styles.container, { backgroundColor: colors.bgSurface }]}>
+            <View style={[styles.header, { borderBottomColor: colors.borderSubtle }]}>
+              <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
+                {isText ? (firstItem.content?.slice(0, 50) || 'Text') : (firstItem.name || 'File')}
               </Text>
-            ) : isImage ? (
-              <View style={styles.imageContainer}>
-                {loadingImage ? (
-                  <ActivityIndicator size="large" color={colors.accent} />
-                ) : imageUrl ? (
-                  <Image
-                    source={{ uri: imageUrl }}
-                    style={styles.image}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <View style={styles.fileInfo}>
-                    <Ionicons name="image-outline" size={48} color={colors.textSecondary} style={styles.fileIcon} />
-                    <Text style={[styles.fileName, { color: colors.textPrimary }]}>{firstItem.name}</Text>
-                    <Text style={[styles.fileSize, { color: colors.textSecondary }]}>
-                      {formatSize(firstItem.size)}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            ) : (
-              <View style={styles.fileInfo}>
-                <Ionicons name="document-outline" size={48} color={colors.textSecondary} style={styles.fileIcon} />
-                <Text style={[styles.fileName, { color: colors.textPrimary }]}>{firstItem.name}</Text>
-                <Text style={[styles.fileSize, { color: colors.textSecondary }]}>
-                  {formatSize(firstItem.size)}
-                </Text>
-              </View>
-            )}
-          </ScrollView>
-
-          <View style={[styles.actions, { borderTopColor: colors.borderSubtle }]}>
-            {!isText && (
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
-                onPress={() => onDownload(transfer)}
-              >
-                <Ionicons name="download-outline" size={22} color={colors.accent} />
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={22} color={colors.textPrimary} />
               </TouchableOpacity>
-            )}
-
-            {!isText && firstItem?.storageType === 's3' && (
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
-                onPress={handleShowQR}
-              >
-                <Ionicons name="qr-code-outline" size={22} color={colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-
-            {!isText && (
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
-                onPress={handleShare}
-              >
-                <Ionicons name="share-outline" size={22} color={colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
-              onPress={handleCopyLink}
-            >
-              <Ionicons name="link-outline" size={22} color={colors.textSecondary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
-              onPress={handleDelete}
-            >
-              <Ionicons name="trash-outline" size={22} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableOpacity>
-
-      {/* QR Code Modal - Shows download QR code */}
-      <Modal visible={showQRModal} transparent animationType="fade" onRequestClose={handleCloseQR}>
-        <TouchableOpacity style={styles.qrOverlay} activeOpacity={1} onPress={handleCloseQR}>
-          <View style={[styles.qrContainer, { backgroundColor: colors.bgSurface }]}>
-            <Text style={[styles.qrTitle, { color: colors.textPrimary }]}>Download QR Code</Text>
-            <View style={styles.qrCodeWrapper}>
-              {qrDataUrl ? (
-                <QRCode
-                  value={qrDataUrl}
-                  size={200}
-                  bgColor="#FFFFFF"
-                  fgColor="#000000"
-                />
-              ) : (
-                <ActivityIndicator color={colors.accent} />
-              )}
             </View>
-            <TouchableOpacity
-              style={[styles.qrCloseBtn, { backgroundColor: colors.bgElevated }]}
-              onPress={handleCloseQR}
-            >
-              <Text style={[styles.qrCloseText, { color: colors.textPrimary }]}>Close</Text>
-            </TouchableOpacity>
+
+            <ScrollView style={styles.content} contentContainerStyle={isImage ? styles.imageContentContainer : undefined}>
+              {isText ? (
+                <Text style={[styles.textContent, { color: colors.textPrimary }]}>
+                  {firstItem.content}
+                </Text>
+              ) : isImage ? (
+                <View style={styles.imageContainer}>
+                  {loadingImage ? (
+                    <ActivityIndicator size="large" color={colors.accent} />
+                  ) : imageUrl ? (
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.image}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <View style={styles.fileInfo}>
+                      <Ionicons name="image-outline" size={48} color={colors.textSecondary} style={styles.fileIcon} />
+                      <Text style={[styles.fileName, { color: colors.textPrimary }]}>{firstItem.name}</Text>
+                      <Text style={[styles.fileSize, { color: colors.textSecondary }]}>
+                        {formatSize(firstItem.size)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <View style={styles.fileInfo}>
+                  <Ionicons name="document-outline" size={48} color={colors.textSecondary} style={styles.fileIcon} />
+                  <Text style={[styles.fileName, { color: colors.textPrimary }]}>{firstItem.name}</Text>
+                  <Text style={[styles.fileSize, { color: colors.textSecondary }]}>
+                    {formatSize(firstItem.size)}
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+
+            <View style={[styles.actions, { borderTopColor: colors.borderSubtle }]}>
+              {!isText && (
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
+                  onPress={() => onDownload(transfer)}
+                >
+                  <Ionicons name="download-outline" size={22} color={colors.accent} />
+                </TouchableOpacity>
+              )}
+
+              {!isText && firstItem?.storageType === 's3' && (
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
+                  onPress={handleShowQR}
+                >
+                  <Ionicons name="qr-code-outline" size={22} color={colors.textSecondary} />
+                </TouchableOpacity>
+              )}
+
+              {!isText && (
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
+                  onPress={handleShare}
+                >
+                  <Ionicons name="share-outline" size={22} color={colors.textSecondary} />
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
+                onPress={handleCopyLink}
+              >
+                <Ionicons name="link-outline" size={22} color={colors.textSecondary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
+                onPress={handleDelete}
+              >
+                <Ionicons name="trash-outline" size={22} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
           </View>
         </TouchableOpacity>
+
+        {/* QR Code Modal - Shows download QR code */}
+        <Modal visible={showQRModal} transparent animationType="fade" onRequestClose={handleCloseQR}>
+          <TouchableOpacity style={styles.qrOverlay} activeOpacity={1} onPress={handleCloseQR}>
+            <View style={[styles.qrContainer, { backgroundColor: colors.bgSurface }]}>
+              <Text style={[styles.qrTitle, { color: colors.textPrimary }]}>Download QR Code</Text>
+              <View style={styles.qrCodeWrapper}>
+                {qrDataUrl ? (
+                  <QRCode
+                    value={qrDataUrl}
+                    size={200}
+                    backgroundColor="white"
+                    color="black"
+                  />
+                ) : (
+                  <ActivityIndicator color={colors.accent} />
+                )}
+              </View>
+              <TouchableOpacity
+                style={[styles.qrCloseBtn, { backgroundColor: colors.bgElevated }]}
+                onPress={handleCloseQR}
+              >
+                <Text style={[styles.qrCloseText, { color: colors.textPrimary }]}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </Modal>
-    </Modal>
   );
 }
 
