@@ -290,9 +290,10 @@ export class TransferService {
 
     const session = sessions[0];
     // For single-chunk files, the actual file is at chunk_0, not the directory
+    // Note: session.s3Key may have trailing slash from init, but actual S3 key doesn't
     const s3Key = session.chunkCount === 1
       ? `transfers/${sessionId}/chunk_0`
-      : session.s3Key;
+      : session.s3Key.replace(/\/$/, '');
     return this.s3Service.getPresignedDownloadUrl(s3Key, session.originalFileName);
   }
 
@@ -419,9 +420,10 @@ export class TransferService {
     const expiresAt = Math.floor(Date.now() / 1000) + EXTERNAL_LINK_EXPIRY;
 
     // Determine S3 key: single chunk file is transfers/${sessionId}/chunk_0, multi chunk is transfers/${sessionId}
+    // Note: session.s3Key may have trailing slash from init, but actual S3 key doesn't
     const s3Key = session.chunkCount === 1
       ? `transfers/${sessionId}/chunk_0`
-      : session.s3Key;
+      : session.s3Key.replace(/\/$/, '');
 
     const url = await this.s3Service.getPresignedDownloadUrl(
       s3Key,
