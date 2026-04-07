@@ -1,10 +1,12 @@
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Swipeable } from 'react-native-gesture-handler';
 import * as Clipboard from 'expo-clipboard';
 import { observer } from '@rabjs/react';
 import { useService } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { ApiService } from '../../services/api.service';
+import { HomeService } from '../../services/home.service';
 import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 import { useState, useEffect } from 'react';
@@ -19,12 +21,12 @@ interface TransferItemProps {
   transfer: TransferSession;
   onPress: () => void;
   onDownload?: () => void;
-  onPreview?: () => void;
 }
 
-function TransferItemInner({ transfer, onPress, onDownload, onPreview }: TransferItemProps) {
+function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps) {
   const themeService = useService(ThemeService);
   const apiService = useService(ApiService);
+  const homeService = useService(HomeService);
   const colors = themeService.colors;
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
 
@@ -71,10 +73,6 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
     onDownload?.();
   };
 
-  const handlePreview = () => {
-    onPreview?.();
-  };
-
   const handleCopyLink = async () => {
     if (firstItem?.storageType === 's3') {
       try {
@@ -87,11 +85,31 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
     }
   };
 
+  const handleSwipeDelete = async () => {
+    try {
+      await homeService.deleteTransfer(transfer.id);
+      showToast('Deleted');
+    } catch (err) {
+      showToast('Failed to delete');
+    }
+  };
+
+  const renderRightActions = () => (
+    <View style={[styles.deleteContainer, { backgroundColor: '#FF3B30' }]}>
+      <Ionicons name="trash-outline" size={20} color="white" />
+    </View>
+  );
+
   return (
-    <TouchableOpacity
-      style={[styles.container, { backgroundColor: colors.bgSurface }]}
-      onPress={onPress}
+    <Swipeable
+      renderRightActions={renderRightActions}
+      onSwipeableOpen={handleSwipeDelete}
+      rightThreshold={40}
     >
+      <TouchableOpacity
+        style={[styles.container, { backgroundColor: colors.bgSurface }]}
+        onPress={onPress}
+      >
       <View style={[styles.iconContainer, { backgroundColor: colors.bgElevated }]}>
         {isImage && thumbnailUrl ? (
           <Image
@@ -122,9 +140,6 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
           </TouchableOpacity>
         ) : (
           <>
-            <TouchableOpacity style={styles.actionBtn} onPress={handlePreview}>
-              <Ionicons name="eye-outline" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
               <Ionicons name="download-outline" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -137,6 +152,7 @@ function TransferItemInner({ transfer, onPress, onDownload, onPreview }: Transfe
         )}
       </View>
     </TouchableOpacity>
+    </Swipeable>
   );
 }
 
@@ -199,6 +215,14 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     padding: 6,
+  },
+  deleteContainer: {
+    width: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginRight: 16,
+    borderRadius: 12,
   },
 });
 
