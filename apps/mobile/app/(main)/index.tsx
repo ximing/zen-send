@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../src/services/theme.service';
 import { HomeService } from '../../src/services/home.service';
+import { showToast } from '../../src/components/toast';
 import Header from '../../src/components/header';
 import FilterTabs from '../../src/components/filter-tabs';
 import TransferList from '../../src/components/transfer-list';
@@ -58,6 +59,15 @@ function HomeContentInner() {
     router.push('/(main)/downloads');
   };
 
+  const handleDelete = async (transfer: TransferSession) => {
+    try {
+      await homeService.deleteTransfer(transfer.id);
+      showToast('Deleted');
+    } catch (err) {
+      showToast('Failed to delete');
+    }
+  };
+
   return (
     <>
       <SafeAreaView style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]} edges={['top', 'left', 'right', 'bottom']}>
@@ -77,6 +87,7 @@ function HomeContentInner() {
           transfer={previewTransfer}
           onClose={() => setPreviewTransfer(null)}
           onDownload={handleDownload}
+          onDelete={handleDelete}
         />
       </SafeAreaView>
 
