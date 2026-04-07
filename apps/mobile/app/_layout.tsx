@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { register, useService, observer } from '@rabjs/react';
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ApiService } from '../src/services/api.service';
 import { AuthService } from '../src/services/auth.service';
 import { ThemeService } from '../src/services/theme.service';
@@ -21,14 +22,14 @@ function RootLayoutInner() {
   const themeService = useService(ThemeService);
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style={themeService.isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)/login" />
         <Stack.Screen name="(main)" />
       </Stack>
       <ToastInner />
-    </>
+    </GestureHandlerRootView>
   );
 }
 
