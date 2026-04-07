@@ -15,6 +15,13 @@
       "when": 1775310462830,
       "tag": "0001_perfect_martin_li",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1775525071789,
+      "tag": "0002_add_upload_id_to_transfer_sessions",
+      "breakpoints": true
     }
   ]
 }
