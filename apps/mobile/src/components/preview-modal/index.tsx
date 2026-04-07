@@ -217,7 +217,7 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
               style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
               onPress={handleShowQR}
             >
-              <Ionicons name="qr-outline" size={22} color={colors.textSecondary} />
+              <Ionicons name="qr-code-outline" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
 
             <TouchableOpacity
