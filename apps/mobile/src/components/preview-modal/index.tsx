@@ -9,7 +9,7 @@ import { ApiService } from '../../services/api.service';
 import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 import { useState, useEffect } from 'react';
-import QRCode from 'qrcode';
+import QRCode from 'react-native-qrcode-svg';
 
 // Check if mime type is an image
 const isImageMimeType = (mimeType: string | null): boolean => {
@@ -125,13 +125,9 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
   const handleShowQR = async () => {
     if (!transfer) return;
     try {
-      console.log('[PreviewModal] handleShowQR called, transfer.id:', transfer.id);
       const url = await apiService.getTransferDownloadUrl(transfer.id);
-      console.log('[PreviewModal] got url:', url ? url.substring(0, 50) : 'null');
       if (url) {
-        const dataUrl = await QRCode.toDataURL(url, { width: 280, margin: 2 });
-        console.log('[PreviewModal] generated QR dataUrl length:', dataUrl.length);
-        setQrDataUrl(dataUrl);
+        setQrDataUrl(url);
         setShowQRModal(true);
       } else {
         showToast('No download URL available');
@@ -256,7 +252,12 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
             <Text style={[styles.qrTitle, { color: colors.textPrimary }]}>Download QR Code</Text>
             <View style={styles.qrCodeWrapper}>
               {qrDataUrl && (
-                <Image source={{ uri: qrDataUrl }} style={{ width: 200, height: 200 }} />
+                <QRCode
+                  value={qrDataUrl}
+                  size={200}
+                  backgroundColor="white"
+                  color="black"
+                />
               )}
             </View>
             <TouchableOpacity
