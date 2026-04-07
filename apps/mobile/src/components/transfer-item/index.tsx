@@ -9,7 +9,7 @@ import { ApiService } from '../../services/api.service';
 import { HomeService } from '../../services/home.service';
 import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // Check if mime type is an image
 const isImageMimeType = (mimeType: string | null): boolean => {
@@ -85,7 +85,15 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
     }
   };
 
-  const handleSwipeDelete = async () => {
+  const swipeableRef = useRef<Swipeable>(null);
+
+  const handleSwipeDelete = () => {
+    // Just close the swipeable - delete is handled by onPress in renderRightActions
+    swipeableRef.current?.close();
+  };
+
+  const handleDelete = async () => {
+    swipeableRef.current?.close();
     try {
       await homeService.deleteTransfer(transfer.id);
       showToast('Deleted');
@@ -95,15 +103,20 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
   };
 
   const renderRightActions = () => (
-    <View style={[styles.deleteContainer, { backgroundColor: '#FF3B30' }]}>
+    <TouchableOpacity
+      style={[styles.deleteContainer, { backgroundColor: '#FF3B30' }]}
+      onPress={handleDelete}
+    >
       <Ionicons name="trash-outline" size={20} color="white" />
-    </View>
+    </TouchableOpacity>
   );
+
   return (
     <Swipeable
+      ref={swipeableRef}
       renderRightActions={renderRightActions}
-      onSwipeableOpen={handleSwipeDelete}
       rightThreshold={40}
+      overshootRight={false}
     >
       <TouchableOpacity
         style={[styles.container, { backgroundColor: colors.bgSurface }]}
@@ -219,9 +232,9 @@ const styles = StyleSheet.create({
     width: 80,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
     marginRight: 16,
-    borderRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
   },
 });
 
