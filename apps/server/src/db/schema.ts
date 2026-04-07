@@ -26,7 +26,7 @@ export const transferSessions = mysqlTable('transferSessions', {
   status: varchar('status', { length: 20 }).notNull(),
   s3Bucket: varchar('s3Bucket', { length: 100 }).notNull(),
   s3Key: varchar('s3Key', { length: 500 }).notNull(),
-  uploadId: varchar('uploadId', { length: 100 }),
+  uploadId: varchar('uploadId', { length: 500 }),
   originalFileName: varchar('originalFileName', { length: 255 }).notNull(),
   totalSize: bigint('totalSize', { mode: 'number' }).notNull(),
   chunkCount: int('chunkCount').notNull(),
