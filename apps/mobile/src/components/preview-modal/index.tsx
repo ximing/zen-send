@@ -53,10 +53,12 @@ function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps)
     if (storageType === 's3') {
       apiService.getTransferDownloadUrl(transferId)
         .then((url) => {
+          console.log('[PreviewModal] Got download URL for S3 image:', url ? 'success' : 'empty');
           setImageUrl(url);
           setLoadingImage(false);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error('[PreviewModal] Failed to get download URL:', err);
           setImageUrl(null);
           setLoadingImage(false);
         });
@@ -66,12 +68,16 @@ function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps)
         setImageUrl(itemContent);
       } else if (itemContent.startsWith('http')) {
         setImageUrl(itemContent);
+      } else {
+        // Content is not a direct URL, try to use it as-is (might be base64)
+        setImageUrl(itemContent);
       }
       setLoadingImage(false);
     } else {
+      console.log('[PreviewModal] Unknown storage type or no content:', { storageType, hasContent: !!itemContent });
       setLoadingImage(false);
     }
-  }, [isImage, firstItem?.id, transferId, storageType, itemContent, apiService]);
+  }, [isImage, firstItem, transferId, storageType, itemContent, apiService]);
 
   // Early returns AFTER all hooks
   if (!transfer) return null;
