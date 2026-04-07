@@ -9,7 +9,6 @@ import { ApiService } from '../../services/api.service';
 import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 import { useState, useEffect } from 'react';
-import QRCode from 'react-native-qrcode-svg';
 
 // Check if mime type is an image
 const isImageMimeType = (mimeType: string | null): boolean => {
@@ -37,7 +36,7 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
   // Derive values from transfer (safe even if transfer is null)
   const firstItem = transfer?.items?.[0] ?? null;
@@ -133,14 +132,19 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
         showToast('No download URL available');
       }
     } catch (err) {
-      console.error('[PreviewModal] QR error:', err);
-      showToast('Failed to generate QR code');
+      showToast('Failed to get download URL');
     }
   };
 
   const handleCloseQR = () => {
     setShowQRModal(false);
-    setQrDataUrl(null);
+  };
+
+  const handleCopyQRUrl = async () => {
+    if (qrDataUrl) {
+      await Clipboard.setStringAsync(qrDataUrl);
+      showToast('Link copied');
+    }
   };
 
   // Early returns AFTER all hooks
@@ -245,21 +249,22 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
         </View>
       </TouchableOpacity>
 
-      {/* QR Code Modal */}
+      {/* QR Code Modal - Shows download URL */}
       <Modal visible={showQRModal} transparent animationType="fade" onRequestClose={handleCloseQR}>
         <TouchableOpacity style={styles.qrOverlay} activeOpacity={1} onPress={handleCloseQR}>
           <View style={[styles.qrContainer, { backgroundColor: colors.bgSurface }]}>
-            <Text style={[styles.qrTitle, { color: colors.textPrimary }]}>Download QR Code</Text>
+            <Text style={[styles.qrTitle, { color: colors.textPrimary }]}>Download Link</Text>
             <View style={styles.qrCodeWrapper}>
-              {qrDataUrl && (
-                <QRCode
-                  value={qrDataUrl}
-                  size={200}
-                  backgroundColor="white"
-                  color="black"
-                />
-              )}
+              <Text style={[styles.qrUrlText, { color: colors.textSecondary }]} numberOfLines={3}>
+                {qrDataUrl}
+              </Text>
             </View>
+            <TouchableOpacity
+              style={[styles.qrCopyBtn, { backgroundColor: colors.accent }]}
+              onPress={handleCopyQRUrl}
+            >
+              <Text style={[styles.qrCopyText, { color: colors.bgPrimary }]}>Copy Link</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={[styles.qrCloseBtn, { backgroundColor: colors.bgElevated }]}
               onPress={handleCloseQR}
@@ -376,15 +381,30 @@ const styles = StyleSheet.create({
   qrTitle: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   qrCodeWrapper: {
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: colors.bgElevated,
     borderRadius: 12,
+    maxWidth: '100%',
+  },
+  qrUrlText: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  qrCopyBtn: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+  },
+  qrCopyText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   qrCloseBtn: {
-    marginTop: 20,
+    marginTop: 12,
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 8,
