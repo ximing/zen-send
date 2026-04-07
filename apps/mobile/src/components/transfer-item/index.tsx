@@ -152,14 +152,14 @@ function TransferItemInner({ transfer, onPress, onDownload }: TransferItemProps)
           </TouchableOpacity>
         ) : (
           <>
-            <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
-              <Ionicons name="download-outline" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
             {firstItem?.storageType === 's3' && (
               <TouchableOpacity style={styles.actionBtn} onPress={handleCopyLink}>
                 <Ionicons name="link-outline" size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
+            <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
+              <Ionicons name="download-outline" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
           </>
         )}
       </View>
