@@ -9,7 +9,7 @@ import { ApiService } from '../../services/api.service';
 import { showToast } from '../toast';
 import type { TransferSession } from '@zen-send/shared';
 import { useState, useEffect } from 'react';
-import QRCode from 'react-native-qrcode-svg';
+import QRCode from 'qrcode';
 
 // Check if mime type is an image
 const isImageMimeType = (mimeType: string | null): boolean => {
@@ -37,7 +37,7 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
-  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   // Derive values from transfer (safe even if transfer is null)
   const firstItem = transfer?.items?.[0] ?? null;
@@ -126,16 +126,19 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
     if (!transfer) return;
     try {
       const url = await apiService.getTransferDownloadUrl(transfer.id);
-      setQrUrl(url);
-      setShowQRModal(true);
+      if (url) {
+        const dataUrl = await QRCode.toDataURL(url, { width: 280, margin: 2 });
+        setQrDataUrl(dataUrl);
+        setShowQRModal(true);
+      }
     } catch (err) {
-      showToast('Failed to get download URL');
+      showToast('Failed to generate QR code');
     }
   };
 
   const handleCloseQR = () => {
     setShowQRModal(false);
-    setQrUrl(null);
+    setQrDataUrl(null);
   };
 
   // Early returns AFTER all hooks
@@ -240,13 +243,8 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
           <View style={[styles.qrContainer, { backgroundColor: colors.bgSurface }]}>
             <Text style={[styles.qrTitle, { color: colors.textPrimary }]}>Download QR Code</Text>
             <View style={styles.qrCodeWrapper}>
-              {qrUrl && (
-                <QRCode
-                  value={qrUrl}
-                  size={200}
-                  color={colors.textPrimary}
-                  backgroundColor={colors.bgSurface}
-                />
+              {qrDataUrl && (
+                <Image source={{ uri: qrDataUrl }} style={{ width: 200, height: 200 }} />
               )}
             </View>
             <TouchableOpacity
