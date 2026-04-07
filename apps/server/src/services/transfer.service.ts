@@ -61,7 +61,7 @@ export interface TransferItemInfo {
 
 @Service()
 export class TransferService {
-  private readonly CHUNK_SIZE = 1 * 1024 * 1024; // 1MB
+  private readonly CHUNK_SIZE = 5 * 1024 * 1024; // 5MB (S3 minimum for multipart upload)
 
   constructor(
     private dbService: DbService,
@@ -80,22 +80,33 @@ export class TransferService {
     const contentType = input.contentType || 'application/octet-stream';
     const fileName = input.fileName || 'untitled';
     const TEXT_INLINE_MAX_SIZE = 10 * 1024; // 10KB
+    const MULTIPART_MIN_SIZE = 5 * 1024 * 1024; // 5MB - S3 multipart minimum
 
     // 判断是否内联存储（文本且 <=10KB 且有 content）
     const isInlineText = input.type === 'text' &&
                          input.totalSize <= TEXT_INLINE_MAX_SIZE &&
                          input.content !== undefined;
 
+    // 判断是否使用 multipart upload（文件 > 5MB）
+    const useMultipart = !isInlineText && input.totalSize > MULTIPART_MIN_SIZE;
+
     let chunkCount = 0;
     let uploadId = '';
     const presignedUrls: string[] = [];
 
     if (!isInlineText) {
-      // S3 上传模式 - 使用真正的 multipart upload
-      chunkCount = input.chunkCount ?? 0;
-      const multipartResult = await this.s3Service.initMultipartUpload(sessionId, contentType, chunkCount);
-      uploadId = multipartResult.uploadId;
-      presignedUrls.push(...multipartResult.presignedUrls);
+      if (useMultipart) {
+        // S3 上传模式 - 使用真正的 multipart upload（文件 >= 5MB）
+        chunkCount = input.chunkCount ?? 0;
+        const multipartResult = await this.s3Service.initMultipartUpload(sessionId, contentType, chunkCount);
+        uploadId = multipartResult.uploadId;
+        presignedUrls.push(...multipartResult.presignedUrls);
+      } else {
+        // 小文件（< 5MB）- 使用简单的 PutObject，不需要 multipart
+        chunkCount = 1;
+        const url = await this.s3Service.getPresignedUploadUrl(s3Key, contentType);
+        presignedUrls.push(url);
+      }
     }
 
     await this.db.insert(transferSessions).values({
