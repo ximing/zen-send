@@ -178,31 +178,31 @@ function PreviewModalInner({ transfer, onClose, onDownload, onDelete }: PreviewM
 
           <View style={[styles.actions, { borderTopColor: colors.borderSubtle }]}>
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.accent }]}
+              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
               onPress={() => onDownload(transfer)}
             >
-              <Ionicons name="download-outline" size={22} color={colors.bgPrimary} />
+              <Ionicons name="download-outline" size={22} color={colors.accent} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: '#5856D6' }]}
+              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
               onPress={handleCopyLink}
             >
-              <Ionicons name="link-outline" size={22} color="white" />
+              <Ionicons name="link-outline" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: '#007AFF' }]}
+              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
               onPress={handleShare}
             >
-              <Ionicons name="share-outline" size={22} color="white" />
+              <Ionicons name="share-outline" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: '#FF3B30' }]}
+              style={[styles.actionBtn, { backgroundColor: colors.bgElevated }]}
               onPress={handleDelete}
             >
-              <Ionicons name="trash-outline" size={22} color="white" />
+              <Ionicons name="trash-outline" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -277,13 +277,14 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    padding: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
     borderTopWidth: 1,
   },
   actionBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
