@@ -1,26 +1,49 @@
 {
   "name": "@zen-send/logger",
   "version": "0.1.0",
+  "description": "Zen Send Node.js 服务端日志库",
+  "main": "lib/index.cjs",
+  "module": "lib/index.js",
+  "types": "lib/index.d.ts",
   "type": "module",
   "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.cjs"
+    }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint src/"
+    "build": "tsx build.config.ts",
+    "dev": "tsx build.config.ts --watch",
+    "clean": "rm -rf lib build dist coverage",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix --fix-type problem",
+    "typecheck": "tsc --noEmit"
   },
+  "keywords": [
+    "logger",
+    "logging",
+    "zen-send",
+    "node.js"
+  ],
+  "author": "Zen Send",
+  "license": "MIT",
   "dependencies": {
-    "pino": "^9.0.0",
-    "pino-pretty": "^11.0.0"
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
-    "@types/pino": "^7.0.0",
     "@zen-send/typescript-config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "@types/winston": "^2.4.4",
+    "esbuild": "^0.19.12",
+    "tsx": "^4.0.0",
     "typescript": "^5.7.3"
-  }
+  },
+  "files": [
+    "lib/**/*",
+    "build/**/*"
+  ]
 }
