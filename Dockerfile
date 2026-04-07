@@ -63,7 +63,7 @@ RUN pnpm install --frozen-lockfile --prod
 COPY --from=builder /app/apps/server/dist ./apps/server/dist
 COPY --from=builder /app/packages/dto/dist ./packages/dto/dist
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder /app/packages/logger/dist ./packages/logger/dist
+COPY --from=builder /app/packages/logger/lib ./packages/logger/lib
 
 # Copy server source (needed for runtime)
 COPY config ./config
