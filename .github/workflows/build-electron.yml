@@ -96,7 +96,7 @@ jobs:
 
   # macOS Intel (x64) build
   build-macos-x64:
-    runs-on: macos-14
+    runs-on: macos-13
     needs: [build-packages, quality-checks]
     steps:
       - name: Checkout code
@@ -134,7 +134,7 @@ jobs:
             unset CSC_LINK
             unset CSC_KEY_PASSWORD
           fi
-          pnpm --filter @zen-send/electron run dist:mac -- --x64
+          pnpm --filter @zen-send/electron run dist:mac -- --x64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -193,7 +193,7 @@ jobs:
             unset CSC_LINK
             unset CSC_KEY_PASSWORD
           fi
-          pnpm --filter @zen-send/electron run dist:mac -- --arm64
+          pnpm --filter @zen-send/electron run dist:mac -- --arm64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
