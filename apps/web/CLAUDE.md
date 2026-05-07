@@ -7,16 +7,19 @@
 | 类型 | 注册方式 | 位置 |
 |------|---------|------|
 | 全局 Service | `register()` | `main.tsx` |
-| 页面/组件 Service | `bindServices()` | 组件导出处 |
+| 页面级 Service | `bindServices()` | 组件导出处 |
 
 ```typescript
 // ✅ 全局 Service - main.tsx
 register(ApiService);
+register(HomeService);
 register(ToastService);
 
 // ✅ 页面 Service - 组件导出
-export default bindServices(HomeContent, [HomeService]);
+export default bindServices(LoginContent, [LoginService]);
 ```
+
+**注意**：`HomeService` 是全局 Service，在 `main.tsx` 中注册，因为 Search/Downloads 等多个页面需要访问它。
 
 ### 2. 响应式规则
 
@@ -31,7 +34,7 @@ const Component = observer(() => {
 // ❌ 错误：忘记 observer，不会响应变化
 const Component = () => {
   return <div>{service.count}</div>;
-};
+}
 ```
 
 ### 3. 不可解构 Observable
@@ -56,29 +59,22 @@ get apiService() {
 }
 ```
 
-### 5. 跨级访问：子组件访问父组件容器中的 Service
+### 5. Service 访问模式
 
-容器层次：HomePage → TransferChat → BottomToolbar
-
-子组件可直接访问**父组件容器**中注册的 Service：
+全局 Service 通过 `useService()` 直接访问，`resolve()` 获取其他 Service：
 
 ```typescript
-// TransferChatService（在 TransferChat 中注册）可访问 HomeService
-export class TransferChatService extends Service {
-  get homeService() {
-    return this.resolve(HomeService); // 父组件容器的 Service
+// 组件中使用全局 Service
+const homeService = useService(HomeService);
+const apiService = useService(ApiService);
+
+// Service 中通过 resolve 访问其他 Service
+export class HomeService extends Service {
+  get apiService() {
+    return this.resolve(ApiService);
   }
 }
-
-// BottomToolbar（子组件）可直接 useService(TransferChatService)
-const BottomToolbar = observer(() => {
-  const chatService = useService(TransferChatService); // 父容器的 Service
-  // 无需事件传递，直接调用
-  await chatService.sendText(text);
-});
 ```
-
-**核心原则**：子组件通过 `useService` 访问**直接父容器**的 Service；Service 通过 `resolve` 访问**父组件容器**的 Service。
 
 ### 6. API 类型定义
 
@@ -99,15 +95,52 @@ const { transfers } = await this.apiService.get<{ data: { transfers: [...] } }>(
 - **Dark Mode**: Controlled via `dark` class on `<html>` element
 - **@rabjs/react**: Service-based state management using observer/view patterns with dependency injection
 - **Web build output**: `apps/server/public/` (served by Express in production)
+- **Layout**: Header + Drawer 模式（对齐 Mobile），非 Sidebar
 
 ## 目录结构
 
 ```
 src/
-├── services/              # 全局 Service（register()）
+├── services/              # 全局 Service（register() in main.tsx）
 ├── pages/                 # 页面 + 页面级 Service
-└── components/            # 组件 + 组件级 Service（bindServices()）
+│   ├── home/              # 首页（HomeService 全局注册）
+│   ├── login/             # 登录页
+│   ├── register/          # 注册页
+│   ├── search/            # 搜索页
+│   ├── downloads/         # 下载页
+│   ├── devices/           # 设备管理页
+│   ├── settings/          # 设置页
+│   └── setup/             # Electron 配置页
+└── components/            # 通用组件
+    ├── header/            # 顶部导航栏（菜单 + Logo + 搜索）
+    ├── drawer/            # 侧边抽屉（用户信息 + 操作）
+    ├── filter-tabs/       # ALL/FILES/TEXT 过滤标签
+    ├── transfer-list/     # 传输列表
+    ├── transfer-item/     # 传输项卡片
+    ├── selected-files/    # 上传进度卡片
+    ├── bottom-toolbar/    # 底部工具栏
+    ├── preview-modal/     # 预览弹窗
+    └── toast/             # 通知提示
 ```
+
+## 页面布局模式
+
+所有已认证页面使用统一的 Header 布局：
+
+```
+┌─────────────────────────────┐
+│ Header (56px)               │  ← 菜单 + ZEN_SEND + 搜索
+├─────────────────────────────┤
+│ Content                     │
+│                             │
+│                             │
+│                             │
+├─────────────────────────────┤
+│ Bottom Toolbar (首页)       │  ← 文件选择 + 文字输入
+└─────────────────────────────┘
+```
+
+子页面（Search、Downloads、Devices、Settings）使用返回按钮替代菜单按钮。
 
 ## Design System
 
@@ -133,3 +166,23 @@ src/
 | 边框弱色 | `#EDEBE7` |
 | 点缀色 | `#8B9A7D` |
 | 点缀色软 | `#8B9A7D20` (12% 透明度) |
+
+### 图标
+
+使用 `lucide-react` 图标库，与 Mobile 的 Ionicons 保持视觉一致：
+
+| Mobile (Ionicons) | Web (lucide-react) |
+|-------------------|-------------------|
+| menu | Menu |
+| search | Search |
+| chevron-back | ChevronLeft |
+| folder-outline | FolderOpen |
+| image-outline | Image |
+| clipboard-outline | Clipboard |
+| send | ArrowUp / Send |
+| create-outline | PenLine |
+| document-outline | FileText |
+| copy-outline | Copy |
+| download-outline | Download |
+| link-outline | Link |
+| trash-outline | Trash2 |

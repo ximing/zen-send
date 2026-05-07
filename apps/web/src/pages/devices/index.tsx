@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { observer, bindServices, useService } from '@rabjs/react';
+import { observer, useService } from '@rabjs/react';
+import { useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
-import Sidebar from '../../components/sidebar';
+import { RefreshCw, Trash2, X, CheckCircle, XCircle, AlertCircle, ChevronLeft } from 'lucide-react';
 import { DeviceService } from '../../services/device.service';
 import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
 import type { Device, DeviceType, AuthTokens } from '@zen-send/shared';
-import { RefreshCw, Trash2, X, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import iconSprite from '../../assets/icon.png';
 
 const DevicesPage = observer(() => {
+  const navigate = useNavigate();
   const deviceService = useService(DeviceService);
   const themeService = useService(ThemeService);
   const authService = useService(AuthService);
@@ -21,16 +22,11 @@ const DevicesPage = observer(() => {
   useEffect(() => {
     deviceService.registerCurrentDevice();
     deviceService.loadDevices();
-    generateQRCode().catch(() => {
-      // Error is handled by ApiService redirecting to login
-    });
+    generateQRCode().catch(() => {});
   }, []);
 
   const generateQRCode = useCallback(async () => {
-    if (!authService.isAuthenticated || !authService.accessToken) {
-      return;
-    }
-    // QR code contains full auth tokens for direct login on mobile
+    if (!authService.isAuthenticated || !authService.accessToken) return;
     const tokens: AuthTokens = {
       accessToken: authService.accessToken,
       refreshToken: authService.refreshToken || '',
@@ -55,13 +51,11 @@ const DevicesPage = observer(() => {
     }
   };
 
-  // Sprite map: each icon is 120x120px (including background)
-  // Light theme (left): 0-480px, Dark theme (right): 480-960px
   const DEVICE_SPRITE_POSITIONS: Record<DeviceType, number> = {
-    web: 0, // First icon (0px)
-    android: 120, // Second icon (120px)
-    ios: 240, // Third icon (240px)
-    desktop: 360, // Fourth icon (360px)
+    web: 0,
+    android: 120,
+    ios: 240,
+    desktop: 360,
   };
 
   const getDeviceIcon = (type: DeviceType, isDarkTheme: boolean) => {
@@ -99,17 +93,25 @@ const DevicesPage = observer(() => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex">
-      <Sidebar />
-      <main className="flex-1 ml-16 p-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Devices</h1>
-          <p className="mt-2 text-[var(--text-secondary)]">
-            Manage your registered devices and pair new ones
-          </p>
+    <div className="h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center px-2 py-2 shrink-0 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]">
+        <button
+          onClick={() => navigate('/')}
+          className="p-1 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+        >
+          <ChevronLeft size={24} className="text-[var(--text-primary)]" />
+        </button>
+        <span className="flex-1 text-lg font-semibold text-[var(--text-primary)] ml-2">
+          Devices
+        </span>
+      </div>
 
+      {/* Content */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-6">
+        <div className="max-w-2xl mx-auto">
           {/* QR Code Section */}
-          <div className="mt-8 bg-[var(--bg-surface)] rounded-xl p-6">
+          <div className="bg-[var(--bg-surface)] rounded-xl p-6">
             <h2 className="text-lg font-medium text-[var(--text-primary)]">Scan to Add Device</h2>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
               Open Zen Send on your mobile device and scan this QR code to pair
@@ -124,14 +126,14 @@ const DevicesPage = observer(() => {
               )}
               <button
                 onClick={generateQRCode}
-                className="mt-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] rounded-xl transition-colors"
+                className="mt-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80 rounded-xl transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh QR Code
               </button>
             </div>
-            {/* Step Instructions */}
-            <div className="mt-6 pt-6">
+
+            <div className="mt-6 pt-6 border-t border-[var(--border-subtle)]">
               <ol className="space-y-2 text-sm text-[var(--text-secondary)]">
                 <li className="flex items-start gap-3">
                   <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] text-xs font-medium">
@@ -156,7 +158,7 @@ const DevicesPage = observer(() => {
           </div>
 
           {/* Device List Section */}
-          <div className="mt-8 bg-[var(--bg-surface)] rounded-xl p-6">
+          <div className="mt-6 bg-[var(--bg-surface)] rounded-xl p-6">
             <h2 className="text-lg font-medium text-[var(--text-primary)]">Registered Devices</h2>
             <div className="mt-4 space-y-3">
               {deviceService.loading ? (
@@ -184,7 +186,7 @@ const DevicesPage = observer(() => {
                             {device.name}
                           </span>
                           {deviceService.isCurrentDevice(device.id) && (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-[var(--accent-color)] text-white rounded-full">
+                            <span className="px-2 py-0.5 text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] rounded-full">
                               Current device
                             </span>
                           )}
@@ -197,11 +199,11 @@ const DevicesPage = observer(() => {
                             </>
                           ) : (
                             <>
-                              <XCircle className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                              <XCircle className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                               <span>Offline</span>
                             </>
                           )}
-                          <span className="text-[var(--text-tertiary)]">
+                          <span className="text-[var(--text-muted)]">
                             Last seen {formatLastSeen(device.lastSeenAt)}
                           </span>
                         </div>
@@ -221,45 +223,45 @@ const DevicesPage = observer(() => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Remove Device Confirmation Modal */}
-        {deviceToRemove && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[var(--bg-surface)] rounded-xl p-6 w-full max-w-md mx-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Remove Device</h3>
-                <button
-                  onClick={() => setDeviceToRemove(null)}
-                  className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <p className="text-[var(--text-secondary)]">
-                Are you sure you want to remove <strong>{deviceToRemove.name}</strong>? This action
-                cannot be undone.
-              </p>
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => setDeviceToRemove(null)}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] rounded-xl transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleRemoveDevice}
-                  disabled={removing}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 rounded-xl transition-colors"
-                >
-                  {removing ? 'Removing...' : 'Remove Device'}
-                </button>
-              </div>
+      {/* Remove Device Confirmation Modal */}
+      {deviceToRemove && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--bg-surface)] rounded-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Remove Device</h3>
+              <button
+                onClick={() => setDeviceToRemove(null)}
+                className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-[var(--text-secondary)]">
+              Are you sure you want to remove <strong>{deviceToRemove.name}</strong>? This action
+              cannot be undone.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setDeviceToRemove(null)}
+                className="flex-1 px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemoveDevice}
+                disabled={removing}
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 rounded-xl transition-colors"
+              >
+                {removing ? 'Removing...' : 'Remove Device'}
+              </button>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 });
 
-export default bindServices(DevicesPage, []);
+export default DevicesPage;

@@ -45,7 +45,9 @@ const SetupContent = observer(() => {
             <input
               type="url"
               value={service.serverUrl}
-              onChange={(e) => { service.serverUrl = e.target.value; }}
+              onChange={(e) => {
+                service.serverUrl = e.target.value;
+              }}
               placeholder="https://zensend.example.com"
               className="w-full h-12 px-4 bg-[var(--bg-surface)]
                          rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
@@ -55,9 +57,7 @@ const SetupContent = observer(() => {
           </div>
 
           {/* Error */}
-          {service.error && (
-            <p className="text-xs text-[var(--color-error)]">{service.error}</p>
-          )}
+          {service.error && <p className="text-xs text-[var(--color-error)]">{service.error}</p>}
 
           {/* Submit */}
           <button

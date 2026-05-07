@@ -16,73 +16,75 @@ const LoginContent = observer(() => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <h1 className="text-base font-semibold tracking-widest text-[var(--text-primary)] mb-2">
-            ZEN_SEND
-          </h1>
-          <p className="label">SIGN_IN</p>
-        </div>
+        <h1 className="text-3xl font-semibold text-center text-[var(--text-primary)] mb-2">
+          Zen Send
+        </h1>
+        <p className="text-sm text-center text-[var(--text-secondary)] mb-8">Sign in to continue</p>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email */}
-          <div className="space-y-2">
-            <label className="label block">EMAIL</label>
-            <input
-              type="email"
-              value={service.email}
-              onChange={(e) => { service.email = e.target.value; }}
-              placeholder="email@example.com"
-              autoComplete="email"
-              className="w-full h-12 px-4 bg-[var(--bg-surface)]
-                         rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
-                         focus:outline-none focus:outline-2 focus:outline-offset-2 focus:outline-[var(--border-focus)]"
-              required
-            />
+        {service.error && (
+          <div className="p-3 rounded-lg bg-[var(--accent-soft)] mb-4">
+            <p className="text-xs text-center text-[var(--accent)]">{service.error}</p>
           </div>
+        )}
 
-          {/* Password */}
-          <div className="space-y-2">
-            <label className="label block">PASSWORD</label>
-            <input
-              type="password"
-              value={service.password}
-              onChange={(e) => { service.password = e.target.value; }}
-              placeholder="••••••••"
-              autoComplete="current-password"
-              className="w-full h-12 px-4 bg-[var(--bg-surface)]
-                         rounded-md text-[var(--text-primary)] placeholder-[var(--text-muted)]
-                         focus:outline-none focus:outline-2 focus:outline-offset-2 focus:outline-[var(--border-focus)]"
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-1">
+          <label className="block text-xs text-[var(--text-secondary)] mb-1 ml-1">Email</label>
+          <input
+            type="email"
+            value={service.email}
+            onChange={(e) => {
+              service.email = e.target.value;
+            }}
+            placeholder="your@email.com"
+            autoComplete="email"
+            className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-subtle)]
+                       rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)]
+                       focus:outline-none focus:outline-2 focus:outline-offset-2 focus:outline-[var(--border-focus)]"
+            required
+          />
 
-          {/* Error */}
-          {service.error && (
-            <p className="text-xs text-[var(--color-error)]">{service.error}</p>
-          )}
+          <label className="block text-xs text-[var(--text-secondary)] mb-1 ml-1 mt-3">
+            Password
+          </label>
+          <input
+            type="password"
+            value={service.password}
+            onChange={(e) => {
+              service.password = e.target.value;
+            }}
+            placeholder="Enter password"
+            autoComplete="current-password"
+            className="w-full h-12 px-4 bg-[var(--bg-surface)] border border-[var(--border-subtle)]
+                       rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)]
+                       focus:outline-none focus:outline-2 focus:outline-offset-2 focus:outline-[var(--border-focus)]"
+            required
+          />
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={service.isLoading}
-            className="w-full h-12 bg-[var(--primary)] text-[var(--on-primary)]
-                       rounded-xl font-medium tracking-wider uppercase text-sm
-                       hover:bg-[var(--primary-hover)] transition-colors
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 bg-[var(--accent)] text-white
+                       rounded-lg font-medium text-sm
+                       hover:opacity-90 transition-opacity
+                       disabled:opacity-70 disabled:cursor-not-allowed mt-4"
           >
-            {service.isLoading ? 'SIGNING_IN...' : 'SIGN_IN'}
+            {service.isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        {/* Link */}
+        <button
+          className="w-full h-12 flex items-center justify-center mt-4
+                     text-sm font-medium text-[var(--accent)] hover:opacity-80 transition-opacity"
+        >
+          SCAN QR CODE
+        </button>
+
         <p className="text-center text-sm text-[var(--text-secondary)] mt-8">
           No account?{' '}
           <Link to="/register" className="text-[var(--text-primary)] hover:underline">
-            SIGN_UP
+            Sign Up
           </Link>
         </p>
       </div>

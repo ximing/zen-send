@@ -18,13 +18,14 @@ const ToastContent = observer(() => {
         >
           <div
             className={`w-1 h-4 rounded-full
-              ${toast.type === 'success'
-                ? 'bg-[var(--accent)]'
-                : toast.type === 'error'
-                ? 'bg-[var(--color-error)]'
-                : toast.type === 'warning'
-                ? 'bg-[var(--color-warning)]'
-                : 'bg-[var(--color-info)]'
+              ${
+                toast.type === 'success'
+                  ? 'bg-[var(--accent)]'
+                  : toast.type === 'error'
+                    ? 'bg-[var(--color-error)]'
+                    : toast.type === 'warning'
+                      ? 'bg-[var(--color-warning)]'
+                      : 'bg-[var(--color-info)]'
               }`}
           />
           {toast.message}

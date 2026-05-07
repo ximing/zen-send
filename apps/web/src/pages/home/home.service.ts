@@ -35,7 +35,10 @@ export class HomeService extends Service {
   previewTransfer: TransferSession | null = null;
   deleteConfirmId: string | null = null;
   private _hasMore = true;
-  private _fileData = new Map<string, { name: string; size: number; type?: string; data?: ArrayBuffer }>();
+  private _fileData = new Map<
+    string,
+    { name: string; size: number; type?: string; data?: ArrayBuffer }
+  >();
 
   get authService() {
     return this.resolve(AuthService);
@@ -54,9 +57,7 @@ export class HomeService extends Service {
 
     // Apply type filter
     if (this.filter !== 'all') {
-      filtered = filtered.filter((t) =>
-        t.items?.some((item) => item.type === this.filter)
-      );
+      filtered = filtered.filter((t) => t.items?.some((item) => item.type === this.filter));
     }
 
     // Apply time filter
@@ -79,13 +80,14 @@ export class HomeService extends Service {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter((t) => {
         const name = (t.originalFileName || '').toLowerCase();
-        const textContent = t.items?.find((item) => item.type === 'text')?.content?.toLowerCase() || '';
+        const textContent =
+          t.items?.find((item) => item.type === 'text')?.content?.toLowerCase() || '';
         return name.includes(query) || textContent.includes(query);
       });
     }
 
-    // Sort by time ascending (newest last)
-    return [...filtered].sort((a, b) => a.createdAt - b.createdAt);
+    // Sort by time descending (newest first)
+    return [...filtered].sort((a, b) => b.createdAt - a.createdAt);
   }
 
   get hasMore() {
@@ -134,7 +136,9 @@ export class HomeService extends Service {
         // Append and re-sort for merged dataset
         const existingIds = new Set(this.transfers.map((t) => t.id));
         const newTransfers = (transfers || []).filter((t) => !existingIds.has(t.id));
-        this.transfers = [...this.transfers, ...newTransfers].sort((a, b) => a.createdAt - b.createdAt);
+        this.transfers = [...this.transfers, ...newTransfers].sort(
+          (a, b) => b.createdAt - a.createdAt
+        );
       }
 
       this._hasMore = (transfers || []).length === limit;
@@ -182,7 +186,12 @@ export class HomeService extends Service {
         status: 'pending',
       };
       this.uploadingFiles = [...this.uploadingFiles, uploadingFile];
-      this._fileData.set(uploadId, { name: file.name, size: file.size, type: file.type, data: file.data });
+      this._fileData.set(uploadId, {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        data: file.data,
+      });
 
       // Create a temporary transfer session to show in the chat list
       const tempSession: TransferSession = {
@@ -200,18 +209,20 @@ export class HomeService extends Service {
         contentType: file.type || 'application/octet-stream',
         ttlExpiresAt: 0,
         createdAt: Math.floor(Date.now() / 1000),
-        items: [{
-          id: `temp-item-${uploadId}`,
-          sessionId: uploadId,
-          type: 'file',
-          name: file.name,
-          mimeType: file.type || 'application/octet-stream',
-          size: file.size,
-          content: undefined,
-          thumbnailKey: undefined,
-          storageType: 's3',
-          createdAt: Math.floor(Date.now() / 1000),
-        }],
+        items: [
+          {
+            id: `temp-item-${uploadId}`,
+            sessionId: uploadId,
+            type: 'file',
+            name: file.name,
+            mimeType: file.type || 'application/octet-stream',
+            size: file.size,
+            content: undefined,
+            thumbnailKey: undefined,
+            storageType: 's3',
+            createdAt: Math.floor(Date.now() / 1000),
+          },
+        ],
       };
       this.transfers = [...this.transfers, tempSession];
 
@@ -267,21 +278,25 @@ export class HomeService extends Service {
       const sourceDeviceId = 'web-device';
 
       // Check if file is text type (actual text files, not small images)
-      const isTextFile = file.type?.startsWith('text/') || 
-                         file.name.endsWith('.txt') || 
-                         file.name.endsWith('.md') ||
-                         file.name.endsWith('.json');
+      const isTextFile =
+        file.type?.startsWith('text/') ||
+        file.name.endsWith('.txt') ||
+        file.name.endsWith('.md') ||
+        file.name.endsWith('.json');
 
       if (isTextFile && file.data && file.size <= TEXT_INLINE_MAX_SIZE) {
         const content = new TextDecoder().decode(file.data);
-        const { sessionId } = await this.apiService.post<{ sessionId: string }>('/api/transfers/init', {
-          sourceDeviceId,
-          type: 'text',
-          fileName: file.name,
-          contentType: file.type || 'text/plain',
-          totalSize: file.size,
-          content,
-        });
+        const { sessionId } = await this.apiService.post<{ sessionId: string }>(
+          '/api/transfers/init',
+          {
+            sourceDeviceId,
+            type: 'text',
+            fileName: file.name,
+            contentType: file.type || 'text/plain',
+            totalSize: file.size,
+            content,
+          }
+        );
 
         this.updateUploadStatus(uploadId, {
           status: 'completed',
@@ -296,7 +311,10 @@ export class HomeService extends Service {
         await this.loadTransfers();
       } else {
         const chunkCount = Math.ceil(file.size / CHUNK_SIZE);
-        const { sessionId, presignedUrls } = await this.apiService.post<{ sessionId: string; presignedUrls: string[] }>('/api/transfers/init', {
+        const { sessionId, presignedUrls } = await this.apiService.post<{
+          sessionId: string;
+          presignedUrls: string[];
+        }>('/api/transfers/init', {
           sourceDeviceId,
           type: 'file',
           fileName: file.name,
