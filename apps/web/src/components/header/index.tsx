@@ -4,7 +4,7 @@ import { Menu, Search } from 'lucide-react';
 import { SocketService } from '../../services/socket.service';
 
 interface HeaderProps {
-  onMenuPress: () => void;
+  onMenuPress?: () => void;
   onSearchPress: () => void;
 }
 
@@ -16,12 +16,16 @@ function HeaderInner({ onMenuPress, onSearchPress }: HeaderProps) {
       className="h-14 flex items-center justify-between px-4 shrink-0
                  bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]"
     >
-      <button
-        onClick={onMenuPress}
-        className="p-2 min-w-[44px] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
-      >
-        <Menu size={24} className="text-[var(--text-primary)]" />
-      </button>
+      {onMenuPress ? (
+        <button
+          onClick={onMenuPress}
+          className="p-2 min-w-[44px] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
+        >
+          <Menu size={24} className="text-[var(--text-primary)]" />
+        </button>
+      ) : (
+        <div className="min-w-[44px]" />
+      )}
 
       <div className="flex items-center gap-1.5">
         <span className="text-base font-semibold tracking-widest text-[var(--text-primary)]">
