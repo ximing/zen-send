@@ -1,7 +1,6 @@
-import { HashRouter, useRoutes, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './theme/theme-provider';
-import { useService } from '@rabjs/react';
-import { AuthService } from './services/auth.service';
+import AppLayout from './components/app-layout';
 
 import HomePage from './pages/home';
 import LoginPage from './pages/login';
@@ -12,36 +11,28 @@ import SettingsPage from './pages/settings';
 import SearchPage from './pages/search';
 import DownloadsPage from './pages/downloads';
 
-// Root redirect - checks auth before rendering HomePage
-function RootRoute() {
-  const authService = useService(AuthService);
-  if (!authService.isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  return <HomePage />;
-}
-
-const routeConfig = [
-  { path: '/', element: <RootRoute /> },
-  { path: '/search', element: <SearchPage /> },
-  { path: '/downloads', element: <DownloadsPage /> },
-  { path: '/devices', element: <DevicesPage /> },
-  { path: '/settings', element: <SettingsPage /> },
-  { path: '/login', element: <LoginPage /> },
-  { path: '/register', element: <RegisterPage /> },
-  { path: '/setup', element: <SetupPage /> },
-];
-
-function AppRoutes() {
-  const routes = useRoutes(routeConfig);
-  return routes;
-}
-
 function App() {
   return (
     <HashRouter>
       <ThemeProvider>
-        <AppRoutes />
+        <Routes>
+          {/* Auth routes - no AppLayout */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/setup" element={<SetupPage />} />
+
+          {/* Authenticated routes - wrapped by AppLayout */}
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/downloads" element={<DownloadsPage />} />
+            <Route path="/devices" element={<DevicesPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </ThemeProvider>
     </HashRouter>
   );
