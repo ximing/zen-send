@@ -1,12 +1,8 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { observer, useService } from '@rabjs/react';
-import { useNavigate } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { HomeService } from './home.service';
-import { AuthService } from '../../services/auth.service';
 import { SocketService } from '../../services/socket.service';
-import Header from '../../components/header';
-import Drawer from '../../components/drawer';
 import FilterTabs from '../../components/filter-tabs';
 import TransferList from '../../components/transfer-list';
 import SelectedFiles from '../../components/selected-files';
@@ -16,16 +12,8 @@ import { getMimeTypeFromExtension } from '../../lib/zen-bridge';
 
 const HomeContent = observer(() => {
   const homeService = useService(HomeService);
-  const authService = useService(AuthService);
   const socketService = useService(SocketService);
-  const navigate = useNavigate();
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-
-  if (!authService.isAuthenticated) {
-    navigate('/login');
-    return null;
-  }
 
   useEffect(() => {
     homeService.loadTransfers();
@@ -104,23 +92,19 @@ const HomeContent = observer(() => {
 
   return (
     <div
-      className={`h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden
+      className={`flex-1 min-h-0 flex flex-col relative
         ${isDragging ? 'ring-2 ring-[var(--accent)] ring-inset' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <Header onMenuPress={() => setDrawerOpen(true)} onSearchPress={() => navigate('/search')} />
-
       <SelectedFiles />
       <FilterTabs />
       <TransferList />
       <BottomToolbar />
 
-      <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
-
       {isDragging && (
-        <div className="fixed inset-0 bg-[var(--bg-primary)]/80 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-[var(--bg-primary)]/80 flex items-center justify-center z-50">
           <div className="rounded-2xl p-16 text-center bg-[var(--bg-surface)]">
             <Upload size={64} className="text-[var(--accent)] mx-auto mb-4" />
             <p className="text-xl text-[var(--text-primary)] font-medium">Release to upload</p>
