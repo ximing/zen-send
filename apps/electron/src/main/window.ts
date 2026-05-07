@@ -96,7 +96,6 @@ export class WindowManager {
       show: false,
       title: 'Zen Send',
       icon: iconPath,
-      titleBarStyle: 'hidden',
       webPreferences: {
         preload: PRELOAD_PATH,
         contextIsolation: true,
