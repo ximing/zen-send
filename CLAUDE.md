@@ -1,12 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 Zen Send - Cross-platform clipboard, text, and file transfer tool (like LocalSend)
-
-## Project Overview
-
-Zen Send is a monorepo containing a server, web frontend, and React Native mobile app for cross-device content transfer.
 
 ## Architecture
 
@@ -17,7 +11,7 @@ Zen Send is a monorepo containing a server, web frontend, and React Native mobil
 - **apps/electron**: Electron desktop app for Windows/macOS/Linux
 
 ### Packages
-- **packages/dto**: Shared TypeScript interface types for request/response DTOs (RegisterRequest, LoginRequest, etc.)
+- **packages/dto**: Shared TypeScript interface types for request/response DTOs
 - **packages/shared**: Re-exports from `@zen-send/dto` plus domain types (Device, TransferSession, Socket events)
 - **packages/logger**: Pino-based logging utility
 
@@ -58,103 +52,6 @@ cd apps/electron && pnpm dist:mac  # Build macOS .app
 cd apps/electron && pnpm dist:win  # Build Windows .exe
 cd apps/electron && pnpm dist:linux  # Build Linux AppImage
 ```
-
-## Code Organization
-
-### Server (Express + routing-controllers + Socket.io)
-
-```
-apps/server/src/
-├── index.ts              # Entry point
-├── app.ts                # App factory (creates Express + Socket.io)
-├── ioc.ts                # Manual IOC container setup using glob patterns
-├── controllers/           # routing-controllers @JsonController classes
-├── services/             # typedi @Service classes (business logic)
-├── validators/           # class-validator DTOs (runtime validation)
-├── middlewares/          # Auth middleware
-├── socket/               # Socket.io event handlers
-├── db/                   # Drizzle ORM schema
-└── utils/                # JWT, ID generation, response helpers
-```
-
-**Server Architecture Key Points:**
-- Uses `routing-controllers` for declarative API endpoints with validation
-- Uses `typedi` for dependency injection (IOC via glob-loaded services/controllers)
-- Request validation: `validators/*.validator.ts` classes with class-validator decorators
-- Type definitions: `packages/dto` for compile-time interfaces (server imports from `@zen-send/dto`)
-- `AuthService`, `DeviceService`, `TransferService` contain business logic
-- `DbService` wraps database operations
-- `S3Service` handles S3 presigned URLs
-
-**Server IOC Rules:**
-- `container.ts` must be imported before all controllers (ensures TypeDI init first)
-- Services use `@Service()` decorator and constructor injection
-- Socket handlers use `Container.get()` (not constructor injection)
-
-### Transfer Module (Chunked S3 Multipart Upload)
-- Files are uploaded in 1MB chunks via S3 multipart upload
-- Server generates presigned URLs for direct client-to-S3 upload
-- Tracks chunk uploads in `chunkUploads` table
-- Supports text and clipboard transfers in addition to files
-- Transfer sessions expire after `TRANSFER_TTL_DAYS` (default 30)
-
-### Database Schema (Drizzle ORM + MySQL)
-**Tables:** `users`, `devices`, `transfer_sessions`, `transfer_items`, `download_history`, `chunk_uploads`
-- **No foreign keys** - Joins done in business code
-- **Unix timestamps** - All timestamps stored as integers (seconds, not milliseconds)
-- **Schema location:** `apps/server/src/db/schema.ts`
-
-### DTO Architecture
-
-**Two-layer DTO system:**
-1. `packages/dto` - Pure TypeScript interfaces for compile-time type checking
-2. `apps/server/src/validators/` - class-validator decorated classes for runtime validation
-
-```
-packages/dto/src/index.ts      → interface LoginRequest { email: string; password: string }
-apps/server/validators/        → class LoginDto implements LoginRequest { @IsEmail() email!: string }
-```
-
-Web imports types from `@zen-send/dto`, server imports types and adds validation decorators.
-
-### Web App (React 19 + Vite + Tailwind CSS 4 + @rabjs/react)
-- **Styling**: Tailwind CSS v4 with CSS variables for theming
-- **State Management**: @rabjs/react for reactive state with observer/Service patterns
-- **Theme System**: `src/theme/` - Light/dark mode via CSS variables
-- **Real-time**: Socket.io client for device discovery and transfers
-- **Web build output**: `apps/server/public/` (served by Express in production)
-
-### @rabjs/react Critical Rules
-These rules are **non-obvious and must be followed**:
-
-1. **Components must use `observer()`** - Components wrapped with `observer()` from @rabjs/react才能响应状态变化
-2. **Never destructure observables** - `const { count } = service` breaks reactivity; use `service.count` directly
-3. **resolve() must use getters** - Use `get apiService() { return this.resolve(ApiService); }` not property assignment
-4. **Global vs page services** - Global: `register()` in main.tsx; Page-level: `bindServices()` at component export
-5. **API types** - ApiService unwraps `data` layer; type generics reflect actual structure, not wrapper
-
-### Real-time Communication (Socket.io)
-**Client → Server events:**
-- `device:heartbeat` - Keep device marked as online
-- `device:register` - Explicit device registration
-- `transfer:notify` - Send transfer notification to target device
-- `transfer:progress` - Emit progress updates to session room
-- `transfer:complete` - Notify session of transfer completion
-
-**Server → Client events:**
-- `device:list` - List of user's devices (online/offline status)
-- `transfer:new` - New incoming transfer notification
-
-### ID Generation
-Uses `nanoid` with 22-character IDs and type prefixes:
-| Prefix | Entity | Example |
-|--------|--------|---------|
-| `u` | User | `u3KkL9mW2XyPqRsTuVwY` |
-| `d` | Device | `d4LlMnO5PqRsTuVwXyZa` |
-| `s` | Transfer Session | `s5MmNoO6QrStUvWxYbZc` |
-| `i` | Transfer Item | `i6NnOpP7RsTuVwXyZcAd` |
-| `h` | Download History | `h7OoPqQ8StUvWxYzAdBe` |
-| `c` | Chunk | `c8PpQrR9TuVwXyZaBdCe` |
 
 ## Naming Conventions
 
@@ -217,12 +114,16 @@ S3_BUCKET=zen-send-transfers
 TRANSFER_TTL_DAYS=30
 ```
 
-### Web-Specific
-- **Tailwind CSS v4**: Uses `@tailwindcss/postcss` plugin with PostCSS
-- **Theme Tokens**: Design tokens in `src/theme/tokens.ts` are applied as CSS variables on `:root`
-- **Dark Mode**: Controlled via `dark` class on `<html>` element
-- **@rabjs/react**: Service-based state management using observer/view patterns with dependency injection
-
 ### Git Hooks
 - **commitlint** validates commit messages (Conventional Commits format) on commit
 - **changesets** manages versioning and changelogs (run `pnpm changeset` to create)
+
+## Subsystem-Specific Rules
+
+Detailed rules for each subsystem live in their own directories:
+- `apps/server/CLAUDE.md` — Server architecture, IOC, DTO, database, Socket.io, transfer module
+- `apps/web/CLAUDE.md` — Web @rabjs/react rules, design system, directory structure
+- `apps/mobile/CLAUDE.md` — Mobile @rabjs/react rules, design system, platform specifics
+- `.claude/rules/rabjs.md` — Cross-app @rabjs/react critical rules (web + electron + mobile)
+
+使用中文对话
