@@ -43,9 +43,7 @@ function AppLayoutInner() {
       </div>
 
       {/* Drawer: narrow screen only */}
-      {!isWide && (
-        <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      )}
+      {!isWide && <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />}
     </div>
   );
 }

@@ -76,9 +76,10 @@ function NavContentInner({ onNavigate }: NavContentProps) {
               key={item.path}
               onClick={item.onClick}
               className={`w-full flex items-center gap-3 py-3.5 px-3 rounded-lg transition-colors relative
-                ${isActive
-                  ? 'bg-[var(--bg-surface-hover)] text-[var(--accent)]'
-                  : 'hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]'
+                ${
+                  isActive
+                    ? 'bg-[var(--bg-surface-hover)] text-[var(--accent)]'
+                    : 'hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]'
                 }`}
             >
               {isActive && (
