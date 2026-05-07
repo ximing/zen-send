@@ -35,7 +35,7 @@ function SearchPage() {
   const filteredTransfers = homeService.filteredTransfers;
 
   return (
-    <div className="h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center px-4 py-2 gap-2 shrink-0 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]">
         <button
