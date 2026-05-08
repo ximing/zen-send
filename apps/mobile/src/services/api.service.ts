@@ -105,6 +105,23 @@ export class ApiService extends Service {
     });
   }
 
+  async uploadPresignedUrl(presignedUrl: string, fileUri: string, contentType: string): Promise<void> {
+    const response = await fetch(presignedUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': contentType,
+      },
+      body: {
+        uri: fileUri,
+        type: contentType,
+        name: 'avatar',
+      } as any,
+    });
+    if (!response.ok) {
+      throw new Error(`Upload failed: HTTP ${response.status}`);
+    }
+  }
+
   async cancelUpload(sessionId: string): Promise<void> {
     await this.delete(`/api/transfers/${sessionId}`);
   }
