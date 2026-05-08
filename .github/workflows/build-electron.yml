@@ -142,13 +142,28 @@ jobs:
           GITHUB_OWNER: ${{ github.repository_owner }}
           GITHUB_REPO: ${{ github.event.repository.name }}
 
+      - name: Rename x64 artifacts with -x64 suffix
+        run: |
+          cd apps/electron/release
+          for f in Zen\ Send-*.dmg; do
+            [[ "$f" == *-arm64* ]] && continue
+            [[ "$f" == *-x64* ]] && continue
+            mv "$f" "${f%.dmg}-x64.dmg"
+          done
+          for f in Zen\ Send-*-mac.zip; do
+            [[ "$f" == *-arm64* ]] && continue
+            [[ "$f" == *-x64* ]] && continue
+            mv "$f" "${f%-mac.zip}-x64-mac.zip"
+          done
+          ls -la
+
       - name: Upload macOS x64 artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-x64-artifacts
           path: |
             apps/electron/release/*-x64.dmg
-            apps/electron/release/*-x64.zip
+            apps/electron/release/*-x64-mac.zip
             apps/electron/release/latest-mac.yml
           if-no-files-found: warn
 
