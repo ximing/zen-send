@@ -77,6 +77,19 @@ export class ApiService extends Service {
     });
   }
 
+  async uploadPresignedUrl(presignedUrl: string, file: File): Promise<void> {
+    const response = await fetch(presignedUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type,
+      },
+      body: file,
+    });
+    if (!response.ok) {
+      throw new Error(`Upload failed: HTTP ${response.status}`);
+    }
+  }
+
   async cancelUpload(sessionId: string): Promise<void> {
     // 取消上传通过删除 session 实现
     await this.delete(`/api/transfers/${sessionId}`);
