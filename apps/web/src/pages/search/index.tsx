@@ -3,6 +3,7 @@ import { observer, useService } from '@rabjs/react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { HomeService, type TimeFilter } from '../home/home.service';
+import { ToastService } from '../../components/toast/toast.service';
 import TransferItem from '../../components/transfer-item';
 import type { TransferSession } from '@zen-send/shared';
 
@@ -16,6 +17,7 @@ const TIME_FILTERS: { label: string; value: TimeFilter }[] = [
 function SearchPage() {
   const navigate = useNavigate();
   const homeService = useService(HomeService);
+  const toastService = useService(ToastService);
   const [query, setQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
 
@@ -107,7 +109,8 @@ function SearchPage() {
                 }
               }}
               onDelete={async (t) => {
-                if (!confirm('确定要删除这条记录吗？')) return;
+                const ok = await toastService.confirm('确定要删除这条记录吗？');
+                if (!ok) return;
                 try {
                   await homeService.apiService.deleteTransfer(t.id);
                   homeService.loadTransfers();

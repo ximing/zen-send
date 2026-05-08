@@ -6,8 +6,16 @@ export interface ToastMessage {
   message: string;
 }
 
+export interface ConfirmDialog {
+  id: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
 export class ToastService extends Service {
   toasts: ToastMessage[] = [];
+  confirmDialog: ConfirmDialog | null = null;
   private timeoutIds: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
   show(message: string, type: ToastMessage['type'] = 'info') {
@@ -20,6 +28,24 @@ export class ToastService extends Service {
     this.timeoutIds.set(id, timeoutId);
   }
 
+  confirm(message: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const id = Date.now().toString();
+      this.confirmDialog = {
+        id,
+        message,
+        onConfirm: () => {
+          this.confirmDialog = null;
+          resolve(true);
+        },
+        onCancel: () => {
+          this.confirmDialog = null;
+          resolve(false);
+        },
+      };
+    });
+  }
+
   dismiss(id: string) {
     const timeoutId = this.timeoutIds.get(id);
     if (timeoutId) {
@@ -30,7 +56,6 @@ export class ToastService extends Service {
   }
 
   dispose() {
-    // Clear all pending timeouts on dispose
     for (const timeoutId of this.timeoutIds.values()) {
       clearTimeout(timeoutId);
     }
