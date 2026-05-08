@@ -29,8 +29,8 @@ export class UserService extends Service {
   }
 
   async uploadAvatar(fileUri: string, contentType: string, fileSize: number): Promise<UserProfileResponse> {
-    if (fileSize > 2 * 1024 * 1024) {
-      throw new Error('File size must be less than 2MB');
+    if (fileSize > 10 * 1024 * 1024) {
+      throw new Error('File size must be less than 10MB');
     }
 
     const presignResult = await this.apiService.post<AvatarPresignResponse>(

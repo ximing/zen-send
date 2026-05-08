@@ -7,8 +7,7 @@ import type {
   UserProfileResponse,
 } from '@zen-send/dto';
 
-@Service()
-export class UserService {
+export class UserService extends Service {
   get apiService() {
     return this.resolve(ApiService);
   }
@@ -30,8 +29,8 @@ export class UserService {
   }
 
   async uploadAvatar(file: File): Promise<UserProfileResponse> {
-    if (file.size > 2 * 1024 * 1024) {
-      throw new Error('File size must be less than 2MB');
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('File size must be less than 10MB');
     }
 
     const presignResult = await this.apiService.post<AvatarPresignResponse>(
