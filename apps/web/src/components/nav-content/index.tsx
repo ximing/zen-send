@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer, useService } from '@rabjs/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Download, Sun, Moon, LogOut, Smartphone } from 'lucide-react';
+import { Home, Download, Sun, Moon, LogOut, Smartphone, Settings } from 'lucide-react';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 
@@ -48,19 +48,31 @@ function NavContentInner({ onNavigate }: NavContentProps) {
     { path: '/', label: '首页', icon: Home, onClick: handleHome },
     { path: '/devices', label: '设备管理', icon: Smartphone, onClick: handleDevices },
     { path: '/downloads', label: '下载', icon: Download, onClick: handleDownloads },
+    { path: '/settings', label: '设置', icon: Settings, onClick: () => { navigate('/settings'); onNavigate?.(); } },
   ];
 
   return (
     <div className="flex flex-col h-full">
       {/* User Info Section */}
-      <div className="flex flex-col items-center pb-6 border-b border-[var(--border-subtle)] mb-4 pt-5 px-5">
-        <div className="w-16 h-16 rounded-full bg-[var(--accent-soft)] flex items-center justify-center mb-3">
-          <span className="text-2xl font-semibold text-[var(--accent)]">
-            {user?.email?.charAt(0).toUpperCase() ?? '?'}
-          </span>
-        </div>
+      <div
+        className="flex flex-col items-center pb-6 border-b border-[var(--border-subtle)] mb-4 pt-5 px-5 cursor-pointer"
+        onClick={() => { navigate('/settings'); onNavigate?.(); }}
+      >
+        {user?.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt="Avatar"
+            className="w-16 h-16 rounded-full object-cover mb-3"
+          />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-[var(--accent-soft)] flex items-center justify-center mb-3">
+            <span className="text-2xl font-semibold text-[var(--accent)]">
+              {user?.email?.charAt(0).toUpperCase() ?? '?'}
+            </span>
+          </div>
+        )}
         <span className="text-lg font-semibold text-[var(--text-primary)]">
-          {user?.email?.split('@')[0] ?? 'User'}
+          {user?.nickname || user?.email?.split('@')[0] || 'User'}
         </span>
         <span className="text-sm text-[var(--text-secondary)]">{user?.email ?? ''}</span>
         <span className="text-xs text-[var(--text-muted)]">{serverUrl}</span>
