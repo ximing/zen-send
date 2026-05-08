@@ -36,10 +36,11 @@ GET /api/transfers/:id/external-link
 ```
 
 响应：
+
 ```typescript
 {
-  url: string;        // S3 预签名 URL（6小时有效）
-  expiresAt: number;  // 过期时间戳（秒）
+  url: string; // S3 预签名 URL（6小时有效）
+  expiresAt: number; // 过期时间戳（秒）
 }
 ```
 
@@ -92,10 +93,7 @@ async getTransferExternalLink(transferId: string): Promise<{ url: string; expire
   className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
   title="Copy Link"
 >
-  <Link
-    size={16}
-    className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
-  />
+  <Link size={16} className="text-[var(--text-secondary)] hover:text-[var(--accent)]" />
 </button>
 ```
 

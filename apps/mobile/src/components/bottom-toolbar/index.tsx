@@ -1,4 +1,14 @@
-import { View, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Text, Alert, ActionSheetIOS } from 'react-native';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  Alert,
+  ActionSheetIOS,
+} from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -137,7 +147,12 @@ function BottomToolbarInner() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={90}
     >
-      <View style={[styles.container, { backgroundColor: colors.bgSurface, borderTopColor: colors.borderSubtle }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.bgSurface, borderTopColor: colors.borderSubtle },
+        ]}
+      >
         <View style={styles.iconsRow}>
           <TouchableOpacity style={styles.iconButton} onPress={handleSelectFile}>
             <Ionicons name="folder-outline" size={22} color={colors.textPrimary} />
@@ -151,7 +166,10 @@ function BottomToolbarInner() {
         </View>
         <View style={styles.inputRow}>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.bgElevated, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              { backgroundColor: colors.bgElevated, color: colors.textPrimary },
+            ]}
             value={text}
             onChangeText={setText}
             placeholder="输入文字..."
@@ -166,7 +184,11 @@ function BottomToolbarInner() {
             onPress={handleSendText}
             disabled={!text.trim()}
           >
-            <Ionicons name="send" size={18} color={text.trim() ? colors.bgPrimary : colors.textMuted} />
+            <Ionicons
+              name="send"
+              size={18}
+              color={text.trim() ? colors.bgPrimary : colors.textMuted}
+            />
           </TouchableOpacity>
         </View>
       </View>

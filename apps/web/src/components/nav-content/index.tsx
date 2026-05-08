@@ -48,7 +48,15 @@ function NavContentInner({ onNavigate }: NavContentProps) {
     { path: '/', label: '首页', icon: Home, onClick: handleHome },
     { path: '/devices', label: '设备管理', icon: Smartphone, onClick: handleDevices },
     { path: '/downloads', label: '下载', icon: Download, onClick: handleDownloads },
-    { path: '/settings', label: '设置', icon: Settings, onClick: () => { navigate('/settings'); onNavigate?.(); } },
+    {
+      path: '/settings',
+      label: '设置',
+      icon: Settings,
+      onClick: () => {
+        navigate('/settings');
+        onNavigate?.();
+      },
+    },
   ];
 
   return (
@@ -56,7 +64,10 @@ function NavContentInner({ onNavigate }: NavContentProps) {
       {/* User Info Section */}
       <div
         className="flex flex-col items-center pb-6 border-b border-[var(--border-subtle)] mb-4 pt-5 px-5 cursor-pointer"
-        onClick={() => { navigate('/settings'); onNavigate?.(); }}
+        onClick={() => {
+          navigate('/settings');
+          onNavigate?.();
+        }}
       >
         {user?.avatarUrl ? (
           <img

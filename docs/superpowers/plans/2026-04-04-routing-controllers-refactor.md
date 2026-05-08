@@ -55,6 +55,7 @@ apps/server/src/
 ### Task 1: Add required dependencies
 
 **Files:**
+
 - Modify: `apps/server/package.json`
 
 - [ ] **Step 1: Add routing-controllers, typedi, reflect-metadata, glob, class-validator, class-transformer dependencies**
@@ -90,6 +91,7 @@ git commit -m "feat(server): add routing-controllers, typedi, reflect-metadata d
 ### Task 2: Update TypeScript config for decorator support
 
 **Files:**
+
 - Modify: `apps/server/tsconfig.json`
 
 - [ ] **Step 1: Add decorator compiler options**
@@ -119,6 +121,7 @@ git commit -m "feat(server): enable decorator metadata for routing-controllers a
 ### Task 3: Refactor AuthService to typedi @Service()
 
 **Files:**
+
 - Modify: `apps/server/src/services/auth.service.ts`
 - Create: `apps/server/src/services/auth.service.ts`
 
@@ -131,7 +134,12 @@ import { eq } from 'drizzle-orm';
 import { Service } from 'typedi';
 import { db } from '../config/database.js';
 import { users } from '../db/schema.js';
-import { signAccessToken, signRefreshToken, verifyRefreshToken, type TokenPayload } from '../config/jwt.js';
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+  type TokenPayload,
+} from '../config/jwt.js';
 import { logger } from '@zen-send/logger';
 
 export interface AuthTokens {
@@ -254,6 +262,7 @@ git commit -m "refactor(server): convert AuthService to typedi @Service()"
 ### Task 4: Refactor DeviceService to typedi @Service()
 
 **Files:**
+
 - Modify: `apps/server/src/services/device.service.ts`
 
 - [ ] **Step 1: Refactor device.service.ts to use @Service() decorator**
@@ -321,10 +330,7 @@ export class DeviceService {
 
   async updateDeviceHeartbeat(id: string): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
-    await db
-      .update(devices)
-      .set({ lastSeenAt: now, isOnline: 1 })
-      .where(eq(devices.id, id));
+    await db.update(devices).set({ lastSeenAt: now, isOnline: 1 }).where(eq(devices.id, id));
   }
 
   async setDeviceOffline(id: string): Promise<void> {
@@ -368,6 +374,7 @@ git commit -m "refactor(server): convert DeviceService to typedi @Service()"
 ### Task 5: Refactor TransferService to typedi @Service()
 
 **Files:**
+
 - Modify: `apps/server/src/services/transfer.service.ts`
 
 - [ ] **Step 1: Refactor transfer.service.ts to use @Service() decorator**
@@ -379,7 +386,12 @@ import { Service } from 'typedi';
 import { db } from '../config/database.js';
 import { transferSessions, transferItems, chunkUploads } from '../db/schema.js';
 import { generateSessionId, generateItemId, generateChunkId } from '../utils/id.js';
-import { getPresignedUploadUrl, getPresignedDownloadUrl, S3_BUCKET, TRANSFER_TTL_DAYS } from '../config/s3.js';
+import {
+  getPresignedUploadUrl,
+  getPresignedDownloadUrl,
+  S3_BUCKET,
+  TRANSFER_TTL_DAYS,
+} from '../config/s3.js';
 
 const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB
 
@@ -497,7 +509,10 @@ export class TransferService {
       .where(eq(transferSessions.id, sessionId));
   }
 
-  async completeTransfer(sessionId: string, userId: string): Promise<{ status: string; downloadUrl?: string }> {
+  async completeTransfer(
+    sessionId: string,
+    userId: string
+  ): Promise<{ status: string; downloadUrl?: string }> {
     const now = Math.floor(Date.now() / 1000);
 
     const sessions = await db
@@ -513,7 +528,9 @@ export class TransferService {
     const session = sessions[0];
 
     if (session.receivedChunks < session.chunkCount) {
-      throw new Error(`Transfer incomplete: ${session.receivedChunks}/${session.chunkCount} chunks received`);
+      throw new Error(
+        `Transfer incomplete: ${session.receivedChunks}/${session.chunkCount} chunks received`
+      );
     }
 
     await db
@@ -622,7 +639,9 @@ export class TransferService {
       return false;
     }
 
-    await db.delete(transferSessions).where(and(eq(transferSessions.id, sessionId), eq(transferSessions.userId, userId)));
+    await db
+      .delete(transferSessions)
+      .where(and(eq(transferSessions.id, sessionId), eq(transferSessions.userId, userId)));
     return true;
   }
 }
@@ -642,6 +661,7 @@ git commit -m "refactor(server): convert TransferService to typedi @Service()"
 ### Task 6: Create DTOs for validation
 
 **Files:**
+
 - Create: `apps/server/src/dto/auth.dto.ts`
 - Create: `apps/server/src/dto/device.dto.ts`
 - Create: `apps/server/src/dto/transfer.dto.ts`
@@ -749,6 +769,7 @@ git commit -m "feat(server): add validation DTOs for routing-controllers"
 ### Task 7: Create AuthController with routing-controllers
 
 **Files:**
+
 - Create: `apps/server/src/controllers/auth.controller.ts`
 
 - [ ] **Step 1: Create auth controller using routing-controllers decorators**
@@ -826,6 +847,7 @@ git commit -m "feat(server): create AuthController with routing-controllers"
 ### Task 8: Create DeviceController with routing-controllers
 
 **Files:**
+
 - Create: `apps/server/src/controllers/device.controller.ts`
 
 - [ ] **Step 1: Create device controller using routing-controllers decorators**
@@ -879,7 +901,7 @@ export class DeviceController {
     }
 
     if (device.userId !== user.userId) {
-      throw new HttpError(403, 'Cannot unbind another user\'s device');
+      throw new HttpError(403, "Cannot unbind another user's device");
     }
 
     const deleted = await this.deviceService.unbindDevice(id, user.userId);
@@ -899,7 +921,7 @@ export class DeviceController {
     }
 
     if (device.userId !== user.userId) {
-      throw new HttpError(403, 'Cannot update another user\'s device');
+      throw new HttpError(403, "Cannot update another user's device");
     }
 
     await this.deviceService.updateDeviceHeartbeat(id);
@@ -920,6 +942,7 @@ git commit -m "feat(server): create DeviceController with routing-controllers"
 ### Task 9: Create TransferController with routing-controllers
 
 **Files:**
+
 - Create: `apps/server/src/controllers/transfer.controller.ts`
 
 - [ ] **Step 1: Create transfer controller using routing-controllers decorators**
@@ -1013,7 +1036,11 @@ export class TransferController {
       throw new HttpError(400, 'Invalid limit or offset parameter');
     }
 
-    const transfers = await this.transferService.getTransferList(user.userId, parsedLimit, parsedOffset);
+    const transfers = await this.transferService.getTransferList(
+      user.userId,
+      parsedLimit,
+      parsedOffset
+    );
     return ResponseUtil.success({ transfers });
   }
 
@@ -1066,6 +1093,7 @@ git commit -m "feat(server): create TransferController with routing-controllers"
 ### Task 10: Update ResponseUtil and Error Handler
 
 **Files:**
+
 - Modify: `apps/server/src/utils/response.ts`
 - Modify: `apps/server/src/middleware/error.ts`
 
@@ -1119,12 +1147,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HttpError } from 'routing-controllers';
 import { logger } from '@zen-send/logger';
 
-export function errorHandler(
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function errorHandler(error: Error, req: Request, res: Response, next: NextFunction): void {
   logger.error({ err: error, path: req.path, method: req.method }, 'Request error');
 
   if (error instanceof HttpError) {
@@ -1156,6 +1179,7 @@ git commit -m "refactor(server): update ResponseUtil and error handler for routi
 ### Task 11: Add Express types extension
 
 **Files:**
+
 - Create: `apps/server/src/types/express.ts`
 
 - [ ] **Step 1: Create types/express.ts to extend Express Request**
@@ -1184,6 +1208,7 @@ git commit -m "feat(server): add Express Request type extension"
 ### Task 12: Create IOC loader for dynamic service loading
 
 **Files:**
+
 - Create: `apps/server/src/ioc.ts`
 
 - [ ] **Step 1: Create ioc.ts for dynamic loading**
@@ -1235,6 +1260,7 @@ git commit -m "feat(server): add IOC loader for dynamic service/controller loadi
 ### Task 13: Create routing-controllers currentUserChecker middleware
 
 **Files:**
+
 - Create: `apps/server/src/middlewares/auth.middleware.ts`
 
 - [ ] **Step 1: Create auth middleware/interceptor**
@@ -1274,6 +1300,7 @@ git commit -m "feat(server): add currentUserChecker for routing-controllers"
 ### Task 14: Create controllers index
 
 **Files:**
+
 - Create: `apps/server/src/controllers/index.ts`
 
 - [ ] **Step 1: Create controllers barrel export**
@@ -1298,6 +1325,7 @@ git commit -m "feat(server): add controllers barrel export"
 ### Task 15: Refactor app.ts to use routing-controllers
 
 **Files:**
+
 - Modify: `apps/server/src/app.ts`
 
 - [ ] **Step 1: Refactor app.ts to integrate routing-controllers**
@@ -1317,7 +1345,10 @@ import { errorHandler } from './middleware/error.js';
 
 useContainer(Container);
 
-export async function createApp(): Promise<{ app: ReturnType<typeof useExpressServer>; io: SocketIOServer }> {
+export async function createApp(): Promise<{
+  app: ReturnType<typeof useExpressServer>;
+  io: SocketIOServer;
+}> {
   await initIOC();
 
   const httpServer = createServer();
@@ -1360,6 +1391,7 @@ git commit -m "refactor(server): integrate routing-controllers in app.ts"
 ### Task 16: Update index.ts entry point
 
 **Files:**
+
 - Modify: `apps/server/src/index.ts`
 
 - [ ] **Step 1: Update index.ts to call createApp**
@@ -1399,6 +1431,7 @@ git commit -m "refactor(server): update index.ts entry point"
 ### Task 17: Remove legacy router and controller files
 
 **Files:**
+
 - Delete: `apps/server/src/modules/auth/auth.controller.ts`
 - Delete: `apps/server/src/modules/auth/auth.router.ts`
 - Delete: `apps/server/src/modules/device/device.controller.ts`
@@ -1452,13 +1485,13 @@ git commit -m "fix(server): ensure typecheck passes"
 
 **5 Chunks / 18 Tasks**
 
-| Chunk | Tasks |
-|-------|-------|
-| 1. Dependencies & TS Config | Task 1-2 |
-| 2. Service Layer Refactor | Task 3-5 |
-| 3. Controller Layer Refactor | Task 6-9 |
-| 4. Infrastructure | Task 10-16 |
-| 5. Cleanup | Task 17-18 |
+| Chunk                        | Tasks      |
+| ---------------------------- | ---------- |
+| 1. Dependencies & TS Config  | Task 1-2   |
+| 2. Service Layer Refactor    | Task 3-5   |
+| 3. Controller Layer Refactor | Task 6-9   |
+| 4. Infrastructure            | Task 10-16 |
+| 5. Cleanup                   | Task 17-18 |
 
 After this refactor:
 
@@ -1471,6 +1504,7 @@ After this refactor:
 7. **Express types** extended to include `user` property on Request
 
 **Key Files Changed:**
+
 - `package.json` - added routing-controllers, typedi, reflect-metadata, glob, class-validator
 - `tsconfig.json` - enabled `emitDecoratorMetadata` and `experimentalDecorators`
 - `src/services/*.ts` - converted to `@Service()` classes
@@ -1483,5 +1517,6 @@ After this refactor:
 - `src/utils/response.ts` - object literal ResponseUtil
 
 **Removed:**
+
 - `src/modules/` - entire legacy module directory
 - `src/middleware/auth.ts` - replaced by currentUserChecker

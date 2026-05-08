@@ -14,21 +14,21 @@
 
 ## File Structure
 
-| Action | Path | Responsibility |
-|--------|------|---------------|
-| Create | `apps/web/src/hooks/use-is-wide.ts` | Responsive breakpoint hook |
+| Action | Path                                            | Responsibility                                    |
+| ------ | ----------------------------------------------- | ------------------------------------------------- |
+| Create | `apps/web/src/hooks/use-is-wide.ts`             | Responsive breakpoint hook                        |
 | Create | `apps/web/src/components/nav-content/index.tsx` | Shared navigation content (extracted from Drawer) |
-| Create | `apps/web/src/components/sidebar/index.tsx` | Persistent sidebar for wide screens |
-| Create | `apps/web/src/components/app-layout/index.tsx` | Unified layout container |
-| Modify | `apps/web/src/components/drawer/index.tsx` | Delegate content to NavContent |
-| Modify | `apps/web/src/components/header/index.tsx` | Optional menu button, search button |
-| Modify | `apps/web/src/app.tsx` | Nested routes with AppLayout |
-| Modify | `apps/web/src/pages/home/index.tsx` | Remove layout container, Drawer state |
-| Modify | `apps/web/src/pages/devices/index.tsx` | Remove layout container |
-| Modify | `apps/web/src/pages/downloads/index.tsx` | Remove layout container |
-| Modify | `apps/web/src/pages/search/index.tsx` | Remove layout container |
-| Modify | `apps/web/src/pages/settings/index.tsx` | Remove layout container |
-| Modify | `apps/electron/src/main/window.ts` | Remove titleBarStyle: 'hidden' |
+| Create | `apps/web/src/components/sidebar/index.tsx`     | Persistent sidebar for wide screens               |
+| Create | `apps/web/src/components/app-layout/index.tsx`  | Unified layout container                          |
+| Modify | `apps/web/src/components/drawer/index.tsx`      | Delegate content to NavContent                    |
+| Modify | `apps/web/src/components/header/index.tsx`      | Optional menu button, search button               |
+| Modify | `apps/web/src/app.tsx`                          | Nested routes with AppLayout                      |
+| Modify | `apps/web/src/pages/home/index.tsx`             | Remove layout container, Drawer state             |
+| Modify | `apps/web/src/pages/devices/index.tsx`          | Remove layout container                           |
+| Modify | `apps/web/src/pages/downloads/index.tsx`        | Remove layout container                           |
+| Modify | `apps/web/src/pages/search/index.tsx`           | Remove layout container                           |
+| Modify | `apps/web/src/pages/settings/index.tsx`         | Remove layout container                           |
+| Modify | `apps/electron/src/main/window.ts`              | Remove titleBarStyle: 'hidden'                    |
 
 ---
 
@@ -37,6 +37,7 @@
 ### Task 1: Create useIsWide hook
 
 **Files:**
+
 - Create: `apps/web/src/hooks/use-is-wide.ts`
 
 - [ ] **Step 1: Create the useIsWide hook**
@@ -80,12 +81,14 @@ git commit -m "feat(web): add useIsWide responsive breakpoint hook"
 ### Task 2: Extract NavContent from Drawer
 
 **Files:**
+
 - Create: `apps/web/src/components/nav-content/index.tsx`
 - Modify: `apps/web/src/components/drawer/index.tsx`
 
 - [ ] **Step 1: Create NavContent component**
 
 Extract the `DrawerContent` from `apps/web/src/components/drawer/index.tsx` (lines 13-100) into a new `NavContent` component. Changes from original DrawerContent:
+
 - Rename `onClose` to `onNavigate` (semantics: called after navigation, Drawer uses it to close itself)
 - Add Home navigation item (new) with `Home` icon from lucide-react
 - Add `isActive` prop to highlight current route (for Sidebar use)
@@ -220,6 +223,7 @@ export default observer(NavContentInner);
 - [ ] **Step 2: Refactor Drawer to use NavContent**
 
 Modify `apps/web/src/components/drawer/index.tsx`:
+
 - Remove the `DrawerContent` component (lines 13-100)
 - Import `NavContent` from `../nav-content`
 - Replace `<DrawerContent onClose={onClose} />` with `<NavContent onNavigate={onClose} />`
@@ -288,6 +292,7 @@ git commit -m "refactor(web): extract NavContent from Drawer for sidebar reuse"
 ### Task 3: Create Sidebar component
 
 **Files:**
+
 - Create: `apps/web/src/components/sidebar/index.tsx`
 
 - [ ] **Step 1: Create Sidebar component**
@@ -327,11 +332,13 @@ git commit -m "feat(web): add Sidebar component for wide-screen layout"
 ### Task 4: Refactor Header for optional menu button
 
 **Files:**
+
 - Modify: `apps/web/src/components/header/index.tsx`
 
 - [ ] **Step 1: Refactor Header props**
 
 Modify `apps/web/src/components/header/index.tsx`:
+
 - Make `onMenuPress` optional (remove when undefined = wide screen, no menu button)
 - Keep `onSearchPress` required
 
@@ -403,6 +410,7 @@ git commit -m "refactor(web): make Header menu button optional for sidebar layou
 ### Task 5: Create AppLayout component
 
 **Files:**
+
 - Create: `apps/web/src/components/app-layout/index.tsx`
 
 - [ ] **Step 1: Create AppLayout component**
@@ -484,6 +492,7 @@ git commit -m "feat(web): add AppLayout with sidebar/drawer responsive switching
 ### Task 6: Restructure routes in app.tsx
 
 **Files:**
+
 - Modify: `apps/web/src/app.tsx`
 
 - [ ] **Step 1: Restructure app.tsx with nested routes**
@@ -549,6 +558,7 @@ git commit -m "refactor(web): nest authenticated routes under AppLayout"
 ### Task 7: Migrate HomePage to use AppLayout
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/index.tsx`
 
 - [ ] **Step 1: Refactor HomePage**
@@ -695,12 +705,14 @@ git commit -m "refactor(web): migrate HomePage to AppLayout, remove standalone l
 ### Task 8: Migrate sub-pages to use AppLayout
 
 **Files:**
+
 - Modify: `apps/web/src/pages/devices/index.tsx`
 - Modify: `apps/web/src/pages/downloads/index.tsx`
 - Modify: `apps/web/src/pages/search/index.tsx`
 - Modify: `apps/web/src/pages/settings/index.tsx`
 
 Each sub-page needs the same pattern:
+
 1. Remove the outermost `<div className="h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden">` wrapper
 2. Replace with `<div className="flex-1 min-h-0 flex flex-col overflow-hidden">` — fills the AppLayout content area
 3. Keep the inline header (back button + title) and all page-specific content unchanged
@@ -708,6 +720,7 @@ Each sub-page needs the same pattern:
 - [ ] **Step 1: Migrate DevicesPage**
 
 In `apps/web/src/pages/devices/index.tsx`, change the outermost div:
+
 - From: `className="h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden"`
 - To: `className="flex-1 min-h-0 flex flex-col overflow-hidden"`
 
@@ -718,18 +731,21 @@ Result: `className="flex-1 min-h-0 flex flex-col overflow-hidden"`
 - [ ] **Step 2: Migrate DownloadsPage**
 
 In `apps/web/src/pages/downloads/index.tsx`, same change:
+
 - From: `className="h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden"`
 - To: `className="flex-1 min-h-0 flex flex-col overflow-hidden"`
 
 - [ ] **Step 3: Migrate SearchPage**
 
 In `apps/web/src/pages/search/index.tsx`, same change:
+
 - From: `className="h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden"`
 - To: `className="flex-1 min-h-0 flex flex-col overflow-hidden"`
 
 - [ ] **Step 4: Migrate SettingsPage**
 
 In `apps/web/src/pages/settings/index.tsx`, same change:
+
 - From: `className="h-screen bg-[var(--bg-primary)] flex flex-col overflow-hidden"`
 - To: `className="flex-1 min-h-0 flex flex-col overflow-hidden"`
 
@@ -741,6 +757,7 @@ Expected: PASS
 - [ ] **Step 6: Verify dev server renders correctly**
 
 Run: `pnpm dev:web` and verify:
+
 - Wide screen: Sidebar visible with active route indicator, Header shows no menu button, all pages render in content area
 - Narrow screen: Sidebar hidden, Header shows menu button, Drawer opens/closes, navigation works
 - Sub-pages: back buttons still work, content scrolls correctly
@@ -759,16 +776,19 @@ git commit -m "refactor(web): migrate sub-pages to AppLayout, remove standalone 
 ### Task 9: Remove titleBarStyle: 'hidden' from Electron
 
 **Files:**
+
 - Modify: `apps/electron/src/main/window.ts`
 
 - [ ] **Step 1: Remove titleBarStyle: 'hidden'**
 
 In `apps/electron/src/main/window.ts`, line 99, remove:
+
 ```
 titleBarStyle: 'hidden',
 ```
 
 The BrowserWindow config (lines 89-106) becomes:
+
 ```typescript
 this.window = new BrowserWindow({
   x: bounds.x,
@@ -797,6 +817,7 @@ Run: `cd /Users/ximing/project/mygithub/zen-send && pnpm --filter @zen-send/elec
 
 Run: `cd /Users/ximing/project/mygithub/zen-send && pnpm dev:web && cd apps/electron && pnpm dev`
 Verify:
+
 - Native title bar appears with traffic light buttons
 - Header is not overlapped by traffic lights
 - Window can be dragged by the native title bar
@@ -830,6 +851,7 @@ Expected: PASS (fix any issues)
 Manually verify in browser (or report any issues found):
 
 Wide screen (>=768px):
+
 - [ ] Sidebar visible on left with nav content
 - [ ] Sidebar shows Home, Devices, Downloads nav items
 - [ ] Active route is highlighted with accent left bar
@@ -840,6 +862,7 @@ Wide screen (>=768px):
 - [ ] Drag-and-drop upload works on home page (overlay within content area)
 
 Narrow screen (<768px):
+
 - [ ] Sidebar hidden
 - [ ] Header shows menu button
 - [ ] Drawer opens/closes with menu button
@@ -847,11 +870,13 @@ Narrow screen (<768px):
 - [ ] Navigation from Drawer closes it
 
 Resize crossing breakpoint:
+
 - [ ] Dragging from wide to narrow: Sidebar disappears, menu button appears
 - [ ] Dragging from narrow to wide: Sidebar appears, if Drawer was open it closes
 - [ ] No visual glitches during transition
 
 Electron:
+
 - [ ] Native title bar visible
 - [ ] Traffic light buttons not overlapping Header
 - [ ] Responsive layout works at minWidth (460px)

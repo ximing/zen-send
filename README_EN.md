@@ -43,15 +43,15 @@ Cross-platform clipboard, text, and file transfer tool (like LocalSend)
 
 ### Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Web Frontend | React 19 + Vite + Tailwind CSS v4 + @rabjs/react |
-| Mobile | React Native + Expo |
-| Desktop | Electron 40 + Vite |
-| Backend | Express.js + routing-controllers + Socket.io + typedi |
-| Database | Drizzle ORM + MySQL |
-| File Storage | AWS S3 (Presigned URL Direct Upload) |
-| Package Manager | pnpm + Turbo |
+| Layer           | Technology                                            |
+| --------------- | ----------------------------------------------------- |
+| Web Frontend    | React 19 + Vite + Tailwind CSS v4 + @rabjs/react      |
+| Mobile          | React Native + Expo                                   |
+| Desktop         | Electron 40 + Vite                                    |
+| Backend         | Express.js + routing-controllers + Socket.io + typedi |
+| Database        | Drizzle ORM + MySQL                                   |
+| File Storage    | AWS S3 (Presigned URL Direct Upload)                  |
+| Package Manager | pnpm + Turbo                                          |
 
 ## Quick Start
 

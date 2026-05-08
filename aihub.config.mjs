@@ -1,27 +1,21 @@
 export default {
-  "setting": {
-    "tools": [
-      "claude_code"
-    ]
+  setting: {
+    tools: ['claude_code'],
   },
-  "assets": [
+  assets: [
     {
-      "name": "@rabjs/react",
-      "version": "1.0.0",
-      "type": "dir",
-      "category": "skills",
-      "installedTools": [
-        "claude_code"
-      ]
+      name: '@rabjs/react',
+      version: '1.0.0',
+      type: 'dir',
+      category: 'skills',
+      installedTools: ['claude_code'],
     },
     {
-      "name": "@anthropics/claude",
-      "version": "1.0.0",
-      "type": "dir",
-      "category": "skills",
-      "installedTools": [
-        "claude_code"
-      ]
-    }
-  ]
-}
+      name: '@anthropics/claude',
+      version: '1.0.0',
+      type: 'dir',
+      category: 'skills',
+      installedTools: ['claude_code'],
+    },
+  ],
+};

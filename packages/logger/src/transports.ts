@@ -32,7 +32,7 @@ export function createTransports(config: ResolvedConfig): winston.transport[] {
             }
             message_ += ` ${level}: ${message}`;
             // 移除 projectName 避免在元数据中重复显示
-            const { projectName: _, ...restMeta } = meta as Record<string, unknown>;
+            const { projectName: _projectName, ...restMeta } = meta as Record<string, unknown>;
             if (Object.keys(restMeta).length > 0) {
               message_ += ` ${JSON.stringify(restMeta)}`;
             }
@@ -91,7 +91,7 @@ export function getConsoleFormat(): winston.Logform.Format {
       }
       message_ += ` ${level}: ${message}`;
       // 移除 projectName 避免在元数据中重复显示
-      const { projectName: _, ...restMeta } = meta as Record<string, unknown>;
+      const { projectName: _projectName, ...restMeta } = meta as Record<string, unknown>;
       if (Object.keys(restMeta).length > 0) {
         message_ += ` ${JSON.stringify(restMeta)}`;
       }

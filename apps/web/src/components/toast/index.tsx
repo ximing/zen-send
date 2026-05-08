@@ -36,10 +36,7 @@ const ToastContent = observer(() => {
       {/* Confirm Dialog */}
       {service.confirmDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={service.confirmDialog.onCancel}
-          />
+          <div className="absolute inset-0 bg-black/40" onClick={service.confirmDialog.onCancel} />
           <div className="relative bg-[var(--bg-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
             <p className="text-[var(--text-primary)] text-base mb-6">
               {service.confirmDialog.message}

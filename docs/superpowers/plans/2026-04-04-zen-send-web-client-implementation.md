@@ -5,12 +5,14 @@
 **Goal:** 实现 Zen Send Web/Electron 客户端，包含认证、传输列表、文件发送、设备在线状态等功能
 
 **Architecture:**
+
 - Web 端使用 React 19 + Vite + @rabjs/react + Tailwind CSS v4
 - Electron 桌面应用使用 vite-plugin-electron 打包，加载 Web 端页面
 - 状态管理使用 Service 模式，全局 Services 通过 `register()` 注册，页面/组件级通过 `bindServices()`
 - Web 和 Electron 共用同一套 React 代码，通过 `window.zenBridge` 桥接 API 做差异化处理
 
 **Tech Stack:**
+
 - React 19, Vite, Tailwind CSS v4, @rabjs/react
 - Socket.io-client, react-router-dom
 - electron, electron-builder, electron-store
@@ -23,6 +25,7 @@
 ### Task 1: 创建 electron 目录结构
 
 **Files:**
+
 - Create: `apps/electron/src/main/index.ts`
 - Create: `apps/electron/src/main/window.ts`
 - Create: `apps/electron/src/main/menu.ts`
@@ -170,8 +173,12 @@ export const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL || '';
 
 let isQuitting = false;
 
-export function getIsQuitting() { return isQuitting; }
-export function setIsQuitting(value: boolean) { isQuitting = value; }
+export function getIsQuitting() {
+  return isQuitting;
+}
+export function setIsQuitting(value: boolean) {
+  isQuitting = value;
+}
 
 export async function initializeApp() {
   const windowManager = new WindowManager();
@@ -223,7 +230,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 interface WindowState {
-  x: number; y: number; width: number; height: number; isMaximized: boolean;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  isMaximized: boolean;
 }
 
 const DEFAULT_STATE: WindowState = { x: 0, y: 0, width: 1200, height: 800, isMaximized: false };
@@ -233,7 +244,9 @@ const windowStore = new Store<WindowState>({ name: 'window-state', defaults: DEF
 export class WindowManager {
   private window: BrowserWindow | null = null;
 
-  getWindow() { return this.window; }
+  getWindow() {
+    return this.window;
+  }
 
   private getIconPath() {
     return path.join(__dirname, '../../build/icon.png');
@@ -242,9 +255,12 @@ export class WindowManager {
   private loadSavedState() {
     const saved = windowStore.store;
     const displays = screen.getAllDisplays();
-    const isValid = displays.some(d =>
-      saved.x >= d.bounds.x - d.bounds.width && saved.x <= d.bounds.x + d.bounds.width &&
-      saved.y >= d.bounds.y - d.bounds.height && saved.y <= d.bounds.y + d.bounds.height
+    const isValid = displays.some(
+      (d) =>
+        saved.x >= d.bounds.x - d.bounds.width &&
+        saved.x <= d.bounds.x + d.bounds.width &&
+        saved.y >= d.bounds.y - d.bounds.height &&
+        saved.y <= d.bounds.y + d.bounds.height
     );
     return { bounds: isValid ? saved : DEFAULT_STATE, isValid };
   }
@@ -263,11 +279,21 @@ export class WindowManager {
     const iconPath = this.getIconPath();
 
     this.window = new BrowserWindow({
-      x: bounds.x, y: bounds.y,
-      width: bounds.width || 1200, height: bounds.height || 800,
-      minWidth: 800, minHeight: 600,
-      show: false, title: 'Zen Send', icon: iconPath,
-      webPreferences: { preload: PRELOAD_PATH, contextIsolation: true, nodeIntegration: false, sandbox: false },
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width || 1200,
+      height: bounds.height || 800,
+      minWidth: 800,
+      minHeight: 600,
+      show: false,
+      title: 'Zen Send',
+      icon: iconPath,
+      webPreferences: {
+        preload: PRELOAD_PATH,
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: false,
+      },
     });
 
     if (bounds.isMaximized && isValid) this.window.maximize();
@@ -289,23 +315,39 @@ export class WindowManager {
 
     this.window.on('close', (event) => {
       this.saveState();
-      if (!getIsQuitting()) { event.preventDefault(); this.window?.hide(); }
+      if (!getIsQuitting()) {
+        event.preventDefault();
+        this.window?.hide();
+      }
     });
 
     logger.info('[WindowManager] Window created');
   }
 
   show() {
-    if (!this.window) { this.create(); return; }
+    if (!this.window) {
+      this.create();
+      return;
+    }
     if (this.window.isMinimized()) this.window.restore();
     this.window.show();
     this.window.focus();
-    if (process.platform === 'darwin') { app.focus({ steal: true }); this.window.moveTop(); }
+    if (process.platform === 'darwin') {
+      app.focus({ steal: true });
+      this.window.moveTop();
+    }
   }
 
-  hide() { this.window?.hide(); }
-  minimize() { this.window?.minimize(); }
-  close() { setIsQuitting(true); app.quit(); }
+  hide() {
+    this.window?.hide();
+  }
+  minimize() {
+    this.window?.minimize();
+  }
+  close() {
+    setIsQuitting(true);
+    app.quit();
+  }
 }
 ```
 
@@ -319,36 +361,55 @@ export class MenuManager {
 
   create() {
     const template: Electron.MenuItemConstructorOptions[] = [
-      { label: app.name, submenu: [
-        { role: 'about' as const },
-        { type: 'separator' as const },
-        { role: 'services' as const },
-        { type: 'separator' as const },
-        { role: 'hide' as const },
-        { role: 'hideOthers' as const },
-        { role: 'unhide' as const },
-        { type: 'separator' as const },
-        { role: 'quit' as const },
-      ]},
-      { label: 'Edit', submenu: [
-        { role: 'undo' as const }, { role: 'redo' as const },
-        { type: 'separator' as const },
-        { role: 'cut' as const }, { role: 'copy' as const }, { role: 'paste' as const },
-        { role: 'selectAll' as const },
-      ]},
-      { label: 'View', submenu: [
-        { role: 'reload' as const }, { role: 'forceReload' as const },
-        { role: 'toggleDevTools' as const },
-        { type: 'separator' as const },
-        { role: 'resetZoom' as const }, { role: 'zoomIn' as const }, { role: 'zoomOut' as const },
-        { type: 'separator' as const },
-        { role: 'togglefullscreen' as const },
-      ]},
-      { label: 'Window', submenu: [
-        { role: 'minimize' as const }, { role: 'close' as const },
-        { type: 'separator' as const },
-        { role: 'front' as const },
-      ]},
+      {
+        label: app.name,
+        submenu: [
+          { role: 'about' as const },
+          { type: 'separator' as const },
+          { role: 'services' as const },
+          { type: 'separator' as const },
+          { role: 'hide' as const },
+          { role: 'hideOthers' as const },
+          { role: 'unhide' as const },
+          { type: 'separator' as const },
+          { role: 'quit' as const },
+        ],
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          { role: 'undo' as const },
+          { role: 'redo' as const },
+          { type: 'separator' as const },
+          { role: 'cut' as const },
+          { role: 'copy' as const },
+          { role: 'paste' as const },
+          { role: 'selectAll' as const },
+        ],
+      },
+      {
+        label: 'View',
+        submenu: [
+          { role: 'reload' as const },
+          { role: 'forceReload' as const },
+          { role: 'toggleDevTools' as const },
+          { type: 'separator' as const },
+          { role: 'resetZoom' as const },
+          { role: 'zoomIn' as const },
+          { role: 'zoomOut' as const },
+          { type: 'separator' as const },
+          { role: 'togglefullscreen' as const },
+        ],
+      },
+      {
+        label: 'Window',
+        submenu: [
+          { role: 'minimize' as const },
+          { role: 'close' as const },
+          { type: 'separator' as const },
+          { role: 'front' as const },
+        ],
+      },
     ];
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
@@ -404,19 +465,26 @@ contextBridge.exposeInMainWorld('zenBridge', {
   getVersion: () => app.getVersion(),
 
   // 文件操作
-  openFileDialog: (options?: { filters?: { name: string; extensions: string[] }[]; multiple?: boolean }) =>
-    ipcRenderer.invoke('dialog:openFile', options),
+  openFileDialog: (options?: {
+    filters?: { name: string; extensions: string[] }[];
+    multiple?: boolean;
+  }) => ipcRenderer.invoke('dialog:openFile', options),
 
-  saveFileDialog: (options?: { defaultPath?: string; filters?: { name: string; extensions: string[] }[] }) =>
-    ipcRenderer.invoke('dialog:saveFile', options),
+  saveFileDialog: (options?: {
+    defaultPath?: string;
+    filters?: { name: string; extensions: string[] }[];
+  }) => ipcRenderer.invoke('dialog:saveFile', options),
 
   readFile: (filePath: string) => ipcRenderer.invoke('fs:readFile', filePath),
 
-  writeFile: (filePath: string, data: ArrayBuffer) => ipcRenderer.invoke('fs:writeFile', filePath, data),
+  writeFile: (filePath: string, data: ArrayBuffer) =>
+    ipcRenderer.invoke('fs:writeFile', filePath, data),
 
   // 服务器配置
   getServerUrl: () => store.get('serverUrl', ''),
-  setServerUrl: (url: string) => { store.set('serverUrl', url); },
+  setServerUrl: (url: string) => {
+    store.set('serverUrl', url);
+  },
 });
 
 declare global {
@@ -425,10 +493,14 @@ declare global {
       isElectron: boolean;
       platform: string;
       getVersion: () => string;
-      openFileDialog: (options?: { filters?: { name: string; extensions: string[] }[]; multiple?: boolean }) =>
-        Promise<{ path: string; name: string; size: number }[] | null>;
-      saveFileDialog: (options?: { defaultPath?: string; filters?: { name: string; extensions: string[] }[] }) =>
-        Promise<string | null>;
+      openFileDialog: (options?: {
+        filters?: { name: string; extensions: string[] }[];
+        multiple?: boolean;
+      }) => Promise<{ path: string; name: string; size: number }[] | null>;
+      saveFileDialog: (options?: {
+        defaultPath?: string;
+        filters?: { name: string; extensions: string[] }[];
+      }) => Promise<string | null>;
       readFile: (filePath: string) => Promise<ArrayBuffer>;
       writeFile: (filePath: string, data: ArrayBuffer) => Promise<void>;
       getServerUrl: () => string;
@@ -460,6 +532,7 @@ git commit -m "feat(electron): add electron app scaffold with main process and p
 ### Task 2: 定义 zenBridge 类型和 Web 端 fallback
 
 **Files:**
+
 - Create: `apps/web/src/lib/zen-bridge.ts`
 - Create: `apps/web/src/lib/env.ts`
 - Modify: `apps/web/src/main.tsx` - 添加全局 Services 注册
@@ -468,7 +541,8 @@ git commit -m "feat(electron): add electron app scaffold with main process and p
 
 ```typescript
 // 检测是否运行在 Electron 中
-export const isElectron = typeof window !== 'undefined' &&
+export const isElectron =
+  typeof window !== 'undefined' &&
   !!(window as unknown as { zenBridge?: { isElectron?: boolean } }).zenBridge?.isElectron;
 
 // 检测开发/生产模式
@@ -479,7 +553,11 @@ export const isProduction = import.meta.env.PROD;
 export const getApiBaseUrl = () => {
   if (isElectron) {
     // Electron 模式下，从桥接获取配置的服务器地址
-    return (window as unknown as { zenBridge?: { getServerUrl?: () => string } }).zenBridge?.getServerUrl?.() || '';
+    return (
+      (
+        window as unknown as { zenBridge?: { getServerUrl?: () => string } }
+      ).zenBridge?.getServerUrl?.() || ''
+    );
   }
   // 浏览器模式下使用当前域名
   return window.location.origin;
@@ -554,7 +632,7 @@ export async function browserOpenFileDialog(options?: {
     input.multiple = options?.multiple ?? true;
 
     if (options?.filters?.length) {
-      input.accept = options.filters.map(f => f.extensions.join(',')).join(',');
+      input.accept = options.filters.map((f) => f.extensions.join(',')).join(',');
     }
 
     input.onchange = async () => {
@@ -632,6 +710,7 @@ git commit -m "feat(web): add zenBridge types and env detection utilities"
 ### Task 3: 创建全局 Services
 
 **Files:**
+
 - Create: `apps/web/src/services/api.service.ts`
 - Create: `apps/web/src/services/auth.service.ts`
 - Create: `apps/web/src/services/theme.service.ts`
@@ -652,10 +731,7 @@ export class ApiService extends Service {
     this.baseUrl = getApiBaseUrl();
   }
 
-  private async request<T>(
-    path: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const response = await fetch(url, {
       ...options,
@@ -753,7 +829,10 @@ export class AuthService extends Service {
   }
 
   async register(request: RegisterRequest): Promise<void> {
-    const response = await this.apiService.post<{ data: AuthTokens }>('/api/auth/register', request);
+    const response = await this.apiService.post<{ data: AuthTokens }>(
+      '/api/auth/register',
+      request
+    );
     if (response.data) {
       this.saveTokens(response.data);
     }
@@ -823,7 +902,9 @@ export class ThemeService extends Service {
 
   private updateResolvedTheme() {
     if (this.mode === 'system') {
-      this.resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      this.resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
     } else {
       this.resolvedTheme = this.mode;
     }
@@ -1003,6 +1084,7 @@ git commit -m "feat(web): add global services - ApiService, AuthService, ThemeSe
 ### Task 4: 创建 Setup 页面组件
 
 **Files:**
+
 - Create: `apps/web/src/pages/setup/index.tsx`
 - Create: `apps/web/src/pages/setup/setup.service.ts`
 
@@ -1156,6 +1238,7 @@ git commit -m "feat(web): add setup page for server configuration"
 ### Task 5: 创建登录和注册页面
 
 **Files:**
+
 - Create: `apps/web/src/pages/login/index.tsx`
 - Create: `apps/web/src/pages/login/login.service.ts`
 - Create: `apps/web/src/pages/register/index.tsx`
@@ -1447,6 +1530,7 @@ git commit -m "feat(web): add login and register pages"
 ### Task 6: 创建主页基础结构
 
 **Files:**
+
 - Create: `apps/web/src/pages/home/index.tsx`
 - Create: `apps/web/src/pages/home/home.service.ts`
 - Create: `apps/web/src/components/header/index.tsx`
@@ -1486,9 +1570,7 @@ export class HomeService extends Service {
 
   get filteredTransfers() {
     if (this.filter === 'all') return this.transfers;
-    return this.transfers.filter(t =>
-      t.items?.some(item => item.type === this.filter)
-    );
+    return this.transfers.filter((t) => t.items?.some((item) => item.type === this.filter));
   }
 
   async loadTransfers() {
@@ -1633,7 +1715,7 @@ export class ToastService extends Service {
   }
 
   dismiss(id: string) {
-    this.toasts = this.toasts.filter(t => t.id !== id);
+    this.toasts = this.toasts.filter((t) => t.id !== id);
   }
 }
 ```
@@ -1823,6 +1905,7 @@ git commit -m "feat(web): add home page with basic layout, header, toast compone
 ### Task 7: 更新 App 组件整合路由
 
 **Files:**
+
 - Modify: `apps/web/src/app.tsx`
 
 - [ ] **Step 1: 更新 App.tsx**
@@ -1939,6 +2022,7 @@ git commit -m "chore: add routing and socket.io dependencies"
 8. **Chunk 8**: 依赖安装
 
 后续还有：
+
 - 发送功能（文件选择、文本/剪贴板）
 - 传输列表完善
 - 实时功能（Socket.io 事件）

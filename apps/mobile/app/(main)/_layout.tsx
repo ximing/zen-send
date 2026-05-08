@@ -11,7 +11,14 @@ function MainLayoutInner() {
   const socketService = useService(SocketService);
 
   useEffect(() => {
-    console.log('[MainLayout] isLoading:', authService.isLoading, 'isAuthenticated:', authService.isAuthenticated, 'user:', !!authService.user);
+    console.log(
+      '[MainLayout] isLoading:',
+      authService.isLoading,
+      'isAuthenticated:',
+      authService.isAuthenticated,
+      'user:',
+      !!authService.user
+    );
 
     if (authService.isLoading) return;
 

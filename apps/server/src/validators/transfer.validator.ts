@@ -6,7 +6,6 @@ import {
   Min,
   MinLength,
   IsInt,
-  IsPositive,
   MaxLength,
 } from 'class-validator';
 import type { InitTransferRequest, UploadChunkRequest } from '@zen-send/dto';

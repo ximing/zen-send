@@ -5,6 +5,7 @@
 **Goal:** Redesign message bubble to show device icon externally with a tail pointing to it, and add inline image preview support.
 
 **Architecture:** Changes are contained to two frontend components only:
+
 1. `message-bubble.tsx` - Restructure layout: device icon external + CSS triangle tail + bubble
 2. `preview-modal.tsx` - Add image preview mode (display image directly instead of file icon)
 
@@ -15,6 +16,7 @@
 ## Chunk 1: Message Bubble Layout Restructure
 
 **Files:**
+
 - Modify: `apps/web/src/components/transfer-chat/message-bubble.tsx`
 
 ### Step 1: Add device icon helper at top of file
@@ -27,7 +29,7 @@ import type { DeviceType } from '@zen-send/shared';
 
 // Device icon colors - sent uses primary green, received uses iOS purple
 const DEVICE_ICON_COLORS: Record<'sent' | 'received', string> = {
-  sent: '#22c55e',   // primary green
+  sent: '#22c55e', // primary green
   received: '#a855f7', // iOS purple
 };
 
@@ -89,19 +91,17 @@ return (
   >
     <div className={`flex items-start ${isSent ? 'flex-row-reverse' : 'flex-row'}`}>
       {/* Device Icon - external, on the side */}
-      <DeviceIcon
-        deviceType={device?.type || 'web'}
-        direction={direction}
-      />
+      <DeviceIcon deviceType={device?.type || 'web'} direction={direction} />
 
       {/* Bubble with tail */}
       <div className={`relative ${isSent ? 'mr-2' : 'ml-2'}`}>
         {/* CSS Triangle Tail */}
         <div
           className={`absolute top-3 w-0 h-0
-            ${isSent
-              ? '-left-2 border-r-8 border-r-[var(--bg-elevated)] border-t-4 border-t-transparent border-b-4 border-b-transparent'
-              : '-right-2 border-l-8 border-l-[var(--bg-elevated)] border-t-4 border-t-transparent border-b-4 border-b-transparent'
+            ${
+              isSent
+                ? '-left-2 border-r-8 border-r-[var(--bg-elevated)] border-t-4 border-t-transparent border-b-4 border-b-transparent'
+                : '-right-2 border-l-8 border-l-[var(--bg-elevated)] border-t-4 border-t-transparent border-b-4 border-b-transparent'
             }
           `}
         />
@@ -115,10 +115,7 @@ return (
         >
           {/* Image Bubble - inline preview */}
           {isImageType(transfer.contentType) ? (
-            <div
-              className="cursor-pointer"
-              onClick={handlePreview}
-            >
+            <div className="cursor-pointer" onClick={handlePreview}>
               <img
                 src={/* Will be set after API integration */ '#'}
                 alt={transfer.originalFileName}
@@ -130,17 +127,15 @@ return (
             /* Standard bubble content */
             <div className="flex items-center gap-4">
               {/* Icon for files, not for text */}
-              {itemType !== 'text' && (
-                <div className="flex-shrink-0">
-                  {icon}
-                </div>
-              )}
+              {itemType !== 'text' && <div className="flex-shrink-0">{icon}</div>}
 
               {/* File Info - compact vertical stack */}
               <div className="flex-1 min-w-0">
                 {itemType === 'text' && firstItem?.content ? (
                   <div>
-                    <div className={`text-sm leading-relaxed whitespace-pre-wrap ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'} ${isLongText && !isExpanded ? 'line-clamp-3' : ''}`}>
+                    <div
+                      className={`text-sm leading-relaxed whitespace-pre-wrap ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'} ${isLongText && !isExpanded ? 'line-clamp-3' : ''}`}
+                    >
                       {firstItem.content}
                     </div>
                     {isLongText && (
@@ -153,7 +148,9 @@ return (
                     )}
                   </div>
                 ) : (
-                  <div className={`text-sm font-medium truncate leading-relaxed ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+                  <div
+                    className={`text-sm font-medium truncate leading-relaxed ${isExpired ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}
+                  >
                     {displayFileName}
                   </div>
                 )}
@@ -181,7 +178,10 @@ return (
                       className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
                       title="Copy"
                     >
-                      <Copy size={16} className="text-[var(--text-secondary)] hover:text-[var(--accent)]" />
+                      <Copy
+                        size={16}
+                        className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                      />
                     </button>
                   ) : (
                     <>
@@ -190,14 +190,20 @@ return (
                         className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
                         title="Preview"
                       >
-                        <Eye size={16} className="text-[var(--text-secondary)] hover:text-[var(--accent)]" />
+                        <Eye
+                          size={16}
+                          className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                        />
                       </button>
                       <button
                         onClick={handleDownload}
                         className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
                         title="Download"
                       >
-                        <Download size={16} className="text-[var(--text-secondary)] hover:text-[var(--accent)]" />
+                        <Download
+                          size={16}
+                          className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                        />
                       </button>
                     </>
                   )}
@@ -229,6 +235,7 @@ Note: The image src placeholder `#` will be replaced in Chunk 2 when integrating
 ## Chunk 2: Image Preview Integration
 
 **Files:**
+
 - Modify: `apps/web/src/components/transfer-chat/message-bubble.tsx`
 - Modify: `apps/web/src/components/preview-modal/preview-modal.tsx`
 
@@ -247,12 +254,15 @@ Add after the state declarations:
 ```tsx
 useEffect(() => {
   if (isImageType(transfer.contentType)) {
-    apiService.getTransferFile(transfer.id).then(blob => {
-      const url = URL.createObjectURL(blob);
-      setImageUrl(url);
-    }).catch(err => {
-      console.error('Failed to load image:', err);
-    });
+    apiService
+      .getTransferFile(transfer.id)
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        setImageUrl(url);
+      })
+      .catch((err) => {
+        console.error('Failed to load image:', err);
+      });
   }
   return () => {
     if (imageUrl) {
@@ -280,7 +290,9 @@ Replace the img placeholder in Chunk 1:
 Replace the content section in `preview-modal.tsx` (lines 88-106) to add image mode:
 
 ```tsx
-{/* Content */}
+{
+  /* Content */
+}
 <div className="mb-6">
   {isText ? (
     <div className="bg-[var(--bg-surface)] rounded-xl p-4 max-h-[300px] overflow-y-auto">
@@ -299,15 +311,11 @@ Replace the content section in `preview-modal.tsx` (lines 88-106) to add image m
   ) : (
     <div className="bg-[var(--bg-surface)] rounded-xl p-8 text-center">
       <FileText size={48} className="mx-auto text-[var(--text-muted)] mb-2" />
-      <div className="text-sm text-[var(--text-secondary)]">
-        {transfer.originalFileName}
-      </div>
-      <div className="text-xs text-[var(--text-muted)] mt-1">
-        {formatSize(transfer.totalSize)}
-      </div>
+      <div className="text-sm text-[var(--text-secondary)]">{transfer.originalFileName}</div>
+      <div className="text-xs text-[var(--text-muted)] mt-1">{formatSize(transfer.totalSize)}</div>
     </div>
   )}
-</div>
+</div>;
 ```
 
 ### Step 5: Add imageUrl state to PreviewModal
@@ -325,12 +333,15 @@ Add after the existing useEffect:
 ```tsx
 useEffect(() => {
   if (transfer && isImageType(transfer.contentType)) {
-    apiService.getTransferFile(transfer.id).then(blob => {
-      const url = URL.createObjectURL(blob);
-      setImageUrl(url);
-    }).catch(err => {
-      console.error('Failed to load image:', err);
-    });
+    apiService
+      .getTransferFile(transfer.id)
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        setImageUrl(url);
+      })
+      .catch((err) => {
+        console.error('Failed to load image:', err);
+      });
   }
   return () => {
     if (imageUrl) {
@@ -349,6 +360,7 @@ Update the first useEffect dependency array (around line 34) to include `imageUr
 ## Chunk 3: Testing & Verification
 
 **Files:**
+
 - Test manually in browser at http://localhost:5274
 
 ### Verification Checklist
@@ -367,9 +379,9 @@ Update the first useEffect dependency array (around line 34) to include `imageUr
 
 ## File Summary
 
-| File | Action |
-|------|--------|
+| File                                                       | Action                                                |
+| ---------------------------------------------------------- | ----------------------------------------------------- |
 | `apps/web/src/components/transfer-chat/message-bubble.tsx` | Modify - Restructure layout with external icon + tail |
-| `apps/web/src/components/preview-modal/preview-modal.tsx` | Modify - Add image preview mode |
+| `apps/web/src/components/preview-modal/preview-modal.tsx`  | Modify - Add image preview mode                       |
 
 **No backend changes required.**

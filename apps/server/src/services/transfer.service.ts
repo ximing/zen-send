@@ -83,9 +83,10 @@ export class TransferService {
     const MULTIPART_MIN_SIZE = 5 * 1024 * 1024; // 5MB - S3 multipart minimum
 
     // 判断是否内联存储（文本且 <=10KB 且有 content）
-    const isInlineText = input.type === 'text' &&
-                         input.totalSize <= TEXT_INLINE_MAX_SIZE &&
-                         input.content !== undefined;
+    const isInlineText =
+      input.type === 'text' &&
+      input.totalSize <= TEXT_INLINE_MAX_SIZE &&
+      input.content !== undefined;
 
     // 判断是否使用 multipart upload（文件 > 5MB）
     const useMultipart = !isInlineText && input.totalSize > MULTIPART_MIN_SIZE;
@@ -98,7 +99,11 @@ export class TransferService {
       if (useMultipart) {
         // S3 上传模式 - 使用真正的 multipart upload（文件 >= 5MB）
         chunkCount = input.chunkCount ?? 0;
-        const multipartResult = await this.s3Service.initMultipartUpload(sessionId, contentType, chunkCount);
+        const multipartResult = await this.s3Service.initMultipartUpload(
+          sessionId,
+          contentType,
+          chunkCount
+        );
         uploadId = multipartResult.uploadId;
         presignedUrls.push(...multipartResult.presignedUrls);
       } else {
@@ -257,7 +262,11 @@ export class TransferService {
     return { status: 'completed', downloadUrl };
   }
 
-  async getTransferList(userId: string, limit = 50, offset = 0): Promise<(TransferSessionInfo & { items: TransferItemInfo[] })[]> {
+  async getTransferList(
+    userId: string,
+    limit = 50,
+    offset = 0
+  ): Promise<(TransferSessionInfo & { items: TransferItemInfo[] })[]> {
     const results = await this.db
       .select()
       .from(transferSessions)
@@ -411,7 +420,10 @@ export class TransferService {
     return true;
   }
 
-  async getExternalLink(sessionId: string, userId: string): Promise<{ url: string; expiresAt: number }> {
+  async getExternalLink(
+    sessionId: string,
+    userId: string
+  ): Promise<{ url: string; expiresAt: number }> {
     const session = await this.db.query.transferSessions.findFirst({
       where: eq(transferSessions.id, sessionId),
     });

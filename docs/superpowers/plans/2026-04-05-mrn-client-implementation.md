@@ -13,6 +13,7 @@
 ## Chunk 0: Server - Pair Login Endpoint
 
 ### Overview
+
 Add `POST /api/auth/pair-login` endpoint to exchange pair token (from QR code) for auth tokens. This allows mobile to login by scanning a QR code.
 
 ### Files to Create/Modify
@@ -26,6 +27,7 @@ Add `POST /api/auth/pair-login` endpoint to exchange pair token (from QR code) f
 - [ ] **Step 1: Create pair-login validator**
 
 Create: `apps/server/src/validators/pair-login.validator.ts`
+
 ```typescript
 import { IsString, IsNotEmpty } from 'class-validator';
 
@@ -41,6 +43,7 @@ export class PairLoginDto {
 Modify: `apps/server/src/services/auth.service.ts`
 
 Add method:
+
 ```typescript
 async pairLogin(token: string): Promise<AuthTokens> {
   // Verify the pair token using JWT_REFRESH_SECRET
@@ -70,11 +73,13 @@ async pairLogin(token: string): Promise<AuthTokens> {
 Modify: `apps/server/src/controllers/auth.controller.ts`
 
 Add imports:
+
 ```typescript
 import { PairLoginDto } from '../validators/pair-login.validator.ts';
 ```
 
 Add endpoint:
+
 ```typescript
 @Post('/pair-login')
 @HttpCode(200)
@@ -101,6 +106,7 @@ git commit -m "feat(server): add POST /api/auth/pair-login endpoint for QR code 
 ## Chunk 1: Project Setup & Navigation Foundation
 
 ### Overview
+
 Set up the navigation structure with expo-router, install required dependencies, and create the basic screen layouts.
 
 ### Files to Create/Modify
@@ -121,6 +127,7 @@ Set up the navigation structure with expo-router, install required dependencies,
 - [ ] **Step 1: Update package.json with dependencies**
 
 Read current `apps/mobile/package.json` and add these dependencies:
+
 ```json
 {
   "expo-document-picker": "~13.0.0",
@@ -141,6 +148,7 @@ Run: `cd apps/mobile && pnpm install`
 - [ ] **Step 2: Create theme tokens**
 
 Create: `apps/mobile/src/theme/tokens.ts`
+
 ```typescript
 export const tokens = {
   colors: {
@@ -198,6 +206,7 @@ export type ThemeMode = 'light' | 'dark';
 - [ ] **Step 3: Create ThemeService**
 
 Create: `apps/mobile/src/services/theme.service.ts`
+
 ```typescript
 import { Service } from '@rabjs/react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -259,6 +268,7 @@ export class ThemeService extends Service {
 - [ ] **Step 4: Create SocketService**
 
 Create: `apps/mobile/src/services/socket.service.ts`
+
 ```typescript
 import { Service } from '@rabjs/react';
 import { io, Socket } from 'socket.io-client';
@@ -338,6 +348,7 @@ export class SocketService extends Service {
 - [ ] **Step 5: Create root layout with ServiceProvider**
 
 Create: `apps/mobile/app/_layout.tsx`
+
 ```tsx
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
@@ -376,6 +387,7 @@ export default function RootLayout() {
 - [ ] **Step 6: Create auth layout**
 
 Create: `apps/mobile/app/(auth)/_layout.tsx`
+
 ```tsx
 import { Stack } from 'expo-router';
 
@@ -391,6 +403,7 @@ export default function AuthLayout() {
 - [ ] **Step 7: Create main layout**
 
 Create: `apps/mobile/app/(main)/_layout.tsx`
+
 ```tsx
 import { Stack } from 'expo-router';
 import { useService, observer } from '@rabjs/react';
@@ -422,9 +435,17 @@ export default observer(MainLayoutInner);
 - [ ] **Step 8: Create basic LoginScreen**
 
 Create: `apps/mobile/app/(auth)/login.tsx`
+
 ```tsx
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useService, observer } from '@rabjs/react';
 import { AuthService } from '../../src/services/auth.service';
@@ -463,7 +484,14 @@ function LoginScreenInner() {
       <View style={[styles.card, { backgroundColor: colors.bgSurface }]}>
         <Text style={[styles.label, { color: colors.textSecondary }]}>SERVER</Text>
         <TextInput
-          style={[styles.input, { backgroundColor: colors.bgElevated, color: colors.textPrimary, borderColor: colors.borderDefault }]}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.bgElevated,
+              color: colors.textPrimary,
+              borderColor: colors.borderDefault,
+            },
+          ]}
           value={serverUrl}
           onChangeText={setServerUrl}
           autoCapitalize="none"
@@ -474,7 +502,14 @@ function LoginScreenInner() {
 
         <Text style={[styles.label, { color: colors.textSecondary }]}>EMAIL</Text>
         <TextInput
-          style={[styles.input, { backgroundColor: colors.bgElevated, color: colors.textPrimary, borderColor: colors.borderDefault }]}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.bgElevated,
+              color: colors.textPrimary,
+              borderColor: colors.borderDefault,
+            },
+          ]}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -485,7 +520,14 @@ function LoginScreenInner() {
 
         <Text style={[styles.label, { color: colors.textSecondary }]}>PASSWORD</Text>
         <TextInput
-          style={[styles.input, { backgroundColor: colors.bgElevated, color: colors.textPrimary, borderColor: colors.borderDefault }]}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.bgElevated,
+              color: colors.textPrimary,
+              borderColor: colors.borderDefault,
+            },
+          ]}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -582,6 +624,7 @@ export default observer(LoginScreenInner);
 - [ ] **Step 9: Create basic HomeScreen**
 
 Create: `apps/mobile/app/(main)/index.tsx`
+
 ```tsx
 import { View, Text, StyleSheet } from 'react-native';
 import { useService, observer } from '@rabjs/react';
@@ -639,6 +682,7 @@ Expected: No TypeScript errors
 ## Chunk 2: Authentication & Login Screen
 
 ### Overview
+
 Implement full login screen with email/password and QR code scanning functionality. Update AuthService to support QR code token login.
 
 ### Files to Create/Modify
@@ -655,6 +699,7 @@ Implement full login screen with email/password and QR code scanning functionali
 Modify: `apps/mobile/src/services/auth.service.ts`
 
 Add after login method:
+
 ```typescript
 async loginWithQrToken(token: string, serverUrl?: string): Promise<void> {
   // Exchange pair token for auth tokens
@@ -682,6 +727,7 @@ async loginWithQrToken(token: string, serverUrl?: string): Promise<void> {
 - [ ] **Step 2: Create Header component**
 
 Create: `apps/mobile/src/components/header/index.tsx`
+
 ```tsx
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -705,7 +751,12 @@ function HeaderInner() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderSubtle }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderSubtle },
+      ]}
+    >
       <Text style={[styles.logo, { color: colors.textPrimary }]}>ZEN_SEND</Text>
       <View style={styles.actions}>
         <TouchableOpacity style={styles.iconButton} onPress={handleThemeToggle}>
@@ -748,6 +799,7 @@ export default observer(HeaderInner);
 - [ ] **Step 3: Create QR Scanner component**
 
 Create: `apps/mobile/src/components/qr-scanner/index.tsx`
+
 ```tsx
 import { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
@@ -785,7 +837,9 @@ function QrScannerInner({ visible, onClose, onScan }: QrScannerProps) {
     return (
       <Modal visible={visible} onRequestClose={onClose}>
         <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
-          <Text style={[styles.message, { color: colors.textPrimary }]}>Camera permission required</Text>
+          <Text style={[styles.message, { color: colors.textPrimary }]}>
+            Camera permission required
+          </Text>
           <TouchableOpacity style={styles.button} onPress={requestPermission}>
             <Text style={styles.buttonText}>Grant Permission</Text>
           </TouchableOpacity>
@@ -877,6 +931,7 @@ export default observer(QrScannerInner);
 Modify: `apps/mobile/app/(auth)/login.tsx`
 
 Add state and handlers for QR scanner:
+
 ```tsx
 const [showQrScanner, setShowQrScanner] = useState(false);
 
@@ -896,15 +951,13 @@ const handleQrScan = async ({ token, serverUrl }: { token: string; serverUrl: st
 ```
 
 Add QR Scanner component before closing View:
+
 ```tsx
-<QrScanner
-  visible={showQrScanner}
-  onClose={() => setShowQrScanner(false)}
-  onScan={handleQrScan}
-/>
+<QrScanner visible={showQrScanner} onClose={() => setShowQrScanner(false)} onScan={handleQrScan} />
 ```
 
 Change QR button onPress:
+
 ```tsx
 <TouchableOpacity style={styles.qrButton} onPress={() => setShowQrScanner(true)}>
 ```
@@ -919,6 +972,7 @@ Expected: No errors
 ## Chunk 3: HomeService & Transfer List
 
 ### Overview
+
 Create HomeService for managing transfer list state and implement the transfer list UI with filtering.
 
 ### Files to Create/Modify
@@ -934,6 +988,7 @@ Create HomeService for managing transfer list state and implement the transfer l
 - [ ] **Step 1: Create HomeService**
 
 Create: `apps/mobile/src/services/home.service.ts`
+
 ```typescript
 import { Service } from '@rabjs/react';
 import * as Clipboard from 'expo-clipboard';
@@ -1254,6 +1309,7 @@ export class HomeService extends Service {
 ```
 
 **Key features implemented:**
+
 - **Clipboard reading** via `expo-clipboard`
 - **Parallel chunk uploads** with Promise.all
 - **Chunk retry** (max 3 attempts per chunk)
@@ -1265,6 +1321,7 @@ export class HomeService extends Service {
 - [ ] **Step 2: Create FilterTabs component**
 
 Create: `apps/mobile/src/components/filter-tabs/index.tsx`
+
 ```tsx
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useService, observer } from '@rabjs/react';
@@ -1296,10 +1353,7 @@ function FilterTabsInner() {
             onPress={() => homeService.setFilter(f.value)}
           >
             <Text
-              style={[
-                styles.tabText,
-                { color: isActive ? colors.accent : colors.textSecondary },
-              ]}
+              style={[styles.tabText, { color: isActive ? colors.accent : colors.textSecondary }]}
             >
               {f.label}
             </Text>
@@ -1334,6 +1388,7 @@ export default observer(FilterTabsInner);
 - [ ] **Step 3: Create TransferItem component**
 
 Create: `apps/mobile/src/components/transfer-item/index.tsx`
+
 ```tsx
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from '@rabjs/react';
@@ -1435,8 +1490,16 @@ export default observer(TransferItemInner);
 - [ ] **Step 4: Create TransferList component**
 
 Create: `apps/mobile/src/components/transfer-list/index.tsx`
+
 ```tsx
-import { FlatList, Text, TouchableOpacity, StyleSheet, ActivityIndicator, View } from 'react-native';
+import {
+  FlatList,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  View,
+} from 'react-native';
 import { useService, observer } from '@rabjs/react';
 import { ThemeService } from '../../services/theme.service';
 import { HomeService } from '../../services/home.service';
@@ -1529,6 +1592,7 @@ export default observer(TransferListInner);
 - [ ] **Step 5: Update HomeScreen to use HomeService**
 
 Modify: `apps/mobile/app/(main)/index.tsx`
+
 ```tsx
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, Modal } from 'react-native';
@@ -1577,6 +1641,7 @@ export default observer(HomeScreen);
 ## Chunk 4: BottomToolbar & File Upload
 
 ### Overview
+
 Implement the BottomToolbar component with file selection, text input, and drag-and-drop upload support. Create the file upload service.
 
 ### Files to Create/Modify
@@ -1591,8 +1656,16 @@ Implement the BottomToolbar component with file selection, text input, and drag-
 - [ ] **Step 1: Create BottomToolbar component**
 
 Create: `apps/mobile/src/components/bottom-toolbar/index.tsx`
+
 ```tsx
-import { View, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import { useService, observer } from '@rabjs/react';
@@ -1634,7 +1707,12 @@ function BottomToolbarInner() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      <View style={[styles.container, { backgroundColor: colors.bgSurface, borderTopColor: colors.borderSubtle }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.bgSurface, borderTopColor: colors.borderSubtle },
+        ]}
+      >
         <View style={styles.iconsRow}>
           <TouchableOpacity style={styles.iconButton} onPress={handleSelectFile}>
             <Text style={styles.iconText}>📎</Text>
@@ -1642,7 +1720,10 @@ function BottomToolbarInner() {
         </View>
         <View style={styles.inputRow}>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.bgElevated, color: colors.textPrimary }]}
+            style={[
+              styles.input,
+              { backgroundColor: colors.bgElevated, color: colors.textPrimary },
+            ]}
             value={text}
             onChangeText={setText}
             placeholder="输入文字..."
@@ -1657,7 +1738,14 @@ function BottomToolbarInner() {
             onPress={handleSendText}
             disabled={!text.trim()}
           >
-            <Text style={[styles.sendIcon, { color: text.trim() ? colors.bgPrimary : colors.textMuted }]}>➤</Text>
+            <Text
+              style={[
+                styles.sendIcon,
+                { color: text.trim() ? colors.bgPrimary : colors.textMuted },
+              ]}
+            >
+              ➤
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -1719,6 +1807,7 @@ export default observer(BottomToolbarInner);
 Modify: `apps/mobile/app/(main)/index.tsx`
 
 Add BottomToolbar import and render it:
+
 ```tsx
 import BottomToolbar from '../../src/components/bottom-toolbar';
 
@@ -1739,6 +1828,7 @@ bottomToolbar: {
 ## Chunk 5: File Download & Preview
 
 ### Overview
+
 Implement file download with storageType awareness (db vs s3) and create PreviewModal for viewing files.
 
 ### Files to Create/Modify
@@ -1755,6 +1845,7 @@ Implement file download with storageType awareness (db vs s3) and create Preview
 - [ ] **Step 2: Create PreviewModal component**
 
 Create: `apps/mobile/src/components/preview-modal/index.tsx`
+
 ```tsx
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import { useService, observer } from '@rabjs/react';
@@ -1804,7 +1895,9 @@ function PreviewModalInner({ transfer, onClose, onDownload }: PreviewModalProps)
             ) : (
               <View style={styles.fileInfo}>
                 <Text style={styles.fileIcon}>📎</Text>
-                <Text style={[styles.fileName, { color: colors.textPrimary }]}>{firstItem.name}</Text>
+                <Text style={[styles.fileName, { color: colors.textPrimary }]}>
+                  {firstItem.name}
+                </Text>
                 <Text style={[styles.fileSize, { color: colors.textSecondary }]}>
                   {formatSize(firstItem.size)}
                 </Text>
@@ -1924,6 +2017,7 @@ export default observer(PreviewModalInner);
 Modify: `apps/mobile/app/(main)/index.tsx`
 
 Add download handler:
+
 ```tsx
 const handleDownload = async (transfer: TransferSession) => {
   setPreviewTransfer(null);
@@ -1936,6 +2030,7 @@ const handleDownload = async (transfer: TransferSession) => {
 ```
 
 Add PreviewModal to render:
+
 ```tsx
 <PreviewModal
   transfer={previewTransfer}
@@ -1949,6 +2044,7 @@ Add PreviewModal to render:
 ## Chunk 6: Search & Local Notifications
 
 ### Overview
+
 Implement search functionality and local notifications for new transfers.
 
 ### Files to Create/Modify
@@ -1962,6 +2058,7 @@ Implement search functionality and local notifications for new transfers.
 - [ ] **Step 1: Create SearchModal component**
 
 Create: `apps/mobile/src/components/search-modal/index.tsx`
+
 ```tsx
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { useState } from 'react';
@@ -2049,6 +2146,7 @@ export default observer(SearchModalInner);
 Modify: `apps/mobile/src/components/bottom-toolbar/index.tsx`
 
 Add search icon and props:
+
 ```tsx
 interface BottomToolbarProps {
   onSearchPress: () => void;
@@ -2058,7 +2156,7 @@ function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
   // ... existing code
   <TouchableOpacity style={styles.iconButton} onPress={onSearchPress}>
     <Text style={styles.iconText}>🔍</Text>
-  </TouchableOpacity>
+  </TouchableOpacity>;
   // ...
 }
 ```
@@ -2066,6 +2164,7 @@ function BottomToolbarInner({ onSearchPress }: BottomToolbarProps) {
 - [ ] **Step 3: Create NotificationService**
 
 Create: `apps/mobile/src/services/notification.service.ts`
+
 ```typescript
 import { Service } from '@rabjs/react';
 import * as Notifications from 'expo-notifications';
@@ -2090,6 +2189,7 @@ export class NotificationService extends Service {
 Modify: `apps/mobile/src/services/socket.service.ts`
 
 Add notification handling:
+
 ```typescript
 import { NotificationService } from './notification.service';
 
@@ -2111,6 +2211,7 @@ connect(deviceId: string, deviceName: string, deviceType: 'android' | 'ios') {
 ## Chunk 7: Polish & Integration
 
 ### Overview
+
 Final integration, theming consistency, and empty states.
 
 ### Files to Modify
@@ -2125,6 +2226,7 @@ Final integration, theming consistency, and empty states.
 - [ ] **Step 1: Create EmptyState component**
 
 Create: `apps/mobile/src/components/empty-state/index.tsx`
+
 ```tsx
 import { View, Text, StyleSheet } from 'react-native';
 import { useService, observer } from '@rabjs/react';

@@ -5,6 +5,7 @@
 **Goal:** Transform the web interface with sidebar navigation, device management page, enhanced upload progress, and file management features.
 
 **Architecture:**
+
 - Replace fixed header with 64px fixed sidebar navigation
 - Add `/devices` route for device management with QR code pairing
 - Enhance upload progress UI with speed/ETA display
@@ -20,6 +21,7 @@
 **Goal:** Create Sidebar component with navigation icons and bottom user actions section.
 
 **Files:**
+
 - Create: `apps/web/src/components/sidebar/index.tsx`
 - Create: `apps/web/src/components/sidebar/sidebar-service.ts`
 - Modify: `apps/web/src/services/auth.service.ts` (add deviceId methods)
@@ -28,6 +30,7 @@
 ### Step 1.1: Create SidebarService
 
 **Files:**
+
 - Create: `apps/web/src/components/sidebar/sidebar-service.ts`
 
 ```typescript
@@ -82,6 +85,7 @@ export class SidebarService extends Service {
 ### Step 1.2: Create Sidebar Component
 
 **Files:**
+
 - Create: `apps/web/src/components/sidebar/index.tsx`
 
 ```tsx
@@ -234,6 +238,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 **Goal:** Replace Header with Sidebar in HomePage layout.
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/index.tsx`
 - Delete: `apps/web/src/components/header/index.tsx`
 - Delete: `apps/web/src/components/header/header.service.tsx`
@@ -242,19 +247,23 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Step 2.1: Update HomePage to Use Sidebar
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/index.tsx`
 
 Replace:
+
 ```tsx
 import Header from '../../components/header';
 ```
 
 With:
+
 ```tsx
 import Sidebar from '../../components/sidebar';
 ```
 
 Replace the `<Header />` component with `<Sidebar />` and adjust main content margin:
+
 ```tsx
 <div className="min-h-screen bg-[var(--bg-primary)] flex">
   <Sidebar />
@@ -289,11 +298,13 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 **Goal:** Add `/devices` route and placeholder SettingsPage route.
 
 **Files:**
+
 - Modify: `apps/web/src/app.tsx`
 
 ### Step 3.1: Update App Routes
 
 **Files:**
+
 - Modify: `apps/web/src/app.tsx`
 
 ```tsx
@@ -322,6 +333,7 @@ const routeConfig = [
 ### Step 3.2: Create Placeholder SettingsPage
 
 **Files:**
+
 - Create: `apps/web/src/pages/settings/index.tsx`
 
 ```tsx
@@ -363,12 +375,14 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 **Goal:** Add `POST /api/devices/pair-token` endpoint for QR code generation.
 
 **Files:**
+
 - Create: `apps/server/src/validators/create-pair-token.validator.ts`
 - Modify: `apps/server/src/controllers/device.controller.ts`
 
 ### Step 4.1: Create Validator
 
 **Files:**
+
 - Create: `apps/server/src/validators/create-pair-token.validator.ts`
 
 ```typescript
@@ -384,14 +398,17 @@ export class CreatePairTokenDto {
 ### Step 4.2: Add Endpoint to DeviceController
 
 **Files:**
+
 - Modify: `apps/server/src/controllers/device.controller.ts`
 
 Add import:
+
 ```typescript
 import { CreatePairTokenDto } from '../validators/create-pair-token.validator.js';
 ```
 
 Add new method after `heartbeat`:
+
 ```typescript
 @Post('/pair-token')
 @HttpCode(201)
@@ -404,9 +421,11 @@ async createPairToken(@CurrentUser() user: TokenPayload, @Body() dto: CreatePair
 ### Step 4.3: Add generatePairToken to DeviceService
 
 **Files:**
+
 - Modify: `apps/server/src/services/device.service.ts`
 
 Add method:
+
 ```typescript
 async generatePairToken(userId: string, deviceName: string): Promise<{ token: string; expiresAt: Date }> {
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
@@ -447,6 +466,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 **Goal:** Create DevicesPage with QR code display and device list.
 
 **Files:**
+
 - Create: `apps/web/src/pages/devices/index.tsx`
 - Create: `apps/web/src/pages/devices/devices.service.ts`
 - Create: `apps/web/src/services/device.service.ts`
@@ -455,14 +475,17 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Step 5.1: Add qrcode Dependency
 
 **Files:**
+
 - Modify: `apps/web/package.json`
 
 Add to dependencies:
+
 ```json
 "qrcode": "^1.5.3"
 ```
 
 Run:
+
 ```bash
 cd apps/web && pnpm add qrcode && cd ../..
 ```
@@ -470,6 +493,7 @@ cd apps/web && pnpm add qrcode && cd ../..
 ### Step 5.2: Create DeviceService (Web)
 
 **Files:**
+
 - Create: `apps/web/src/services/device.service.ts`
 
 ```typescript
@@ -525,9 +549,12 @@ export class DeviceService extends Service {
   async generatePairToken(deviceName: string) {
     try {
       // Server returns { success: true, data: { token, expiresAt } }
-      const response = await this.apiService.post<{ token: string; expiresAt: string }>('/api/devices/pair-token', {
-        deviceName,
-      });
+      const response = await this.apiService.post<{ token: string; expiresAt: string }>(
+        '/api/devices/pair-token',
+        {
+          deviceName,
+        }
+      );
       this._pairToken = response.token;
       this._pairTokenExpiry = new Date(response.expiresAt);
     } catch (error) {
@@ -565,6 +592,7 @@ export class DeviceService extends Service {
 ### Step 5.3: Create DevicesPage Component
 
 **Files:**
+
 - Create: `apps/web/src/pages/devices/index.tsx`
 
 ```tsx
@@ -633,12 +661,16 @@ const DevicesContent = observer(() => {
     <div className="min-h-screen bg-[var(--bg-primary)] flex">
       <Sidebar />
       <main className="flex-1 ml-16 p-8">
-        <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-8">Device Management</h1>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-8">
+          Device Management
+        </h1>
 
         {/* QR Code Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl p-6">
-            <h2 className="text-lg font-medium text-[var(--text-primary)] mb-4">Scan to Add Device</h2>
+            <h2 className="text-lg font-medium text-[var(--text-primary)] mb-4">
+              Scan to Add Device
+            </h2>
             <div className="flex flex-col items-center">
               {qrDataUrl ? (
                 <div className="relative">
@@ -675,19 +707,27 @@ const DevicesContent = observer(() => {
             <h2 className="text-lg font-medium text-[var(--text-primary)] mb-4">How it works</h2>
             <ol className="space-y-3 text-sm text-[var(--text-secondary)]">
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xs">1</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xs">
+                  1
+                </span>
                 Open Zen Send on your target device
               </li>
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xs">2</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xs">
+                  2
+                </span>
                 Go to Add Device or Settings
               </li>
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xs">3</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xs">
+                  3
+                </span>
                 Scan the QR code above
               </li>
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xs">4</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xs">
+                  4
+                </span>
                 Your device will appear below
               </li>
             </ol>
@@ -703,7 +743,9 @@ const DevicesContent = observer(() => {
               <RefreshCw size={24} className="text-[var(--text-muted)] animate-spin" />
             </div>
           ) : deviceService.devices.length === 0 ? (
-            <p className="text-sm text-[var(--text-muted)] py-8 text-center">No devices registered yet</p>
+            <p className="text-sm text-[var(--text-muted)] py-8 text-center">
+              No devices registered yet
+            </p>
           ) : (
             <div className="space-y-3">
               {deviceService.devices.map((device) => {
@@ -719,7 +761,9 @@ const DevicesContent = observer(() => {
                       <Icon size={20} className="text-[var(--text-secondary)]" />
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-[var(--text-primary)]">{device.name}</span>
+                          <span className="text-sm font-medium text-[var(--text-primary)]">
+                            {device.name}
+                          </span>
                           {isCurrent && (
                             <span className="px-2 py-0.5 text-xs bg-[var(--primary)] text-[var(--on-primary)] rounded">
                               Current
@@ -753,7 +797,10 @@ const DevicesContent = observer(() => {
             <div className="bg-[var(--bg-surface)] rounded-xl p-6 w-full max-w-sm mx-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-[var(--text-primary)]">Remove Device</h3>
-                <button onClick={() => setShowRemoveModal(null)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <button
+                  onClick={() => setShowRemoveModal(null)}
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                >
                   <X size={20} />
                 </button>
               </div>
@@ -809,15 +856,18 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 **Goal:** Enhance upload progress UI with speed and ETA display.
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/home.service.ts`
 - Modify: `apps/web/src/pages/home/index.tsx`
 
 ### Step 6.1: Update HomeService Upload Tracking
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/home.service.ts`
 
 Add to UploadingFile interface:
+
 ```typescript
 export interface UploadingFile {
   id: string;
@@ -836,6 +886,7 @@ export interface UploadingFile {
 ```
 
 Update executeUpload method to track speed/ETA:
+
 - Track start time when upload begins
 - Calculate speed every 500ms using rolling average
 - Update ETA based on remaining bytes and current speed
@@ -843,20 +894,24 @@ Update executeUpload method to track speed/ETA:
 ### Step 6.2: Update Upload Progress UI
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/index.tsx`
 
 Update renderUploadProgress to display speed and ETA:
+
 ```tsx
 const renderUploadProgress = (upload: UploadingFile) => {
   // ... existing code ...
 
   // Add after progress bar
-  {upload.status === 'uploading' && upload.speed !== undefined && (
-    <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] mt-1">
-      <span>{formatSpeed(upload.speed)}</span>
-      {upload.eta !== undefined && <span>• {formatEta(upload.eta)} left</span>}
-    </div>
-  )}
+  {
+    upload.status === 'uploading' && upload.speed !== undefined && (
+      <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] mt-1">
+        <span>{formatSpeed(upload.speed)}</span>
+        {upload.eta !== undefined && <span>• {formatEta(upload.eta)} left</span>}
+      </div>
+    );
+  }
 };
 
 const formatSpeed = (bytesPerSec: number): string => {
@@ -876,19 +931,22 @@ const formatEta = (seconds: number): string => {
 ### Step 6.3: Enhance Drag Overlay
 
 Update the drag overlay to match spec design:
+
 - Full-screen with semi-transparent overlay
 - Dashed border
 - Centered "Release to upload" text
 
 ```tsx
-{isDragging && (
-  <div className="fixed inset-0 bg-[var(--primary)]/10 flex items-center justify-center z-50">
-    <div className="border-2 border-dashed border-[var(--primary)] rounded-2xl p-16 text-center">
-      <Upload size={64} className="text-[var(--primary)] mx-auto mb-4" />
-      <p className="text-xl text-[var(--text-primary)] font-medium">Release to upload</p>
+{
+  isDragging && (
+    <div className="fixed inset-0 bg-[var(--primary)]/10 flex items-center justify-center z-50">
+      <div className="border-2 border-dashed border-[var(--primary)] rounded-2xl p-16 text-center">
+        <Upload size={64} className="text-[var(--primary)] mx-auto mb-4" />
+        <p className="text-xl text-[var(--text-primary)] font-medium">Release to upload</p>
+      </div>
     </div>
-  </div>
-)}
+  );
+}
 ```
 
 ### Step 6.4: Commit
@@ -912,6 +970,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 **Goal:** Add search, filter, preview, download, and delete functionality.
 
 **Files:**
+
 - Create: `apps/web/src/components/search-bar/index.tsx`
 - Create: `apps/web/src/components/preview-modal/index.tsx`
 - Modify: `apps/web/src/components/transfer-list/index.tsx`
@@ -921,13 +980,16 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Step 7.1: Add API Methods for File Operations
 
 **Files:**
+
 - Modify: `apps/web/src/services/api.service.ts`
 
 The server's download endpoint returns a presigned URL, not a direct blob. The client must:
+
 1. Call `GET /api/transfers/:id/download` to get the presigned URL
 2. Fetch that URL to download the file
 
 Add methods:
+
 ```typescript
 async getTransferDownloadUrl(transferId: string): Promise<string> {
   // Server returns { success: true, data: { downloadUrl: "..." } }
@@ -952,6 +1014,7 @@ async deleteTransfer(transferId: string): Promise<void> {
 ### Step 7.2: Create SearchBar Component
 
 **Files:**
+
 - Create: `apps/web/src/components/search-bar/index.tsx`
 
 ```tsx
@@ -985,7 +1048,10 @@ const SearchBarContent = observer(() => {
     <div className="flex items-center gap-3 mb-4">
       {/* Search Input */}
       <div className="relative flex-1">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+        <Search
+          size={16}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+        />
         <input
           type="text"
           placeholder="Search files..."
@@ -998,7 +1064,10 @@ const SearchBarContent = observer(() => {
       {/* Type Filter */}
       <div className="relative">
         <button
-          onClick={() => { setTypeOpen(!typeOpen); setTimeOpen(false); }}
+          onClick={() => {
+            setTypeOpen(!typeOpen);
+            setTimeOpen(false);
+          }}
           className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-elevated)] border border-[var(--border-default)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--border-default)]"
         >
           {typeLabels[service.typeFilter]}
@@ -1009,9 +1078,14 @@ const SearchBarContent = observer(() => {
             {(['all', 'file', 'text'] as FilterType[]).map((type) => (
               <button
                 key={type}
-                onClick={() => { service.setTypeFilter(type); setTypeOpen(false); }}
+                onClick={() => {
+                  service.setTypeFilter(type);
+                  setTypeOpen(false);
+                }}
                 className={`w-full px-3 py-2 text-left text-sm hover:bg-[var(--bg-elevated)] first:rounded-t-lg last:rounded-b-lg ${
-                  service.typeFilter === type ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'
+                  service.typeFilter === type
+                    ? 'text-[var(--primary)]'
+                    : 'text-[var(--text-primary)]'
                 }`}
               >
                 {typeLabels[type]}
@@ -1024,7 +1098,10 @@ const SearchBarContent = observer(() => {
       {/* Time Filter */}
       <div className="relative">
         <button
-          onClick={() => { setTimeOpen(!timeOpen); setTypeOpen(false); }}
+          onClick={() => {
+            setTimeOpen(!timeOpen);
+            setTypeOpen(false);
+          }}
           className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-elevated)] border border-[var(--border-default)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--border-default)]"
         >
           {timeLabels[service.timeFilter]}
@@ -1035,9 +1112,14 @@ const SearchBarContent = observer(() => {
             {(['all', 'today', 'week', 'month'] as TimeFilter[]).map((time) => (
               <button
                 key={time}
-                onClick={() => { service.setTimeFilter(time); setTimeOpen(false); }}
+                onClick={() => {
+                  service.setTimeFilter(time);
+                  setTimeOpen(false);
+                }}
                 className={`w-full px-3 py-2 text-left text-sm hover:bg-[var(--bg-elevated)] first:rounded-t-lg last:rounded-b-lg ${
-                  service.timeFilter === time ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'
+                  service.timeFilter === time
+                    ? 'text-[var(--primary)]'
+                    : 'text-[var(--text-primary)]'
                 }`}
               >
                 {timeLabels[time]}
@@ -1056,6 +1138,7 @@ export default bindServices(SearchBarContent, [HomeService]);
 ### Step 7.3: Create PreviewModal Component
 
 **Files:**
+
 - Create: `apps/web/src/components/preview-modal/index.tsx`
 
 ```tsx
@@ -1137,7 +1220,9 @@ const PreviewModalContent = observer(() => {
 
   if (!previewTransfer) return null;
 
-  const isImage = previewTransfer.type === 'image' || /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(previewTransfer.name);
+  const isImage =
+    previewTransfer.type === 'image' ||
+    /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(previewTransfer.name);
   const isText = /\.(txt|md|json|js|css|html|ts|tsx|xml|yaml|yml)$/i.test(previewTransfer.name);
   const tooLargeForPreview = (previewTransfer.size || 0) > 50 * 1024 * 1024;
 
@@ -1153,23 +1238,46 @@ const PreviewModalContent = observer(() => {
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 bg-black/50">
         <div className="flex items-center gap-4">
           <span className="text-white text-sm font-medium">{previewTransfer.name}</span>
-          <span className="text-white/60 text-xs">{(previewTransfer.size || 0).toLocaleString()} bytes</span>
+          <span className="text-white/60 text-xs">
+            {(previewTransfer.size || 0).toLocaleString()} bytes
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {isImage && (
             <>
-              <button onClick={(e) => { e.stopPropagation(); setScale((s) => Math.min(s + 0.25, 3)); }} className="p-2 text-white/80 hover:text-white rounded hover:bg-white/10">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setScale((s) => Math.min(s + 0.25, 3));
+                }}
+                className="p-2 text-white/80 hover:text-white rounded hover:bg-white/10"
+              >
                 <ZoomIn size={20} />
               </button>
-              <button onClick={(e) => { e.stopPropagation(); setScale((s) => Math.max(s - 0.25, 0.5)); }} className="p-2 text-white/80 hover:text-white rounded hover:bg-white/10">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setScale((s) => Math.max(s - 0.25, 0.5));
+                }}
+                className="p-2 text-white/80 hover:text-white rounded hover:bg-white/10"
+              >
                 <ZoomOut size={20} />
               </button>
             </>
           )}
-          <button onClick={(e) => { e.stopPropagation(); handleDownload(); }} className="p-2 text-white/80 hover:text-white rounded hover:bg-white/10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownload();
+            }}
+            className="p-2 text-white/80 hover:text-white rounded hover:bg-white/10"
+          >
             <Download size={20} />
           </button>
-          <button onClick={handleClose} className="p-2 text-white/80 hover:text-white rounded hover:bg-white/10">
+          <button
+            onClick={handleClose}
+            className="p-2 text-white/80 hover:text-white rounded hover:bg-white/10"
+          >
             <X size={20} />
           </button>
         </div>
@@ -1188,7 +1296,10 @@ const PreviewModalContent = observer(() => {
         ) : tooLargeForPreview ? (
           <div className="text-center text-white">
             <p className="mb-4">File too large to preview</p>
-            <button onClick={handleDownload} className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg">
+            <button
+              onClick={handleDownload}
+              className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg"
+            >
               Download instead
             </button>
           </div>
@@ -1197,15 +1308,24 @@ const PreviewModalContent = observer(() => {
             src={blobUrl}
             alt={previewTransfer.name}
             className="max-w-full max-h-full object-contain"
-            style={{ transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)` }}
+            style={{
+              transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
+            }}
             draggable={false}
           />
         ) : isText ? (
-          <iframe src={blobUrl} className="w-[800px] h-[600px] bg-white rounded-lg" title="Preview" />
+          <iframe
+            src={blobUrl}
+            className="w-[800px] h-[600px] bg-white rounded-lg"
+            title="Preview"
+          />
         ) : (
           <div className="text-center text-white">
             <p className="mb-4">Cannot preview this file type</p>
-            <button onClick={handleDownload} className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg">
+            <button
+              onClick={handleDownload}
+              className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg"
+            >
               Download
             </button>
           </div>
@@ -1221,9 +1341,11 @@ export default bindServices(PreviewModalContent, [HomeService, ApiService]);
 ### Step 7.4: Update TransferList Component
 
 **Files:**
+
 - Modify: `apps/web/src/components/transfer-list/index.tsx`
 
 Add action buttons to each transfer item:
+
 ```tsx
 // Add imports
 import { Eye, Download, Trash2 } from 'lucide-react';
@@ -1253,10 +1375,11 @@ import SearchBar from '../search-bar';
   >
     <Trash2 size={14} />
   </button>
-</div>
+</div>;
 ```
 
 Add SearchBar at top of list:
+
 ```tsx
 <div className="mb-4">
   <SearchBar />
@@ -1266,9 +1389,11 @@ Add SearchBar at top of list:
 ### Step 7.5: Update HomeService
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/home.service.ts`
 
 Add new state and methods:
+
 ```typescript
 // State
 searchQuery = '';
@@ -1359,15 +1484,18 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 **Goal:** Add "Load More" pagination to transfer list.
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/home.service.ts`
 - Modify: `apps/web/src/components/transfer-list/index.tsx`
 
 ### Step 8.1: Update HomeService for Pagination
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/home.service.ts`
 
 Update loadTransfers to accept offset:
+
 ```typescript
 async loadTransfers(offset = 0, limit = 50) {
   const response = await this.apiService.get<{ transfers: TransferSession[] }>(
@@ -1390,11 +1518,13 @@ get hasMore() { return this._hasMore; }
 ```
 
 Add new fields:
+
 ```typescript
 private _hasMore = true;
 ```
 
 Update load method:
+
 ```typescript
 async load() {
   this.loading = true;
@@ -1408,6 +1538,7 @@ async load() {
 ```
 
 Add loadMore method:
+
 ```typescript
 async loadMoreTransfers() {
   if (this.loading || !this._hasMore) return;
@@ -1423,21 +1554,25 @@ async loadMoreTransfers() {
 ### Step 8.2: Update TransferList Component
 
 **Files:**
+
 - Modify: `apps/web/src/components/transfer-list/index.tsx`
 
 Add "Load More" button at bottom:
+
 ```tsx
-{service.hasMore && (
-  <div className="mt-4 text-center">
-    <button
-      onClick={() => service.loadMoreTransfers()}
-      disabled={service.loading}
-      className="px-6 py-2 text-sm bg-[var(--bg-elevated)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--border-default)] disabled:opacity-50"
-    >
-      {service.loading ? 'Loading...' : 'Load More'}
-    </button>
-  </div>
-)}
+{
+  service.hasMore && (
+    <div className="mt-4 text-center">
+      <button
+        onClick={() => service.loadMoreTransfers()}
+        disabled={service.loading}
+        className="px-6 py-2 text-sm bg-[var(--bg-elevated)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--border-default)] disabled:opacity-50"
+      >
+        {service.loading ? 'Loading...' : 'Load More'}
+      </button>
+    </div>
+  );
+}
 ```
 
 ### Step 8.3: Commit

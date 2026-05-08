@@ -39,12 +39,12 @@ Server-local `AuthTokens` interface (`apps/server/src/services/auth.service.ts`)
 
 Uses `@JsonController("/users")` with `@Authorized()` decorator. Services injected via constructor (typedi), following existing controller patterns. Register in `controllers/index.ts`.
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/users/me` | GET | Return current user profile (`UserProfileResponse`). Server resolves `avatarKey` → presigned inline URL for `avatarUrl` field. |
-| `/api/users/me` | PATCH | Update profile (body: `UpdateProfileRequest`). Can update nickname or remove avatar. Sets `updatedAt`. |
-| `/api/users/me/avatar/presign` | POST | Get presigned upload URL (body: `AvatarPresignRequest`). File size validation is best-effort pre-check (client-side 2MB limit is primary enforcement, as S3 presigned URLs cannot enforce upload size at S3 level). |
-| `/api/users/me/avatar/confirm` | POST | Confirm upload, update avatarKey, delete old avatar from S3 (body: `AvatarConfirmRequest`). Sets `updatedAt`. |
+| Endpoint                       | Method | Description                                                                                                                                                                                                         |
+| ------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/users/me`                | GET    | Return current user profile (`UserProfileResponse`). Server resolves `avatarKey` → presigned inline URL for `avatarUrl` field.                                                                                      |
+| `/api/users/me`                | PATCH  | Update profile (body: `UpdateProfileRequest`). Can update nickname or remove avatar. Sets `updatedAt`.                                                                                                              |
+| `/api/users/me/avatar/presign` | POST   | Get presigned upload URL (body: `AvatarPresignRequest`). File size validation is best-effort pre-check (client-side 2MB limit is primary enforcement, as S3 presigned URLs cannot enforce upload size at S3 level). |
+| `/api/users/me/avatar/confirm` | POST   | Confirm upload, update avatarKey, delete old avatar from S3 (body: `AvatarConfirmRequest`). Sets `updatedAt`.                                                                                                       |
 
 ### S3Service Changes
 

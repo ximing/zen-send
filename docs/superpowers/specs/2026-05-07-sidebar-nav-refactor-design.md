@@ -15,6 +15,7 @@ Web 端当前是 Header + Drawer 模式（移动端优先），无宽屏响应�
 ### 布局结构
 
 宽屏 (>=768px):
+
 ```
 ┌──────────┬───────────────────────────────┐
 │ Sidebar  │  Header                       │
@@ -28,6 +29,7 @@ Web 端当前是 Header + Drawer 模式（移动端优先），无宽屏响应�
 ```
 
 窄屏 (<768px):
+
 ```
 ┌───────────────────────────────────────┐
 │ Header (菜单按钮触发 Drawer)           │
@@ -62,13 +64,13 @@ AppLayout 仅包裹已认证路由。Auth 路由（/login、/register、/setup�
 
 ### 组件拆分
 
-| 组件 | 文件 | 职责 |
-|------|------|------|
-| `AppLayout` | `components/app-layout/index.tsx` | 统一布局容器，管理 Sidebar/Drawer 切换 |
-| `Sidebar` | `components/sidebar/index.tsx` | 宽屏常驻侧边栏，渲染 NavContent |
-| `NavContent` | `components/nav-content/index.tsx` | 从 Drawer 抽取的导航内容 |
-| `Drawer` | `components/drawer/index.tsx` | 改造：内容委托给 NavContent，仅负责覆盖层动画 |
-| `Header` | `components/header/index.tsx` | 改造：菜单按钮仅窄屏显示 |
+| 组件         | 文件                               | 职责                                          |
+| ------------ | ---------------------------------- | --------------------------------------------- |
+| `AppLayout`  | `components/app-layout/index.tsx`  | 统一布局容器，管理 Sidebar/Drawer 切换        |
+| `Sidebar`    | `components/sidebar/index.tsx`     | 宽屏常驻侧边栏，渲染 NavContent               |
+| `NavContent` | `components/nav-content/index.tsx` | 从 Drawer 抽取的导航内容                      |
+| `Drawer`     | `components/drawer/index.tsx`      | 改造：内容委托给 NavContent，仅负责覆盖层动画 |
+| `Header`     | `components/header/index.tsx`      | 改造：菜单按钮仅窄屏显示                      |
 
 删除：各页面独立的 `h-screen flex flex-col` 容器定义。
 
@@ -77,6 +79,7 @@ AppLayout 仅包裹已认证路由。Auth 路由（/login、/register、/setup�
 ### 组件接口
 
 **AppLayout**:
+
 ```typescript
 function AppLayout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -85,6 +88,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 ```
 
 **NavContent**:
+
 ```typescript
 interface NavContentProps {
   onNavigate?: () => void; // 导航后回调，Drawer 用来关闭自身，Sidebar 不传或传 no-op
@@ -92,9 +96,10 @@ interface NavContentProps {
 ```
 
 **Header** 改造为可选菜单按钮：
+
 ```typescript
 interface HeaderProps {
-  onMenuPress?: () => void;   // 窄屏时传入，宽屏时不传
+  onMenuPress?: () => void; // 窄屏时传入，宽屏时不传
   onSearchPress: () => void;
 }
 ```
@@ -131,6 +136,7 @@ Toast 和 PreviewModal 使用 `fixed` 定位覆盖整个视口，包含 Sidebar 
 ### Electron 改造
 
 `apps/electron/src/main/window.ts` 中 BrowserWindow 选项：
+
 - 删除 `titleBarStyle: 'hidden'`
 - 不添加 `frame: false`
 - 保持 `minWidth: 460`，Electron 窗口缩小时也支持 Drawer 模式

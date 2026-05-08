@@ -11,6 +11,7 @@ Simplify the mobile transfer/history list to reduce visual clutter while maintai
 ## Current State
 
 The current `TransferItem` component displays all available actions as text/buttons directly on each list row:
+
 - **Text transfers:** Copy, Delete
 - **File/Image transfers:** Preview, Download, Copy Link, Delete
 
@@ -21,6 +22,7 @@ This results in a cluttered UI with multiple action buttons visible at all times
 ### 1. List Item (Simplified)
 
 **Before:**
+
 - Multiple action buttons visible (Preview, Download, Copy Link, Delete)
 
 **After:**
@@ -50,12 +52,12 @@ This results in a cluttered UI with multiple action buttons visible at all times
 
 **Actions (Icon buttons at bottom):**
 
-| Icon | Action | Description |
-|------|--------|-------------|
-| ↓ | Download | Download file to device |
-| 🔗 | Copy Link | Copy S3 presigned URL to clipboard |
-| ↗ | Share | Open system share menu (iOS Share Sheet / Android Share Intent) |
-| 🗑 | Delete | Delete transfer session |
+| Icon | Action    | Description                                                     |
+| ---- | --------- | --------------------------------------------------------------- |
+| ↓    | Download  | Download file to device                                         |
+| 🔗   | Copy Link | Copy S3 presigned URL to clipboard                              |
+| ↗    | Share     | Open system share menu (iOS Share Sheet / Android Share Intent) |
+| 🗑   | Delete    | Delete transfer session                                         |
 
 ## Component Changes
 
@@ -92,6 +94,7 @@ User taps item → Opens PreviewModal with transfer data
 ## API Impact
 
 No API changes required. Using existing endpoints:
+
 - `DELETE /api/transfers/:id` - already exists for delete
 - `GET /api/transfers/:id/download` - for download URL
 

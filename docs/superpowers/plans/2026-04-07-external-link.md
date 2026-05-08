@@ -5,6 +5,7 @@
 **Goal:** 为文件消息添加"复制外链"功能，用户点击后可复制 S3 预签名下载地址（6小时有效期）
 
 **Architecture:**
+
 - 后端：新增需认证的 API 端点 `/api/transfers/:id/external-link`，验证 transfer 属于当前用户，调用 S3Service 生成 6 小时有效期的预签名 URL
 - Web：MessageBubble 添加复制链接按钮，调用新 API 并复制到剪贴板
 - Mobile：TransferItem 添加复制链接按钮，实现逻辑与 Web 一致
@@ -16,6 +17,7 @@
 ## Chunk 1: 后端 - 新增外链 API
 
 **Files:**
+
 - Modify: `apps/server/src/controllers/transfer.controller.ts`
 - Modify: `apps/server/src/services/transfer.service.ts`
 
@@ -25,7 +27,14 @@
 
 ```typescript
 // 新建文件: apps/server/src/controllers/external-link.controller.ts
-import { JsonController, Get, Param, HttpError, CurrentUser, Authorized } from 'routing-controllers';
+import {
+  JsonController,
+  Get,
+  Param,
+  HttpError,
+  CurrentUser,
+  Authorized,
+} from 'routing-controllers';
 import { Service } from 'typedi';
 import { TransferService } from '../services/transfer.service.js';
 import { ResponseUtil } from '../utils/response.js';
@@ -129,6 +138,7 @@ git commit -m "feat(server): add authenticated external-link API endpoint"
 ## Chunk 2: Web 前端 - 添加复制链接按钮
 
 **Files:**
+
 - Modify: `apps/web/src/services/api.service.ts`
 - Modify: `apps/web/src/components/transfer-chat/message-bubble.tsx`
 
@@ -144,12 +154,23 @@ async getTransferExternalLink(transferId: string): Promise<{ url: string; expire
 - [ ] **Step 2: 在 MessageBubble 添加复制链接按钮**
 
 导入 `Link` 图标和 `ToastService`：
+
 ```typescript
-import { FileText, Pencil, CheckCircle, AlertCircle, Download, Eye, Copy, Link } from 'lucide-react';
+import {
+  FileText,
+  Pencil,
+  CheckCircle,
+  AlertCircle,
+  Download,
+  Eye,
+  Copy,
+  Link,
+} from 'lucide-react';
 import { ToastService } from '../toast/toast.service';
 ```
 
 添加 `handleCopyLink` 回调：
+
 ```typescript
 const handleCopyLink = useCallback(async () => {
   try {
@@ -164,16 +185,14 @@ const handleCopyLink = useCallback(async () => {
 ```
 
 在按钮组添加新按钮（预览、下载按钮旁边）：
+
 ```tsx
 <button
   onClick={handleCopyLink}
   className="p-2 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
   title="Copy Link"
 >
-  <Link
-    size={16}
-    className="text-[var(--text-secondary)] hover:text-[var(--accent)]"
-  />
+  <Link size={16} className="text-[var(--text-secondary)] hover:text-[var(--accent)]" />
 </button>
 ```
 
@@ -189,6 +208,7 @@ git commit -m "feat(web): add copy link button to message bubble"
 ## Chunk 3: 移动端 - 添加复制链接按钮
 
 **Files:**
+
 - Modify: `apps/mobile/src/services/api.service.ts`
 - Modify: `apps/mobile/src/components/transfer-item/index.tsx`
 
@@ -199,6 +219,7 @@ git commit -m "feat(web): add copy link button to message bubble"
 - [ ] **Step 2: 在 TransferItem 添加复制链接按钮**
 
 添加 `handleCopyLink` 方法：
+
 ```typescript
 const handleCopyLink = async () => {
   if (firstItem?.storageType === 's3') {
@@ -214,6 +235,7 @@ const handleCopyLink = async () => {
 ```
 
 在 actions 区域添加复制链接按钮：
+
 ```tsx
 <TouchableOpacity style={styles.actionBtn} onPress={handleCopyLink}>
   <Ionicons name="link-outline" size={18} color={colors.textSecondary} />

@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { observer, useService } from '@rabjs/react';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -138,9 +146,7 @@ function SettingsPageInner() {
               disabled={isSavingNickname}
               style={[styles.saveButton, { backgroundColor: colors.accent }]}
             >
-              <Text style={styles.saveButtonText}>
-                {isSavingNickname ? '...' : 'Save'}
-              </Text>
+              <Text style={styles.saveButtonText}>{isSavingNickname ? '...' : 'Save'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -167,16 +173,43 @@ const styles = StyleSheet.create({
   avatarSection: { alignItems: 'center', marginBottom: 32 },
   avatarContainer: { position: 'relative', marginBottom: 12 },
   avatarImage: { width: 96, height: 96, borderRadius: 48 },
-  avatarPlaceholder: { width: 96, height: 96, borderRadius: 48, alignItems: 'center', justifyContent: 'center' },
+  avatarPlaceholder: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   avatarPlaceholderText: { fontSize: 36, fontWeight: '600' },
-  cameraButton: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  cameraButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   removeAvatarText: { fontSize: 14, marginTop: 8 },
   uploadIndicator: { marginTop: 8 },
   fieldSection: { marginBottom: 20 },
   fieldLabel: { fontSize: 14, fontWeight: '500', marginBottom: 8 },
   nicknameRow: { flexDirection: 'row', gap: 8 },
-  nicknameInput: { flex: 1, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8, fontSize: 16, borderWidth: 1 },
-  saveButton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, justifyContent: 'center' },
+  nicknameInput: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    fontSize: 16,
+    borderWidth: 1,
+  },
+  saveButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    justifyContent: 'center',
+  },
   saveButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   readOnlyField: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8 },
   readOnlyText: { fontSize: 14 },

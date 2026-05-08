@@ -28,10 +28,14 @@ function SelectedFilesItemInner({ progress, onCancel, onRemove }: SelectedFilesI
 
   const getStatusColor = () => {
     switch (progress.status) {
-      case 'uploading': return colors.accent;
-      case 'completed': return '#22C55E';
-      case 'failed': return '#EF4444';
-      case 'cancelled': return '#9A958F';
+      case 'uploading':
+        return colors.accent;
+      case 'completed':
+        return '#22C55E';
+      case 'failed':
+        return '#EF4444';
+      case 'cancelled':
+        return '#9A958F';
     }
   };
 
@@ -43,7 +47,8 @@ function SelectedFilesItemInner({ progress, onCancel, onRemove }: SelectedFilesI
         </Text>
         {progress.status === 'uploading' && (
           <Text style={[styles.progressText, { color: colors.textSecondary }]}>
-            {progress.progress.toFixed(0)}% · {formatSize(progress.speed)}/s · ETA {formatTime(progress.eta)}
+            {progress.progress.toFixed(0)}% · {formatSize(progress.speed)}/s · ETA{' '}
+            {formatTime(progress.eta)}
           </Text>
         )}
         {progress.status === 'completed' && (

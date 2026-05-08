@@ -55,9 +55,7 @@
       "compositePrimaryKeys": {
         "chunkUploads_id": {
           "name": "chunkUploads_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -122,9 +120,7 @@
       "compositePrimaryKeys": {
         "devices_id": {
           "name": "devices_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -209,9 +205,7 @@
       "compositePrimaryKeys": {
         "transferItems_id": {
           "name": "transferItems_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -339,9 +333,7 @@
       "compositePrimaryKeys": {
         "transferSessions_id": {
           "name": "transferSessions_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -391,17 +383,13 @@
       "compositePrimaryKeys": {
         "users_id": {
           "name": "users_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "checkConstraint": {}

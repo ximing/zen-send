@@ -15,25 +15,25 @@
 
 ### 浅色模式
 
-| 元素 | 色值 | 用途 |
-|------|------|------|
-| 页面背景 | `#F7F5F2` | 主背景，暖灰色调 |
-| 卡片背景 | `#FFFFFF` | 最高层级容器 |
-| 列表项 | `#F5F5F5` | 次级容器，分组背景 |
-| 主按钮 | `#2C2C2C` | 深色填充，白色文字 |
-| 次按钮 | `#FFFFFF` | 浅色填充，深色文字 |
-| 输入框 | `#FFFFFF` | 与卡片同色 |
+| 元素     | 色值      | 用途               |
+| -------- | --------- | ------------------ |
+| 页面背景 | `#F7F5F2` | 主背景，暖灰色调   |
+| 卡片背景 | `#FFFFFF` | 最高层级容器       |
+| 列表项   | `#F5F5F5` | 次级容器，分组背景 |
+| 主按钮   | `#2C2C2C` | 深色填充，白色文字 |
+| 次按钮   | `#FFFFFF` | 浅色填充，深色文字 |
+| 输入框   | `#FFFFFF` | 与卡片同色         |
 
 ### 深色模式
 
-| 元素 | 色值 | 用途 |
-|------|------|------|
-| 页面背景 | `#121214` | 主背景，最深色 |
-| 卡片背景 | `#1C1C1E` | 次级容器 |
-| 列表项 | `#262628` | 分组背景 |
-| 主按钮 | `#8B9A7D` | accent 色填充，深色文字 |
-| 次按钮 | `#262628` | 浅色文字 |
-| 输入框 | `#1C1C1E` | 与卡片同色 |
+| 元素     | 色值      | 用途                        |
+| -------- | --------- | --------------------------- |
+| 页面背景 | `#121214` | 主背景，最深色              |
+| 卡片背景 | `#1C1C1E` | 次级容器                    |
+| 列表项   | `#262628` | 分组背景                    |
+| 主按钮   | `#8B9A7D` | accent 色填充，深色文字     |
+| 次按钮   | `#262628` | 浅色文字                    |
+| 输入框   | `#1C1C1E` | 与卡片同色                  |
 | Focus 色 | `#8B9A7D` | outline 焦点环，accent 同色 |
 
 ## 组件规范
@@ -42,12 +42,12 @@
 
 ```css
 /* 浅色模式 */
-background: #FFFFFF;
+background: #ffffff;
 border-radius: 16px;
 padding: 16px;
 
 /* 深色模式 */
-background: #1C1C1E;
+background: #1c1c1e;
 border-radius: 16px;
 padding: 16px;
 ```
@@ -58,24 +58,24 @@ padding: 16px;
 
 ```css
 /* 主按钮 - 浅色模式 */
-background: #2C2C2C;
+background: #2c2c2c;
 color: white;
 border-radius: 12px;
 padding: 12px 16px;
 border: none;
 
 /* 主按钮 - 深色模式 */
-background: #8B9A7D;
-color: #1C1C1E;
+background: #8b9a7d;
+color: #1c1c1e;
 border-radius: 12px;
 padding: 12px 16px;
 border: none;
 
 /* 次按钮 */
-background: #FFFFFF; /* 浅色模式 */
+background: #ffffff; /* 浅色模式 */
 background: #262628; /* 深色模式 */
-color: #2C2C2C; /* 浅色模式 */
-color: #C5C2BD; /* 深色模式 */
+color: #2c2c2c; /* 浅色模式 */
+color: #c5c2bd; /* 深色模式 */
 border-radius: 12px;
 border: none;
 ```
@@ -88,7 +88,7 @@ border: none;
 
 ```css
 /* 浅色模式 */
-background: #F5F5F5;
+background: #f5f5f5;
 border-radius: 10px;
 padding: 10px 12px;
 
@@ -104,13 +104,13 @@ padding: 10px 12px;
 
 ```css
 /* 浅色模式 */
-background: #FFFFFF;
+background: #ffffff;
 border-radius: 12px;
 padding: 12px 16px;
 border: none;
 
 /* 深色模式 */
-background: #1C1C1E;
+background: #1c1c1e;
 border-radius: 12px;
 padding: 12px 16px;
 border: none;
@@ -121,6 +121,7 @@ border: none;
 ### 分隔线
 
 移除所有 `border-t`, `border-b` 分隔线，改用：
+
 - 分组间用不同的背景色区分
 - 或者增加间距 (`gap`) 来表达分组
 

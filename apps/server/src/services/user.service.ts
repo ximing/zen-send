@@ -13,7 +13,7 @@ const AVATAR_KEY_PREFIX = 'avatars/';
 export class UserService {
   constructor(
     private dbService: DbService,
-    private s3Service: S3Service,
+    private s3Service: S3Service
   ) {}
 
   private get db() {
@@ -40,20 +40,24 @@ export class UserService {
 
   async updateProfile(userId: string, data: { nickname?: string; removeAvatar?: boolean }) {
     const now = Math.floor(Date.now() / 1000);
-    const updates: Record<string, any> = { updatedAt: now };
+    const updates: Record<string, string | number | null> = { updatedAt: now };
 
     if (data.nickname !== undefined) {
       updates.nickname = data.nickname || null;
     }
 
     if (data.removeAvatar) {
-      const result = await this.db.select({ avatarKey: users.avatarKey }).from(users).where(eq(users.id, userId)).limit(1);
+      const result = await this.db
+        .select({ avatarKey: users.avatarKey })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       const oldKey = result[0]?.avatarKey;
       updates.avatarKey = null;
       if (oldKey) {
-        await this.s3Service.deleteObject(oldKey).catch((err: Error) =>
-          logger.warn({ err, key: oldKey }, 'Failed to delete old avatar')
-        );
+        await this.s3Service
+          .deleteObject(oldKey)
+          .catch((err: Error) => logger.warn({ err, key: oldKey }, 'Failed to delete old avatar'));
       }
     }
 
@@ -63,7 +67,9 @@ export class UserService {
 
   async presignAvatar(userId: string, contentType: string, fileSize?: number) {
     if (!ALLOWED_AVATAR_TYPES.includes(contentType)) {
-      throw new Error(`Invalid content type: ${contentType}. Allowed: ${ALLOWED_AVATAR_TYPES.join(', ')}`);
+      throw new Error(
+        `Invalid content type: ${contentType}. Allowed: ${ALLOWED_AVATAR_TYPES.join(', ')}`
+      );
     }
     if (fileSize && fileSize > MAX_AVATAR_SIZE) {
       throw new Error(`File size ${fileSize} exceeds maximum ${MAX_AVATAR_SIZE} bytes`);
@@ -83,16 +89,20 @@ export class UserService {
       throw new Error('Invalid avatar key');
     }
 
-    const result = await this.db.select({ avatarKey: users.avatarKey }).from(users).where(eq(users.id, userId)).limit(1);
+    const result = await this.db
+      .select({ avatarKey: users.avatarKey })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
     const oldKey = result[0]?.avatarKey;
 
     const now = Math.floor(Date.now() / 1000);
     await this.db.update(users).set({ avatarKey: key, updatedAt: now }).where(eq(users.id, userId));
 
     if (oldKey && oldKey !== key) {
-      await this.s3Service.deleteObject(oldKey).catch((err: Error) =>
-        logger.warn({ err, key: oldKey }, 'Failed to delete old avatar')
-      );
+      await this.s3Service
+        .deleteObject(oldKey)
+        .catch((err: Error) => logger.warn({ err, key: oldKey }, 'Failed to delete old avatar'));
     }
 
     return this.getProfile(userId);

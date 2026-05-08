@@ -43,7 +43,9 @@ function QrScannerInner({ visible, onClose, onScan }: QrScannerProps) {
     return (
       <Modal visible={visible} onRequestClose={onClose}>
         <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
-          <Text style={[styles.message, { color: colors.textPrimary }]}>Camera permission required</Text>
+          <Text style={[styles.message, { color: colors.textPrimary }]}>
+            Camera permission required
+          </Text>
           <TouchableOpacity style={styles.button} onPress={requestPermission}>
             <Text style={styles.buttonText}>Grant Permission</Text>
           </TouchableOpacity>

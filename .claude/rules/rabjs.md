@@ -1,8 +1,8 @@
 ---
 paths:
-  - "apps/web/**"
-  - "apps/electron/**"
-  - "apps/mobile/**"
+  - 'apps/web/**'
+  - 'apps/electron/**'
+  - 'apps/mobile/**'
 ---
 
 # @rabjs/react Critical Rules

@@ -7,6 +7,7 @@
 ## Design Direction
 
 **参考风格**: Telegram 消息气泡
+
 - 消息气泡左右分布（发送靠右，接收靠左）
 - 设备作为发送者/接收者身份标识
 - 视觉化优先，支持文件缩略图预览
@@ -17,6 +18,7 @@
 ## 1. Layout Structure
 
 ### Main Content Area
+
 ```
 ┌─────────────────────────────────────────┐
 │  Sidebar (unchanged)                    │
@@ -46,6 +48,7 @@
 ```
 
 ### Responsive Behavior
+
 - 保持现有侧边栏设计（可折叠）
 - 消息气泡最大宽度 70%
 - 缩略图自适应尺寸
@@ -55,18 +58,21 @@
 ## 2. Message Bubble Structure
 
 ### Sent Message (Self Device)
+
 - **Alignment**: Right
 - **Background**: `var(--primary)` at 15% opacity
 - **Border Radius**: 左侧尖角（模拟气泡尾巴）
 - **Device Tag**: 气泡内底部右侧
 
 ### Received Message (Other Devices)
+
 - **Alignment**: Left
 - **Background**: `var(--bg-elevated)`
 - **Border Radius**: 右侧尖角
 - **Device Tag**: 气泡内底部左侧
 
 ### Bubble Content Layout
+
 ```
 ┌─────────────────────────────────┐
 │  [Thumbnail/Icon]  │  filename │
@@ -80,6 +86,7 @@
 - **File Info** (右侧 60%): 文件名（超长截断）+ 文件大小 + 进度条
 
 ### Device Tag Format
+
 ```
 📱 MacBook Pro · ●
   (icon)  (name) (color dot)
@@ -90,22 +97,25 @@
 ## 3. Device Identification
 
 ### Device Colors (by type)
-| Device Type | Color | Hex |
-|-------------|-------|-----|
-| Web | 蓝色 | #3B82F6 |
-| Android | 绿色 | #22C55E |
-| iOS | 紫色 | #A855F7 |
-| Desktop | 橙色 | #F97316 |
+
+| Device Type | Color | Hex     |
+| ----------- | ----- | ------- |
+| Web         | 蓝色  | #3B82F6 |
+| Android     | 绿色  | #22C55E |
+| iOS         | 紫色  | #A855F7 |
+| Desktop     | 橙色  | #F97316 |
 
 ### Device Icon Mapping
-| Device Type | Icon |
-|-------------|------|
-| Web | Globe |
-| Android | Smartphone |
-| iOS | Tablet |
-| Desktop | Monitor |
+
+| Device Type | Icon       |
+| ----------- | ---------- |
+| Web         | Globe      |
+| Android     | Smartphone |
+| iOS         | Tablet     |
+| Desktop     | Monitor    |
 
 ### Device Tag Styling
+
 - 设备图标: 12px, `var(--text-secondary)`
 - 设备名称: 11px, `var(--text-muted)`
 - 颜色圆点: 6px 直径，设备对应颜色
@@ -115,15 +125,17 @@
 ## 4. Transfer States
 
 ### Upload States
-| Status | Visual Treatment |
-|--------|------------------|
-| Pending | 灰色背景，禁用状态 |
-| Uploading | 进度条显示，百分比 + 速度 |
+
+| Status    | Visual Treatment           |
+| --------- | -------------------------- |
+| Pending   | 灰色背景，禁用状态         |
+| Uploading | 进度条显示，百分比 + 速度  |
 | Completed | 绿色勾号，缩略图可点击预览 |
-| Failed | 红色警告，可重试按钮 |
-| Expired | 灰色删除线，30天后自动清理 |
+| Failed    | 红色警告，可重试按钮       |
+| Expired   | 灰色删除线，30天后自动清理 |
 
 ### Progress Bar (In-Bubble)
+
 - 高度: 3px
 - 背景: `var(--border-subtle)`
 - 填充: `var(--accent)`
@@ -135,17 +147,20 @@
 ## 5. Time Grouping
 
 ### Date Separator
+
 - 居中显示
 - 样式: 文字 + 两侧横线
 - 分隔内容: "今天", "昨天", "3月28日", etc.
 
 ### Relative Time Display
+
 - `< 1分钟`: JUST_NOW
 - `< 60分钟`: 5M_AGO
 - `< 24小时`: 2H_AGO
 - `>= 24小时`: 3D_AGO
 
 ### Full Timestamp Tooltip
+
 - 悬停气泡显示完整时间
 - 格式: "2026年4月5日 14:32:15"
 
@@ -154,20 +169,23 @@
 ## 6. Component Changes
 
 ### TransferList → TransferChat (重命名)
+
 - 移除现有 FilterTabs（文件/文本过滤）
 - 新增 DateSeparator 组件
 - 新增 MessageBubble 组件
 - 保留 SearchBar 组件
 
 ### New Components
-| Component | Purpose |
-|-----------|---------|
+
+| Component         | Purpose                                      |
+| ----------------- | -------------------------------------------- |
 | `message-bubble/` | 单条消息气泡，包含缩略图、文件信息、设备标签 |
-| `date-separator/` | 日期分隔线 |
-| `device-tag/` | 设备图标+名称+颜色标签 |
-| `transfer-chat/` | 消息列表容器 |
+| `date-separator/` | 日期分隔线                                   |
+| `device-tag/`     | 设备图标+名称+颜色标签                       |
+| `transfer-chat/`  | 消息列表容器                                 |
 
 ### Removed Components
+
 - `FilterTabsComponent` - 过滤功能移至搜索栏筛选
 
 ---
@@ -175,6 +193,7 @@
 ## 7. Device Lookup & Message Direction
 
 ### Sent vs Received Detection
+
 ```typescript
 const CURRENT_DEVICE_ID = 'web-device'; // 从 AuthService 获取
 
@@ -188,6 +207,7 @@ const getMessageDirection = (transfer: TransferSession): 'sent' | 'received' => 
 ```
 
 ### Device Info Resolution
+
 - 使用 DeviceService 的 deviceList 获取设备信息
 - 设备列表通过 Socket.io 的 `device:list` 事件保持同步
 - 如果设备不在列表中，显示 "Unknown Device" 灰色标签
@@ -197,12 +217,15 @@ const getMessageDirection = (transfer: TransferSession): 'sent' | 'received' => 
 ## 8. TransferSession Items 处理
 
 ### 多文件 TransferSession
+
 每个 TransferSession = 一个气泡，多个 items 显示在一个气泡内：
+
 - 缩略图横向排列（最多显示 4 个，更多显示 +N）
 - 文件名显示第一个文件名 + "等 N 个文件"
 - 体积显示总大小
 
 ### Text Content 显示
+
 - 文本内容截断显示（最多 3 行，超出显示...）
 - 点击气泡打开 PreviewModal 查看完整内容
 
@@ -211,6 +234,7 @@ const getMessageDirection = (transfer: TransferSession): 'sent' | 'received' => 
 ## 9. Real-time Update Behavior
 
 ### Socket.io 事件处理
+
 - `transfer:new`: 添加到列表顶部，更新 "今天" 日期分组
 - `transfer:complete`: 更新对应 session 状态为 completed
 - 新消息从底部滑入动画
@@ -220,6 +244,7 @@ const getMessageDirection = (transfer: TransferSession): 'sent' | 'received' => 
 ## 10. Service Layer Changes
 
 ### HomeService Updates
+
 ```typescript
 // 新增方法
 get groupedTransfers(): Map<string, TransferSession[]>
@@ -235,6 +260,7 @@ uploadingFiles     // 上传中文件
 ## 11. Technical Approach
 
 ### File Organization
+
 ```
 components/
 ├── transfer-chat/
@@ -249,6 +275,7 @@ components/
 ```
 
 ### Key Implementation Notes
+
 1. 保持 @rabjs/react observer 模式
 2. 复用现有 HomeService
 3. 新增 `TransferChatService` 管理对话视图状态

@@ -13,10 +13,12 @@
 ## File Inventory
 
 ### Theme (Foundation)
+
 - `apps/web/src/theme/tokens.ts` - Update dark mode colors, remove border tokens
 - `apps/web/src/index.css` - Update CSS variables, add new dark mode values
 
 ### Components
+
 - `apps/web/src/components/sidebar/index.tsx`
 - `apps/web/src/components/send-toolbar/index.tsx`
 - `apps/web/src/components/send-toolbar/send-toolbar.service.ts`
@@ -26,6 +28,7 @@
 - `apps/web/src/components/preview-modal/index.tsx`
 
 ### Pages
+
 - `apps/web/src/pages/home/index.tsx`
 - `apps/web/src/pages/devices/index.tsx`
 - `apps/web/src/pages/login/index.tsx`
@@ -39,6 +42,7 @@
 ### Task 1: Update tokens.ts
 
 **Files:**
+
 - Modify: `apps/web/src/theme/tokens.ts`
 
 **Steps:**
@@ -62,6 +66,7 @@ bgElevated: '#262628',
 - [ ] **Step 2: Remove border-related tokens from dark mode**
 
 In the `dark` object, remove:
+
 ```typescript
 borderDefault: '#3A3A3C',
 borderSubtle: '#2E2E30',
@@ -95,6 +100,7 @@ git commit -m "feat(web): update dark mode colors for borderless design"
 ### Task 2: Update index.css
 
 **Files:**
+
 - Modify: `apps/web/src/index.css`
 
 **Steps:**
@@ -105,15 +111,15 @@ In `.dark {}` block (line ~61), update:
 
 ```css
 /* Before */
---bg-primary: #1C1C1E;
+--bg-primary: #1c1c1e;
 --bg-surface: #242426;
---bg-elevated: #2C2C2E;
---border-default: #3A3A3C;
---border-subtle: #2E2E30;
+--bg-elevated: #2c2c2e;
+--border-default: #3a3a3c;
+--border-subtle: #2e2e30;
 
 /* After */
 --bg-primary: #121214;
---bg-surface: #1C1C1E;
+--bg-surface: #1c1c1e;
 --bg-elevated: #262628;
 ```
 
@@ -137,15 +143,17 @@ Line ~131: Remove `border-color var(--transition-fast)` from the transition rule
 
 ```css
 /* Before */
-transition: background-color var(--transition-fast),
-            border-color var(--transition-fast),
-            color var(--transition-fast),
-            box-shadow var(--transition-fast);
+transition:
+  background-color var(--transition-fast),
+  border-color var(--transition-fast),
+  color var(--transition-fast),
+  box-shadow var(--transition-fast);
 
 /* After */
-transition: background-color var(--transition-fast),
-            color var(--transition-fast),
-            box-shadow var(--transition-fast);
+transition:
+  background-color var(--transition-fast),
+  color var(--transition-fast),
+  box-shadow var(--transition-fast);
 ```
 
 - [ ] **Step 4: Commit**
@@ -162,6 +170,7 @@ git commit -m "feat(web): update CSS variables for borderless design"
 ### Task 3: Update search-bar
 
 **Files:**
+
 - Modify: `apps/web/src/components/search-bar/index.tsx`
 
 **Steps:**
@@ -177,13 +186,16 @@ cat apps/web/src/components/search-bar/index.tsx
 Find lines 34, 51, 68 that contain `border border-[var(--border-default)]` and remove them.
 
 The three inputs at lines ~34, ~51, ~68 should change from:
+
 ```tsx
-className="w-full pl-10 pr-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-default)] ..."
+className =
+  'w-full pl-10 pr-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-default)] ...';
 ```
 
 To:
+
 ```tsx
-className="w-full pl-10 pr-4 py-2 bg-[var(--bg-surface)] rounded-xl ..."
+className = 'w-full pl-10 pr-4 py-2 bg-[var(--bg-surface)] rounded-xl ...';
 ```
 
 Focus style change - remove `focus:border-[var(--accent)]` and keep focus ring via CSS outline.
@@ -200,6 +212,7 @@ git commit -m "feat(web): remove borders from search-bar"
 ### Task 4: Update toast
 
 **Files:**
+
 - Modify: `apps/web/src/components/toast/index.tsx`
 
 **Steps:**
@@ -222,6 +235,7 @@ className={`px-4 py-3 rounded-lg border shadow-lg text-sm
 ```
 
 Change to - remove border but keep the color accent on text:
+
 ```tsx
 className={`px-4 py-3 rounded-xl shadow-lg text-sm`}
 ```
@@ -229,11 +243,13 @@ className={`px-4 py-3 rounded-xl shadow-lg text-sm`}
 And add accent-colored left border using a pseudo-element or a span with background.
 
 Actually, a cleaner approach - keep it borderless but use a colored left bar:
+
 ```tsx
 className={`px-4 py-3 rounded-xl shadow-lg text-sm flex items-center gap-3`}
 ```
 
 Add a colored indicator div:
+
 ```tsx
 <div className={`w-1 h-4 rounded-full bg-[var(--accent)]`} />
 ```
@@ -252,6 +268,7 @@ git commit -m "feat(web): update toast to borderless style"
 ### Task 5: Update sidebar
 
 **Files:**
+
 - Modify: `apps/web/src/components/sidebar/index.tsx`
 
 **Steps:**
@@ -265,12 +282,14 @@ cat apps/web/src/components/sidebar/index.tsx
 - [ ] **Step 2: Identify and remove border classes**
 
 Lines to check:
+
 - Line ~44: `bg-[var(--bg-elevated)] border border-[var(--border-default)]`
 - Line ~97: `border-r border-[var(--border-default)]` (right divider)
 - Line ~101: `border-b border-[var(--border-default)]` (bottom divider)
 - Line ~120: `border-t border-[var(--border-default)]` (top divider)
 
 Changes:
+
 1. Line ~44: Remove `border border-[var(--border-default)]`
 2. Line ~97: Remove the entire `border-r` divider or replace with spacing
 3. Line ~101 & ~120: Remove border dividers, use background color changes or spacing
@@ -289,6 +308,7 @@ git commit -m "feat(web): remove borders from sidebar"
 ### Task 6: Update send-toolbar
 
 **Files:**
+
 - Modify: `apps/web/src/components/send-toolbar/index.tsx`
 - Modify: `apps/web/src/components/send-toolbar/send-toolbar.service.ts` (check if service has UI code)
 
@@ -333,6 +353,7 @@ git commit -m "feat(web): remove borders from send-toolbar"
 ### Task 7: Update transfer-list
 
 **Files:**
+
 - Modify: `apps/web/src/components/transfer-list/index.tsx`
 
 **Steps:**
@@ -354,6 +375,7 @@ Lines to check (~67, ~147, ~148, ~245):
 - [ ] **Step 3: Update delete confirm styling**
 
 Replace border-based error indication with background color:
+
 ```tsx
 // Before
 className={`... border-[var(--color-error)] bg-[var(--color-error)]/10`}
@@ -376,6 +398,7 @@ git commit -m "feat(web): remove borders from transfer-list"
 ### Task 8: Update preview-modal
 
 **Files:**
+
 - Modify: `apps/web/src/components/preview-modal/index.tsx`
 
 **Steps:**
@@ -408,6 +431,7 @@ git commit -m "feat(web): remove borders from preview-modal"
 ### Task 9: Update home page
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/index.tsx`
 
 **Steps:**
@@ -438,6 +462,7 @@ git commit -m "feat(web): remove borders from home page"
 ### Task 10: Update devices page
 
 **Files:**
+
 - Modify: `apps/web/src/pages/devices/index.tsx`
 
 **Steps:**
@@ -469,6 +494,7 @@ git commit -m "feat(web): remove borders from devices page"
 ### Task 11: Update auth pages (login, register, setup)
 
 **Files:**
+
 - Modify: `apps/web/src/pages/login/index.tsx`
 - Modify: `apps/web/src/pages/register/index.tsx`
 - Modify: `apps/web/src/pages/setup/index.tsx`
@@ -533,6 +559,7 @@ cd apps/web && pnpm build
 - [ ] **Step 3: Manual verification**
 
 Test both light and dark themes visually:
+
 1. Home page - device cards, send area
 2. Devices page - device list, settings card
 3. Login/Register/Setup - form inputs

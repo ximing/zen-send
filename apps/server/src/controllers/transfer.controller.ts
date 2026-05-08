@@ -29,9 +29,8 @@ export class TransferController {
   async init(@CurrentUser() user: TokenPayload, @Body() dto: InitTransferDto) {
     try {
       const TEXT_INLINE_MAX_SIZE = 10 * 1024;
-      const isInlineText = dto.type === 'text' &&
-                            dto.totalSize <= TEXT_INLINE_MAX_SIZE &&
-                            dto.content !== undefined;
+      const isInlineText =
+        dto.type === 'text' && dto.totalSize <= TEXT_INLINE_MAX_SIZE && dto.content !== undefined;
 
       const result = await this.transferService.initTransfer({
         userId: user.userId,
@@ -51,7 +50,10 @@ export class TransferController {
         const io = getSocketIO();
         if (io) {
           // Get transfer details for notification
-          const transfer = await this.transferService.getTransferById(result.sessionId, user.userId);
+          const transfer = await this.transferService.getTransferById(
+            result.sessionId,
+            user.userId
+          );
           const sourceDevice = transfer?.sourceDeviceId || 'Unknown';
           const firstItem = transfer?.items?.[0];
           io.to(`user:${user.userId}`).emit('transfer:new', {
@@ -156,20 +158,29 @@ export class TransferController {
     }
 
     // 获取 items 并构建响应
-    const items = (transfer as any).items || [];
+    type TransferItem = {
+      id: string;
+      name: string;
+      mimeType: string;
+      size: number;
+      storageType: 'db' | 's3';
+      content?: string;
+    };
+    const items = (transfer as unknown as Record<string, unknown>).items as TransferItem[] | undefined;
 
     // 对于 s3 类型的 item，需要获取下载 URL
     const formattedItems = await Promise.all(
-      items.map(async (item: any) => ({
+      (items || []).map(async (item) => ({
         id: item.id,
         name: item.name,
         mimeType: item.mimeType,
         size: item.size,
         storageType: item.storageType,
         content: item.storageType === 'db' ? item.content : undefined,
-        downloadUrl: item.storageType === 's3'
-          ? await this.transferService.getDownloadUrl(id, user.userId)
-          : undefined,
+        downloadUrl:
+          item.storageType === 's3'
+            ? await this.transferService.getDownloadUrl(id, user.userId)
+            : undefined,
       }))
     );
 

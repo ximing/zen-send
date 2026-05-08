@@ -1,5 +1,12 @@
 // NOTE: Do NOT import 'reflect-metadata' here - only in app.ts/index.ts
-import { JsonController, Get, Param, HttpError, CurrentUser, Authorized } from 'routing-controllers';
+import {
+  JsonController,
+  Get,
+  Param,
+  HttpError,
+  CurrentUser,
+  Authorized,
+} from 'routing-controllers';
 import { Service } from 'typedi';
 import { TransferService } from '../services/transfer.service.js';
 import { ResponseUtil } from '../utils/response.js';

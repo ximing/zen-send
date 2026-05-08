@@ -26,6 +26,7 @@ components/
 ```
 
 **Modified Files:**
+
 - `apps/web/src/pages/home/index.tsx` - Replace TransferList with TransferChat
 - `apps/web/src/pages/home/home.service.ts` - Add date grouping logic
 - `apps/web/src/components/search-bar/index.tsx` - Update to new chat view
@@ -37,6 +38,7 @@ components/
 ### Task 1.1: Create device-tag component
 
 **Files:**
+
 - Create: `apps/web/src/components/transfer-chat/device-tag.tsx`
 - Create: `apps/web/src/components/transfer-chat/index.ts`
 
@@ -74,13 +76,12 @@ export const DeviceTag: React.FC<DeviceTagProps> = ({ device, direction }) => {
   const icon = DEVICE_ICONS[deviceType];
 
   return (
-    <div className={`flex items-center gap-1.5 text-[var(--text-muted)] ${isSent ? 'justify-end' : 'justify-start'}`}>
+    <div
+      className={`flex items-center gap-1.5 text-[var(--text-muted)] ${isSent ? 'justify-end' : 'justify-start'}`}
+    >
       {icon}
       <span className="text-[11px]">{deviceName}</span>
-      <span
-        className="w-1.5 h-1.5 rounded-full"
-        style={{ backgroundColor: color }}
-      />
+      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
     </div>
   );
 };
@@ -110,9 +111,7 @@ export const DateSeparator: React.FC<DateSeparatorProps> = ({ date }) => {
   return (
     <div className="flex items-center gap-3 py-4">
       <div className="flex-1 h-px bg-[var(--border-subtle)]" />
-      <span className="text-xs text-[var(--text-muted)] font-medium tracking-wider">
-        {date}
-      </span>
+      <span className="text-xs text-[var(--text-muted)] font-medium tracking-wider">{date}</span>
       <div className="flex-1 h-px bg-[var(--border-subtle)]" />
     </div>
   );
@@ -133,6 +132,7 @@ git commit -m "feat(web): add device-tag and date-separator components"
 ### Task 1.2: Create use-transfer-bubble hook
 
 **Files:**
+
 - Create: `apps/web/src/components/transfer-chat/hooks/use-transfer-bubble.ts`
 
 - [ ] **Step 1: Create use-transfer-bubble.ts**
@@ -176,6 +176,7 @@ git commit -m "feat(web): add use-transfer-bubble hook"
 ### Task 2.1: Create message-bubble component
 
 **Files:**
+
 - Create: `apps/web/src/components/transfer-chat/message-bubble.tsx`
 
 - [ ] **Step 1: Create message-bubble.tsx**
@@ -233,145 +234,151 @@ interface MessageBubbleProps {
   uploadingFile?: UploadingFile;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = observer(({ transfer, uploadingFile }) => {
-  const homeService = useService(HomeService);
-  const apiService = useService(ApiService);
-  const { direction, device, isSent } = useTransferBubble(transfer);
+export const MessageBubble: React.FC<MessageBubbleProps> = observer(
+  ({ transfer, uploadingFile }) => {
+    const homeService = useService(HomeService);
+    const apiService = useService(ApiService);
+    const { direction, device, isSent } = useTransferBubble(transfer);
 
-  const firstItem = transfer.items?.[0];
-  const itemType = firstItem?.type || 'file';
-  const icon = TYPE_ICONS[itemType];
+    const firstItem = transfer.items?.[0];
+    const itemType = firstItem?.type || 'file';
+    const icon = TYPE_ICONS[itemType];
 
-  const [isHovered, setIsHovered] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
 
-  const isUploading = uploadingFile && (uploadingFile.status === 'uploading' || uploadingFile.status === 'pending');
-  const isCompleted = uploadingFile?.status === 'completed' || transfer.status === 'completed';
-  const isFailed = uploadingFile?.status === 'failed' || transfer.status === 'failed';
+    const isUploading =
+      uploadingFile && (uploadingFile.status === 'uploading' || uploadingFile.status === 'pending');
+    const isCompleted = uploadingFile?.status === 'completed' || transfer.status === 'completed';
+    const isFailed = uploadingFile?.status === 'failed' || transfer.status === 'failed';
 
-  const handlePreview = useCallback(() => {
-    homeService.setPreviewTransfer(transfer);
-  }, [homeService, transfer]);
+    const handlePreview = useCallback(() => {
+      homeService.setPreviewTransfer(transfer);
+    }, [homeService, transfer]);
 
-  const handleDownload = useCallback(async () => {
-    try {
-      const blob = await apiService.getTransferFile(transfer.id);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = transfer.originalFileName || 'download';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Download failed:', err);
-    }
-  }, [apiService, transfer]);
+    const handleDownload = useCallback(async () => {
+      try {
+        const blob = await apiService.getTransferFile(transfer.id);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = transfer.originalFileName || 'download';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('Download failed:', err);
+      }
+    }, [apiService, transfer]);
 
-  const getProgress = () => {
-    if (uploadingFile) return uploadingFile.progress;
-    if (transfer.status === 'completed') return 100;
-    return 0;
-  };
+    const getProgress = () => {
+      if (uploadingFile) return uploadingFile.progress;
+      if (transfer.status === 'completed') return 100;
+      return 0;
+    };
 
-  return (
-    <div
-      className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-3`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      title={new Date(transfer.createdAt).toLocaleString('zh-CN')}
-    >
+    return (
       <div
-        className={`relative max-w-[70%] rounded-2xl px-4 py-3 transition-all
-          ${isSent
-            ? 'bg-[var(--primary)]/10 rounded-br-md'
-            : 'bg-[var(--bg-elevated)] rounded-bl-md'
+        className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-3`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        title={new Date(transfer.createdAt).toLocaleString('zh-CN')}
+      >
+        <div
+          className={`relative max-w-[70%] rounded-2xl px-4 py-3 transition-all
+          ${
+            isSent
+              ? 'bg-[var(--primary)]/10 rounded-br-md'
+              : 'bg-[var(--bg-elevated)] rounded-bl-md'
           }
           ${isHovered ? 'shadow-md' : ''}
         `}
-      >
-        <div className="flex items-start gap-3">
-          {/* Thumbnail/Icon */}
-          <div className="flex-shrink-0 w-12 h-12 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center overflow-hidden">
-            {icon}
-          </div>
-
-          {/* File Info */}
-          <div className="flex-1 min-w-0">
-            <div className="text-sm text-[var(--text-primary)] font-medium truncate">
-              {transfer.originalFileName || 'Unknown'}
-            </div>
-            <div className="text-xs text-[var(--text-muted)] mt-0.5">
-              {formatSize(transfer.totalSize)}
+        >
+          <div className="flex items-start gap-3">
+            {/* Thumbnail/Icon */}
+            <div className="flex-shrink-0 w-12 h-12 bg-[var(--bg-surface)] rounded-lg flex items-center justify-center overflow-hidden">
+              {icon}
             </div>
 
-            {/* Progress bar for uploading */}
-            {isUploading && (
-              <div className="mt-2">
-                <div className="h-[3px] bg-[var(--border-subtle)] rounded-[2px] overflow-hidden">
-                  <div
-                    className="h-full bg-[var(--accent)] transition-[width] duration-200 ease"
-                    style={{ width: `${getProgress()}%` }}
-                  />
-                </div>
-                {uploadingFile.speed !== undefined && uploadingFile.speed > 0 && (
-                  <div className="text-[10px] text-[var(--text-muted)] mt-1">
-                    {formatSize(uploadingFile.speed)}/s
+            {/* File Info */}
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-[var(--text-primary)] font-medium truncate">
+                {transfer.originalFileName || 'Unknown'}
+              </div>
+              <div className="text-xs text-[var(--text-muted)] mt-0.5">
+                {formatSize(transfer.totalSize)}
+              </div>
+
+              {/* Progress bar for uploading */}
+              {isUploading && (
+                <div className="mt-2">
+                  <div className="h-[3px] bg-[var(--border-subtle)] rounded-[2px] overflow-hidden">
+                    <div
+                      className="h-full bg-[var(--accent)] transition-[width] duration-200 ease"
+                      style={{ width: `${getProgress()}%` }}
+                    />
                   </div>
-                )}
-              </div>
-            )}
+                  {uploadingFile.speed !== undefined && uploadingFile.speed > 0 && (
+                    <div className="text-[10px] text-[var(--text-muted)] mt-1">
+                      {formatSize(uploadingFile.speed)}/s
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {/* Status indicators */}
-            {isCompleted && (
-              <div className="flex items-center gap-1 mt-1">
-                <CheckCircle size={12} className="text-[var(--color-success)]" />
-                <span className="text-[10px] text-[var(--color-success)]">Completed</span>
-              </div>
-            )}
+              {/* Status indicators */}
+              {isCompleted && (
+                <div className="flex items-center gap-1 mt-1">
+                  <CheckCircle size={12} className="text-[var(--color-success)]" />
+                  <span className="text-[10px] text-[var(--color-success)]">Completed</span>
+                </div>
+              )}
 
-            {isFailed && (
-              <div className="flex items-center gap-1 mt-1">
-                <AlertCircle size={12} className="text-[var(--color-error)]" />
-                <span className="text-[10px] text-[var(--color-error)]">Failed</span>
+              {isFailed && (
+                <div className="flex items-center gap-1 mt-1">
+                  <AlertCircle size={12} className="text-[var(--color-error)]" />
+                  <span className="text-[10px] text-[var(--color-error)]">Failed</span>
+                </div>
+              )}
+            </div>
+
+            {/* Action buttons on hover */}
+            {isHovered && !isUploading && (
+              <div className={`flex gap-1 ${isSent ? 'order-1' : 'order-3'}`}>
+                <button
+                  onClick={handlePreview}
+                  className="p-1.5 hover:bg-[var(--bg-surface)] rounded-lg transition-colors"
+                  title="Preview"
+                >
+                  <Eye size={14} className="text-[var(--text-secondary)]" />
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="p-1.5 hover:bg-[var(--bg-surface)] rounded-lg transition-colors"
+                  title="Download"
+                >
+                  <Download size={14} className="text-[var(--text-secondary)]" />
+                </button>
               </div>
             )}
           </div>
 
-          {/* Action buttons on hover */}
-          {isHovered && !isUploading && (
-            <div className={`flex gap-1 ${isSent ? 'order-1' : 'order-3'}`}>
-              <button
-                onClick={handlePreview}
-                className="p-1.5 hover:bg-[var(--bg-surface)] rounded-lg transition-colors"
-                title="Preview"
-              >
-                <Eye size={14} className="text-[var(--text-secondary)]" />
-              </button>
-              <button
-                onClick={handleDownload}
-                className="p-1.5 hover:bg-[var(--bg-surface)] rounded-lg transition-colors"
-                title="Download"
-              >
-                <Download size={14} className="text-[var(--text-secondary)]" />
-              </button>
-            </div>
-          )}
-        </div>
+          {/* Device tag */}
+          <div className={`mt-2 ${isSent ? 'text-right' : 'text-left'}`}>
+            <DeviceTag device={device} direction={direction} />
+          </div>
 
-        {/* Device tag */}
-        <div className={`mt-2 ${isSent ? 'text-right' : 'text-left'}`}>
-          <DeviceTag device={device} direction={direction} />
-        </div>
-
-        {/* Time */}
-        <div className={`text-[10px] text-[var(--text-muted)] mt-1 ${isSent ? 'text-right' : 'text-left'}`}>
-          {formatRelativeTime(transfer.createdAt)}
+          {/* Time */}
+          <div
+            className={`text-[10px] text-[var(--text-muted)] mt-1 ${isSent ? 'text-right' : 'text-left'}`}
+          >
+            {formatRelativeTime(transfer.createdAt)}
+          </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 export default MessageBubble;
 ```
@@ -390,6 +397,7 @@ git commit -m "feat(web): add message-bubble component"
 ### Task 3.1: Create TransferChatService
 
 **Files:**
+
 - Create: `apps/web/src/components/transfer-chat/transfer-chat.service.ts`
 
 - [ ] **Step 1: Create transfer-chat.service.ts**
@@ -416,7 +424,8 @@ export class TransferChatService extends Service {
     const startOfWeek = new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000);
     const startOfMonth = new Date(startOfToday.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const groups: Map<string, { label: string; date: Date; transfers: TransferSession[] }> = new Map();
+    const groups: Map<string, { label: string; date: Date; transfers: TransferSession[] }> =
+      new Map();
 
     for (const transfer of transfers) {
       const transferDate = new Date(transfer.createdAt);
@@ -447,7 +456,11 @@ export class TransferChatService extends Service {
     return Array.from(groups.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
-  filterTransfers(transfers: TransferSession[], searchQuery: string, timeFilter: ChatTimeFilter): TransferSession[] {
+  filterTransfers(
+    transfers: TransferSession[],
+    searchQuery: string,
+    timeFilter: ChatTimeFilter
+  ): TransferSession[] {
     let filtered = [...transfers];
 
     // Apply time filter
@@ -471,7 +484,8 @@ export class TransferChatService extends Service {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((t) => {
         const name = (t.originalFileName || '').toLowerCase();
-        const textContent = t.items?.find((item) => item.type === 'text')?.content?.toLowerCase() || '';
+        const textContent =
+          t.items?.find((item) => item.type === 'text')?.content?.toLowerCase() || '';
         return name.includes(query) || textContent.includes(query);
       });
     }
@@ -503,6 +517,7 @@ git commit -m "feat(web): add TransferChatService for chat view state"
 ### Task 3.2: Create TransferChat container component
 
 **Files:**
+
 - Create: `apps/web/src/components/transfer-chat/transfer-chat.tsx`
 
 - [ ] **Step 1: Create transfer-chat.tsx**
@@ -553,9 +568,7 @@ const TransferChatContent = observer(() => {
       {dateGroups.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <MailOpen size={48} className="text-[var(--text-muted)] mb-4" />
-          <p className="text-[var(--text-muted)]">
-            NO_TRANSFERS_YET
-          </p>
+          <p className="text-[var(--text-muted)]">NO_TRANSFERS_YET</p>
         </div>
       ) : (
         <div ref={containerRef} className="space-y-2">
@@ -589,7 +602,12 @@ const TransferChatContent = observer(() => {
   );
 });
 
-export default bindServices(TransferChatContent, [HomeService, DeviceService, SocketService, TransferChatService]);
+export default bindServices(TransferChatContent, [
+  HomeService,
+  DeviceService,
+  SocketService,
+  TransferChatService,
+]);
 ```
 
 - [ ] **Step 2: Commit**
@@ -606,6 +624,7 @@ git commit -m "feat(web): add TransferChat container component"
 ### Task 4.1: Update home page to use TransferChat
 
 **Files:**
+
 - Modify: `apps/web/src/pages/home/index.tsx`
 
 - [ ] **Step 1: Update imports and replace TransferList with TransferChat**
@@ -636,6 +655,7 @@ git commit -m "feat(web): integrate TransferChat component in home page"
 ### Task 4.2: Update SearchBar for new chat view
 
 **Files:**
+
 - Modify: `apps/web/src/components/search-bar/index.tsx`
 
 - [ ] **Step 1: Update to use TransferChatService filters**
@@ -649,7 +669,7 @@ import { TransferChatService } from '../../components/transfer-chat/transfer-cha
 // Update component to use TransferChatService for timeFilter
 const SearchBarComponent = observer(() => {
   const homeService = useService(HomeService);
-  const chatService = useService(TransferChatService);  // Add this
+  const chatService = useService(TransferChatService); // Add this
 
   // Update TIME_FILTERS to use chatService.timeFilter
   // Update handleTimeFilterChange to use chatService.setTimeFilter
@@ -711,6 +731,7 @@ git commit -m "feat(web): update SearchBar for transfer chat view"
 ### Task 5.1: Remove old transfer-list component (optional, can keep for rollback)
 
 **Files:**
+
 - Remove: `apps/web/src/components/transfer-list/` (entire directory)
 
 - [ ] **Step 1: Remove old transfer-list directory**

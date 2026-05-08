@@ -105,6 +105,7 @@ zen-send/
 ### Task 1: Server - Database Schema & ID Generation
 
 **Files:**
+
 - Create: `apps/server/src/db/schema.ts`
 - Create: `apps/server/src/db/index.ts`
 - Create: `apps/server/src/config/database.ts`
@@ -196,7 +197,9 @@ export const transferSessions = mysqlTable('transfer_sessions', {
   totalSize: bigint('total_size', { mode: 'number' }).notNull().default(0),
   chunkCount: int('chunk_count').notNull().default(0),
   receivedChunks: int('received_chunks').notNull().default(0),
-  contentType: varchar('content_type', { length: 100 }).notNull().default('application/octet-stream'),
+  contentType: varchar('content_type', { length: 100 })
+    .notNull()
+    .default('application/octet-stream'),
   ttlExpiresAt: int('ttl_expires_at').notNull(),
   createdAt: int('created_at').notNull(),
   completedAt: int('completed_at'),
@@ -263,6 +266,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 2: Server - S3 Configuration
 
 **Files:**
+
 - Create: `apps/server/src/config/s3.ts`
 - Modify: `apps/server/package.json` (add @aws-sdk/client-s3, @aws-sdk/s3-request-presigner)
 
@@ -277,7 +281,15 @@ pnpm add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
 
 ```typescript
 // apps/server/src/config/s3.ts
-import { S3Client, PutObjectCommand, GetObjectCommand, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  CreateMultipartUploadCommand,
+  UploadPartCommand,
+  CompleteMultipartUploadCommand,
+  AbortMultipartUploadCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export const s3Client = new S3Client({
@@ -294,7 +306,11 @@ export const S3_BUCKET = process.env.S3_BUCKET || 'zen-send-transfers';
 export const TRANSFER_TTL_DAYS = Number(process.env.TRANSFER_TTL_DAYS) || 30;
 
 // Generate presigned URL for upload
-export async function getPresignedUploadUrl(key: string, contentType: string, expiresIn = 3600): Promise<string> {
+export async function getPresignedUploadUrl(
+  key: string,
+  contentType: string,
+  expiresIn = 3600
+): Promise<string> {
   const command = new PutObjectCommand({
     Bucket: S3_BUCKET,
     Key: key,
@@ -304,7 +320,11 @@ export async function getPresignedUploadUrl(key: string, contentType: string, ex
 }
 
 // Generate presigned URL for download
-export async function getPresignedDownloadUrl(key: string, originalFileName: string, expiresIn = 86400): Promise<string> {
+export async function getPresignedDownloadUrl(
+  key: string,
+  originalFileName: string,
+  expiresIn = 86400
+): Promise<string> {
   const command = new GetObjectCommand({
     Bucket: S3_BUCKET,
     Key: key,
@@ -332,6 +352,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 3: Server - JWT Configuration & Auth Middleware
 
 **Files:**
+
 - Create: `apps/server/src/config/jwt.ts`
 - Create: `apps/server/src/middleware/auth.ts`
 - Create: `apps/server/src/utils/response.ts`
@@ -342,8 +363,10 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 // apps/server/src/config/jwt.ts
 import jwt from 'jsonwebtoken';
 
-export const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'access-secret-change-in-production';
-export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh-secret-change-in-production';
+export const JWT_ACCESS_SECRET =
+  process.env.JWT_ACCESS_SECRET || 'access-secret-change-in-production';
+export const JWT_REFRESH_SECRET =
+  process.env.JWT_REFRESH_SECRET || 'refresh-secret-change-in-production';
 export const JWT_ACCESS_EXPIRES_IN = '15m';
 export const JWT_REFRESH_EXPIRES_IN = '7d';
 
@@ -483,6 +506,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 4: Server - Auth Service & Controller
 
 **Files:**
+
 - Create: `apps/server/src/modules/auth/auth.service.ts`
 - Create: `apps/server/src/modules/auth/auth.controller.ts`
 - Create: `apps/server/src/modules/auth/auth.router.ts`
@@ -507,7 +531,12 @@ import { db } from '../../db';
 import { users } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { generateUserId } from '../../utils/id';
-import { signAccessToken, signRefreshToken, verifyRefreshToken, TokenPayload } from '../../config/jwt';
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+  TokenPayload,
+} from '../../config/jwt';
 
 export interface RegisterInput {
   email: string;
@@ -735,6 +764,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 5: Server - Device Service & Controller
 
 **Files:**
+
 - Create: `apps/server/src/modules/device/device.service.ts`
 - Create: `apps/server/src/modules/device/device.controller.ts`
 - Create: `apps/server/src/modules/device/device.router.ts`
@@ -805,14 +835,17 @@ export async function setDeviceOffline(id: string): Promise<void> {
 }
 
 export async function unbindDevice(id: string, userId: string): Promise<boolean> {
-  const result = await db.delete(devices).where(and(eq(devices.id, id), eq(devices.userId, userId)));
+  const result = await db
+    .delete(devices)
+    .where(and(eq(devices.id, id), eq(devices.userId, userId)));
   return result.rowCount > 0;
 }
 
 export async function getOnlineDevices(userId: string): Promise<DeviceInfo[]> {
-  return db.select().from(devices).where(
-    and(eq(devices.userId, userId), eq(devices.isOnline, 1))
-  );
+  return db
+    .select()
+    .from(devices)
+    .where(and(eq(devices.userId, userId), eq(devices.isOnline, 1)));
 }
 ```
 
@@ -942,6 +975,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 6: Server - Transfer Service (Init, Chunk Upload, Complete)
 
 **Files:**
+
 - Create: `apps/server/src/modules/transfer/transfer.service.ts`
 - Create: `apps/server/src/modules/transfer/transfer.controller.ts`
 - Create: `apps/server/src/modules/transfer/transfer.router.ts`
@@ -956,7 +990,12 @@ import { db } from '../../db';
 import { transferSessions, transferItems, chunkUploads } from '../../db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { generateSessionId, generateItemId, generateChunkId } from '../../utils/id';
-import { S3_BUCKET, TRANSFER_TTL_DAYS, getPresignedUploadUrl, getPresignedDownloadUrl } from '../../config/s3';
+import {
+  S3_BUCKET,
+  TRANSFER_TTL_DAYS,
+  getPresignedUploadUrl,
+  getPresignedDownloadUrl,
+} from '../../config/s3';
 import { getPresignedUploadUrl as getUploadUrl } from '../../config/s3';
 
 const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB
@@ -1010,13 +1049,13 @@ export async function initTransfer(input: InitTransferInput): Promise<InitTransf
   const sessionId = generateSessionId();
   const s3Key = `transfers/${sessionId}`;
   const now = Math.floor(Date.now() / 1000);
-  const ttlExpiresAt = now + (TRANSFER_TTL_DAYS * 24 * 60 * 60);
+  const ttlExpiresAt = now + TRANSFER_TTL_DAYS * 24 * 60 * 60;
 
   // Determine content type and filename from first file
   let contentType = 'application/octet-stream';
   let originalFileName = 'unknown';
 
-  const firstFile = items.find(item => item.type === 'file');
+  const firstFile = items.find((item) => item.type === 'file');
   if (firstFile) {
     originalFileName = firstFile.name || 'unknown';
     contentType = firstFile.mimeType || contentType;
@@ -1088,7 +1127,11 @@ export async function initTransfer(input: InitTransferInput): Promise<InitTransf
   };
 }
 
-export async function uploadChunk(sessionId: string, chunkIndex: number, etag: string): Promise<void> {
+export async function uploadChunk(
+  sessionId: string,
+  chunkIndex: number,
+  etag: string
+): Promise<void> {
   const s3Key = `transfers/${sessionId}/chunk_${chunkIndex}`;
   const now = Math.floor(Date.now() / 1000);
 
@@ -1103,16 +1146,26 @@ export async function uploadChunk(sessionId: string, chunkIndex: number, etag: s
   });
 
   // Update received chunks count
-  const [session] = await db.select().from(transferSessions).where(eq(transferSessions.id, sessionId)).limit(1);
+  const [session] = await db
+    .select()
+    .from(transferSessions)
+    .where(eq(transferSessions.id, sessionId))
+    .limit(1);
   if (session) {
-    await db.update(transferSessions)
+    await db
+      .update(transferSessions)
       .set({ receivedChunks: session.receivedChunks + 1 })
       .where(eq(transferSessions.id, sessionId));
   }
 }
 
-export async function completeTransfer(sessionId: string, userId: string): Promise<{ status: string; downloadUrl?: string }> {
-  const [session] = await db.select().from(transferSessions)
+export async function completeTransfer(
+  sessionId: string,
+  userId: string
+): Promise<{ status: string; downloadUrl?: string }> {
+  const [session] = await db
+    .select()
+    .from(transferSessions)
     .where(and(eq(transferSessions.id, sessionId), eq(transferSessions.userId, userId)))
     .limit(1);
 
@@ -1127,7 +1180,8 @@ export async function completeTransfer(sessionId: string, userId: string): Promi
 
   // Update status to completed
   const now = Math.floor(Date.now() / 1000);
-  await db.update(transferSessions)
+  await db
+    .update(transferSessions)
     .set({ status: 'completed', completedAt: now })
     .where(eq(transferSessions.id, sessionId));
 
@@ -1138,7 +1192,8 @@ export async function completeTransfer(sessionId: string, userId: string): Promi
 }
 
 export async function getTransferList(userId: string, limit = 50, offset = 0): Promise<any[]> {
-  const results = await db.select()
+  const results = await db
+    .select()
     .from(transferSessions)
     .where(eq(transferSessions.userId, userId))
     .orderBy(desc(transferSessions.createdAt))
@@ -1149,22 +1204,22 @@ export async function getTransferList(userId: string, limit = 50, offset = 0): P
 }
 
 export async function getTransferById(sessionId: string, userId: string): Promise<any | null> {
-  const [session] = await db.select()
+  const [session] = await db
+    .select()
     .from(transferSessions)
     .where(and(eq(transferSessions.id, sessionId), eq(transferSessions.userId, userId)))
     .limit(1);
 
   if (!session) return null;
 
-  const items = await db.select()
-    .from(transferItems)
-    .where(eq(transferItems.sessionId, sessionId));
+  const items = await db.select().from(transferItems).where(eq(transferItems.sessionId, sessionId));
 
   return { ...session, items };
 }
 
 export async function getDownloadUrl(sessionId: string, userId: string): Promise<string> {
-  const [session] = await db.select()
+  const [session] = await db
+    .select()
     .from(transferSessions)
     .where(and(eq(transferSessions.id, sessionId), eq(transferSessions.userId, userId)))
     .limit(1);
@@ -1205,7 +1260,12 @@ export async function initTransfer(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    const result = await transferService.initTransfer({ userId, sourceDeviceId, targetDeviceId, items });
+    const result = await transferService.initTransfer({
+      userId,
+      sourceDeviceId,
+      targetDeviceId,
+      items,
+    });
     created(res, result);
   } catch (err) {
     next(err);
@@ -1229,7 +1289,11 @@ export async function uploadChunk(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function completeTransfer(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function completeTransfer(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
     const userId = req.user!.userId;
     const { id } = req.params;
@@ -1251,7 +1315,11 @@ export async function completeTransfer(req: Request, res: Response, next: NextFu
   }
 }
 
-export async function listTransfers(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function listTransfers(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
     const userId = req.user!.userId;
     const limit = Number(req.query.limit) || 50;
@@ -1281,7 +1349,11 @@ export async function getTransfer(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function getDownloadUrl(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function getDownloadUrl(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
     const userId = req.user!.userId;
     const { id } = req.params;
@@ -1364,6 +1436,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 7: Server - Socket.io Setup & Handlers
 
 **Files:**
+
 - Create: `apps/server/src/socket/socket.ts`
 - Modify: `apps/server/src/index.ts` (integrate socket)
 
@@ -1376,7 +1449,11 @@ import { db } from '../db';
 import { devices, transferSessions, transferItems } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
 import { verifyAccessToken } from '../config/jwt';
-import { updateDeviceHeartbeat, setDeviceOffline, getOnlineDevices } from '../modules/device/device.service';
+import {
+  updateDeviceHeartbeat,
+  setDeviceOffline,
+  getOnlineDevices,
+} from '../modules/device/device.service';
 import { logger } from '@zen-send/logger';
 
 interface AuthenticatedSocket extends Socket {
@@ -1433,8 +1510,15 @@ export function setupSocket(io: Server): void {
         const targetSocket = s as AuthenticatedSocket;
         if (targetSocket.deviceId === targetDeviceId) {
           // Get transfer details
-          const [session] = await db.select().from(transferSessions).where(eq(transferSessions.id, sessionId)).limit(1);
-          const items = await db.select().from(transferItems).where(eq(transferItems.sessionId, sessionId));
+          const [session] = await db
+            .select()
+            .from(transferSessions)
+            .where(eq(transferSessions.id, sessionId))
+            .limit(1);
+          const items = await db
+            .select()
+            .from(transferItems)
+            .where(eq(transferItems.sessionId, sessionId));
 
           targetSocket.emit('transfer:new', {
             session: { ...session, items },
@@ -1525,6 +1609,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 8: Shared - Update Shared Types
 
 **Files:**
+
 - Modify: `packages/shared/src/index.ts`
 - Modify: `packages/shared/package.json` (add necessary types)
 
@@ -1712,6 +1797,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 9: Web - Theme System Implementation
 
 **Files:**
+
 - Create: `apps/web/src/theme/tokens.ts`
 - Create: `apps/web/src/theme/ThemeProvider.tsx`
 - Modify: `apps/web/src/App.tsx`
@@ -1948,6 +2034,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 10: Server - Error Handler & Final Integration
 
 **Files:**
+
 - Create: `apps/server/src/middleware/error.ts`
 - Modify: `apps/server/src/index.ts`
 - Modify: `apps/server/src/app.ts`

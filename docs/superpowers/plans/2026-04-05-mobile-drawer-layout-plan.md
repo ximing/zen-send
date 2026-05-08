@@ -15,12 +15,14 @@
 ### Task 1: Install react-native-drawer
 
 **Files:**
+
 - Modify: `apps/mobile/package.json`
 - Modify: `pnpm-lock.yaml`
 
 - [ ] **Step 1: Install react-native-drawer**
 
 Run in `apps/mobile`:
+
 ```bash
 cd apps/mobile
 npx expo install react-native-drawer react-native-gesture-handler
@@ -49,6 +51,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 2: Create DrawerContent Component
 
 **Files:**
+
 - Create: `apps/mobile/src/components/drawer/drawer-content.tsx`
 
 - [ ] **Step 1: Create drawer content component**
@@ -90,34 +93,22 @@ function DrawerContentInner() {
         <Text style={[styles.username, { color: colors.textPrimary }]}>
           {user?.email?.split('@')[0] ?? 'User'}
         </Text>
-        <Text style={[styles.email, { color: colors.textSecondary }]}>
-          {user?.email ?? ''}
-        </Text>
-        <Text style={[styles.serverUrl, { color: colors.textTertiary }]}>
-          {serverUrl}
-        </Text>
+        <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email ?? ''}</Text>
+        <Text style={[styles.serverUrl, { color: colors.textTertiary }]}>{serverUrl}</Text>
       </View>
 
       {/* Actions Section */}
       <View style={styles.actionsSection}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleThemeToggle}
-        >
+        <TouchableOpacity style={styles.actionButton} onPress={handleThemeToggle}>
           <Text style={styles.actionIcon}>{themeService.isDark ? '☀️' : '🌙'}</Text>
           <Text style={[styles.actionText, { color: colors.textPrimary }]}>
             {themeService.isDark ? 'Light Mode' : 'Dark Mode'}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={styles.actionButton} onPress={handleLogout}>
           <Text style={styles.actionIcon}>🚪</Text>
-          <Text style={[styles.actionText, { color: colors.textPrimary }]}>
-            Logout
-          </Text>
+          <Text style={[styles.actionText, { color: colors.textPrimary }]}>Logout</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -203,6 +194,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 3: Create Drawer Index Export
 
 **Files:**
+
 - Create: `apps/mobile/src/components/drawer/index.tsx`
 
 - [ ] **Step 1: Create barrel export**
@@ -227,6 +219,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 4: Update Header with Hamburger Menu
 
 **Files:**
+
 - Modify: `apps/mobile/src/components/header/index.tsx`
 
 - [ ] **Step 1: Replace header content**
@@ -248,7 +241,12 @@ function HeaderInner({ onMenuPress, onSearchPress }: HeaderProps) {
   const colors = themeService.colors;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderSubtle }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderSubtle },
+      ]}
+    >
       <TouchableOpacity style={styles.menuButton} onPress={onMenuPress}>
         <Text style={[styles.menuIcon, { color: colors.textPrimary }]}>☰</Text>
       </TouchableOpacity>
@@ -308,6 +306,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ### Task 5: Wrap Home Content with Drawer
 
 **Files:**
+
 - Modify: `apps/mobile/app/(main)/index.tsx`
 
 - [ ] **Step 1: Add drawer state and integration**
@@ -380,7 +379,10 @@ function HomeContentInner({ homeService }: HomeContentProps) {
         main: { backgroundColor: themeService.colors.bgPrimary },
       }}
     >
-      <SafeAreaView style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]} edges={['top', 'left', 'right', 'bottom']}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: themeService.colors.bgPrimary }]}
+        edges={['top', 'left', 'right', 'bottom']}
+      >
         <Header
           onMenuPress={() => setDrawerOpen(true)}
           onSearchPress={() => setSearchVisible(true)}
@@ -450,15 +452,18 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ## Summary
 
 **Files Created:**
+
 - `apps/mobile/src/components/drawer/drawer-content.tsx`
 - `apps/mobile/src/components/drawer/index.tsx`
 
 **Files Modified:**
+
 - `apps/mobile/package.json` (dependencies)
 - `pnpm-lock.yaml`
 - `apps/mobile/src/components/header/index.tsx`
 - `apps/mobile/app/(main)/index.tsx`
 
 **New Dependencies:**
+
 - react-native-drawer
 - react-native-gesture-handler
