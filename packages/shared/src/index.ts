@@ -64,6 +64,8 @@ export interface AuthTokens {
   user: {
     id: string;
     email: string;
+    nickname?: string;
+    avatarUrl?: string;
   };
 }
 
@@ -112,6 +114,14 @@ export interface DownloadUrlResponse {
 export type { RegisterRequest, LoginRequest, RefreshTokenRequest } from '@zen-send/dto';
 export type { RegisterDeviceRequest } from '@zen-send/dto';
 export type { InitTransferRequest, UploadChunkRequest } from '@zen-send/dto';
+
+export type {
+  UpdateProfileRequest,
+  AvatarPresignRequest,
+  AvatarPresignResponse,
+  AvatarConfirmRequest,
+  UserProfileResponse,
+} from '@zen-send/dto';
 
 // Socket events
 export interface SocketEvents {
