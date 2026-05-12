@@ -49,19 +49,13 @@ export class TransferController {
         // Emit transfer:new to all user's devices (for inline text, transfer is complete immediately)
         const io = getSocketIO();
         if (io) {
-          // Get transfer details for notification
           const transfer = await this.transferService.getTransferById(
             result.sessionId,
             user.userId
           );
-          const sourceDevice = transfer?.sourceDeviceId || 'Unknown';
-          const firstItem = transfer?.items?.[0];
-          io.to(`user:${user.userId}`).emit('transfer:new', {
-            session: {
-              sourceDeviceName: sourceDevice,
-              items: firstItem ? [{ name: firstItem.name || 'Text' }] : [],
-            },
-          });
+          if (transfer) {
+            io.to(`user:${user.userId}`).emit('transfer:new', { session: transfer });
+          }
         }
         return ResponseUtil.created({
           sessionId: result.sessionId,
@@ -107,16 +101,10 @@ export class TransferController {
       // Emit transfer:new to all user's devices
       const io = getSocketIO();
       if (io) {
-        // Get transfer details for notification
         const transfer = await this.transferService.getTransferById(id, user.userId);
-        const sourceDevice = transfer?.sourceDeviceId || 'Unknown';
-        const firstItem = transfer?.items?.[0];
-        io.to(`user:${user.userId}`).emit('transfer:new', {
-          session: {
-            sourceDeviceName: sourceDevice,
-            items: firstItem ? [{ name: firstItem.name || 'File' }] : [],
-          },
-        });
+        if (transfer) {
+          io.to(`user:${user.userId}`).emit('transfer:new', { session: transfer });
+        }
       }
       return ResponseUtil.success(result);
     } catch (error) {
