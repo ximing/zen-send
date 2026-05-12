@@ -1,5 +1,5 @@
 // NOTE: Do NOT import 'reflect-metadata' here - only in app.ts/index.ts
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, or, desc, asc, lt, sql } from 'drizzle-orm';
 import { Service } from 'typedi';
 import { DbService } from './db.service.js';
 import { S3Service } from './s3.service.js';
@@ -265,15 +265,46 @@ export class TransferService {
   async getTransferList(
     userId: string,
     limit = 50,
-    offset = 0
-  ): Promise<(TransferSessionInfo & { items: TransferItemInfo[] })[]> {
-    const results = await this.db
-      .select()
-      .from(transferSessions)
-      .where(eq(transferSessions.userId, userId))
-      .orderBy(desc(transferSessions.createdAt))
-      .limit(limit)
-      .offset(offset);
+    beforeCreatedAt?: number,
+    beforeId?: string
+  ): Promise<{ transfers: (TransferSessionInfo & { items: TransferItemInfo[] })[]; hasMore: boolean }> {
+    const fetchLimit = limit + 1;
+
+    let results;
+    if (beforeCreatedAt !== undefined && beforeId !== undefined) {
+      // Load older data using composite cursor
+      results = await this.db
+        .select()
+        .from(transferSessions)
+        .where(
+          and(
+            eq(transferSessions.userId, userId),
+            or(
+              lt(transferSessions.createdAt, beforeCreatedAt),
+              and(
+                eq(transferSessions.createdAt, beforeCreatedAt),
+                lt(transferSessions.id, beforeId)
+              )
+            )
+          )
+        )
+        .orderBy(asc(transferSessions.createdAt), asc(transferSessions.id))
+        .limit(fetchLimit);
+    } else {
+      // Initial load: get latest page in DESC, then reverse to ASC
+      results = await this.db
+        .select()
+        .from(transferSessions)
+        .where(eq(transferSessions.userId, userId))
+        .orderBy(desc(transferSessions.createdAt), desc(transferSessions.id))
+        .limit(fetchLimit);
+      results.reverse();
+    }
+
+    const hasMore = results.length > limit;
+    if (hasMore) {
+      results = results.slice(0, limit);
+    }
 
     // Fetch items for each transfer
     const transfersWithItems = await Promise.all(
@@ -286,7 +317,7 @@ export class TransferService {
       })
     );
 
-    return transfersWithItems;
+    return { transfers: transfersWithItems, hasMore };
   }
 
   async getTransferById(
