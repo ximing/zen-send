@@ -8,7 +8,7 @@ export class NoteService extends Service {
   notes: NoteListItem[] = [];
   currentNoteId: string = '';
   currentNote: NoteDetail | null = null;
-  noteListExpanded: boolean = false;
+  noteListExpanded: boolean = true;
   saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
   _saveNowFn: (() => void) | null = null;
   private _inflightSave: Promise<void> | null = null;
@@ -43,6 +43,7 @@ export class NoteService extends Service {
     try {
       this.currentNote = await this.apiService.get<NoteDetail>(`/api/notes/${id}`);
       this.currentNoteId = id;
+      this.noteListExpanded = true;
     } catch {
       this.toastService.show('加载笔记失败', 'error');
     }

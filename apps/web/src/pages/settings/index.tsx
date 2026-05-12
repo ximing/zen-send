@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { observer, useService } from '@rabjs/react';
-import { ChevronLeft, Camera } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { ToastService } from '../../components/toast/toast.service';
@@ -60,19 +60,6 @@ function SettingsPageInner() {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center px-2 py-2 shrink-0 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]">
-        <button
-          onClick={() => navigate('/')}
-          className="p-1 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
-        >
-          <ChevronLeft size={24} className="text-[var(--text-primary)]" />
-        </button>
-        <span className="flex-1 text-lg font-semibold text-[var(--text-primary)] ml-2">
-          Settings
-        </span>
-      </div>
-
       {/* Content */}
       <div className="flex-1 min-h-0 overflow-y-auto p-6">
         {/* Avatar Section */}
