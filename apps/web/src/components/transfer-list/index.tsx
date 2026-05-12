@@ -4,7 +4,6 @@ import {
   VirtuosoMessageList,
   VirtuosoMessageListLicense,
   VirtuosoMessageListMethods,
-  type DataWithScrollModifier,
 } from '@virtuoso.dev/message-list';
 import { ChevronDown, MailOpen } from 'lucide-react';
 import { HomeService } from '../../pages/home/home.service';
@@ -152,6 +151,9 @@ function TransferListInner() {
           onScroll={(location) => {
             setAtBottom(location.isAtBottom);
             if (location.isAtBottom) setNewTransferCount(0);
+            if (location.listOffset === 0 && homeService.hasMore && !homeService.isLoadingOlder) {
+              homeService.loadOlderTransfers();
+            }
           }}
           Header={() =>
             homeService.isLoadingOlder ? (
