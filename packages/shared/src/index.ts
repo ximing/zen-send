@@ -100,6 +100,7 @@ export interface CompleteTransferResponse {
 
 export interface TransferListResponse {
   transfers: TransferSession[];
+  hasMore: boolean;
 }
 
 export interface TransferDetailResponse {
