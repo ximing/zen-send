@@ -35,7 +35,6 @@ export class HomeService extends Service {
   loading = false;
   loadingMore = false;
   isRefreshing = false;
-  offset = 0;
   hasMore = true;
   searchQuery = '';
   uploadProgress: UploadProgress[] = [];
@@ -80,12 +79,12 @@ export class HomeService extends Service {
   async loadTransfers() {
     this.loading = true;
     try {
-      const response = await this.apiService.get<{ transfers: TransferSession[] }>(
-        `/api/transfers?limit=${this.LIMIT}&offset=0`
-      );
+      const response = await this.apiService.get<{
+        transfers: TransferSession[];
+        hasMore: boolean;
+      }>(`/api/transfers?limit=${this.LIMIT}`);
       this.transfers = response.transfers;
-      this.offset = this.transfers.length;
-      this.hasMore = response.transfers.length === this.LIMIT;
+      this.hasMore = response.hasMore;
     } catch (err) {
       console.error('Failed to load transfers:', err);
     } finally {
@@ -96,15 +95,13 @@ export class HomeService extends Service {
   async refresh() {
     if (this.isRefreshing) return;
     this.isRefreshing = true;
-    this.offset = 0;
-    this.hasMore = true;
     try {
-      const response = await this.apiService.get<{ transfers: TransferSession[] }>(
-        `/api/transfers?limit=${this.LIMIT}&offset=0`
-      );
+      const response = await this.apiService.get<{
+        transfers: TransferSession[];
+        hasMore: boolean;
+      }>(`/api/transfers?limit=${this.LIMIT}`);
       this.transfers = response.transfers;
-      this.offset = this.transfers.length;
-      this.hasMore = response.transfers.length === this.LIMIT;
+      this.hasMore = response.hasMore;
     } catch (err) {
       console.error('Failed to refresh transfers:', err);
     } finally {
@@ -112,18 +109,22 @@ export class HomeService extends Service {
     }
   }
 
-  async loadMore() {
-    if (this.loadingMore || !this.hasMore) return;
+  async loadOlder() {
+    if (this.loadingMore || !this.hasMore || this.transfers.length === 0) return;
     this.loadingMore = true;
     try {
-      const response = await this.apiService.get<{ transfers: TransferSession[] }>(
-        `/api/transfers?limit=${this.LIMIT}&offset=${this.offset}`
-      );
-      this.transfers = [...this.transfers, ...response.transfers];
-      this.offset += response.transfers.length;
-      this.hasMore = response.transfers.length === this.LIMIT;
+      const first = this.transfers[0];
+      const response = await this.apiService.get<{
+        transfers: TransferSession[];
+        hasMore: boolean;
+      }>(`/api/transfers?limit=${this.LIMIT}&beforeCreatedAt=${first.createdAt}&beforeId=${first.id}`);
+      const older = response.transfers || [];
+      const existingIds = new Set(this.transfers.map((t) => t.id));
+      const newTransfers = older.filter((t) => !existingIds.has(t.id));
+      this.transfers = [...newTransfers, ...this.transfers];
+      this.hasMore = response.hasMore;
     } catch (err) {
-      console.error('Failed to load more transfers:', err);
+      console.error('Failed to load older transfers:', err);
     } finally {
       this.loadingMore = false;
     }
@@ -138,7 +139,8 @@ export class HomeService extends Service {
   }
 
   addTransfer(transfer: TransferSession) {
-    this.transfers = [transfer, ...this.transfers];
+    if (this.transfers.some((t) => t.id === transfer.id)) return;
+    this.transfers = [...this.transfers, transfer];
   }
 
   updateTransfer(transfer: TransferSession) {
@@ -170,8 +172,7 @@ export class HomeService extends Service {
       contentType: 'text/plain',
       sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
     });
-    // Refresh to update the transfer list with the new text
-    await this.refresh();
+    // Socket transfer:new will deliver the session incrementally
   }
 
   // Upload files with progress, retry, and cancellation
@@ -233,8 +234,7 @@ export class HomeService extends Service {
             sourceDeviceId: this.socketService.deviceId ?? 'mobile-device',
           });
           this.updateProgress(sessionId, 100, size, size, 'completed');
-          // Refresh to update the transfer list with the new file
-          await this.refresh();
+          // Socket transfer:new will deliver the session incrementally
         } else {
           // Initialize transfer for S3 upload
           console.log('[Upload] Step 3: Starting S3 upload for file, size > 10KB');

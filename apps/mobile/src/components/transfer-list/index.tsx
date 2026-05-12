@@ -61,7 +61,7 @@ function TransferListInner({ onItemPress, onDownload }: TransferListProps) {
       contentContainerStyle={styles.list}
       ListFooterComponent={renderFooter}
       ListEmptyComponent={renderEmpty}
-      onEndReached={() => homeService.loadMore()}
+      onEndReached={() => homeService.loadOlder()}
       onEndReachedThreshold={0.5}
       refreshing={homeService.isRefreshing}
       onRefresh={() => homeService.refresh()}
