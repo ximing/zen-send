@@ -19,8 +19,9 @@ function TransferListInner() {
   useEffect(() => {
     deviceService.loadDevices();
 
-    const handleTransferNew = () => {
-      homeService.loadTransfers();
+    const handleTransferNew = (data: unknown) => {
+      const session = data as TransferSession;
+      homeService.addTransfer(session);
     };
 
     const handleTransferComplete = (data: unknown) => {
@@ -39,13 +40,13 @@ function TransferListInner() {
 
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const { scrollTop } = containerRef.current;
     if (
-      scrollHeight - scrollTop - clientHeight < 200 &&
+      scrollTop < 200 &&
       homeService.hasMore &&
-      !homeService.isLoading
+      !homeService.isLoadingOlder
     ) {
-      homeService.loadMoreTransfers();
+      homeService.loadOlderTransfers();
     }
   }, [homeService]);
 
