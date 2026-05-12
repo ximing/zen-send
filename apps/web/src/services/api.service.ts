@@ -34,14 +34,14 @@ export class ApiService extends Service {
     });
 
     if (!response.ok) {
-      // Handle 401 by redirecting to login
-      if (response.status === 401) {
+      if (response.status === 401 && !path.includes('/api/auth/')) {
+        // Handle 401 on authenticated endpoints by redirecting to login
         localStorage.removeItem('zen_send_tokens');
         window.location.href = '/#/login';
         throw new Error('Unauthorized');
       }
       const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(error.error || `HTTP ${response.status}`);
+      throw new Error(error.message || error.error || `HTTP ${response.status}`);
     }
 
     const result: ApiResponse<T> = await response.json();
