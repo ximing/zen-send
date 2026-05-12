@@ -23,7 +23,10 @@ function NoteEditorInner() {
 
   const [activeBlock, setActiveBlock] = useState<{ type: string; language: string } | null>(null);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
   const prevActiveBlockRef = useRef<{ type: string; language: string } | null>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveNow = useCallback(() => {
     if (saveTimeoutRef.current) {
@@ -46,7 +49,7 @@ function NoteEditorInner() {
       handleSaveNow();
     }
 
-    const content = noteService.currentNote.content || '\n';
+    const content = noteService.currentNote.content || '```markdown\n\n```\n';
     const currentSaveTimeoutRef = saveTimeoutRef;
 
     const state = EditorState.create({
@@ -177,10 +180,26 @@ function NoteEditorInner() {
     setLangDropdownOpen(false);
   };
 
+  const startEditingTitle = () => {
+    if (!noteService.currentNote) return;
+    setEditTitle(noteService.currentNote.title);
+    setIsEditingTitle(true);
+    setTimeout(() => titleInputRef.current?.select(), 0);
+  };
+
+  const commitTitle = () => {
+    setIsEditingTitle(false);
+    const trimmed = editTitle.trim();
+    if (!trimmed || !noteService.currentNote || !noteService.currentNoteId) return;
+    if (trimmed === noteService.currentNote.title) return;
+    noteService.markTitleManuallyEdited(noteService.currentNoteId);
+    noteService.saveNote(noteService.currentNoteId, noteService.currentNote.content || '', trimmed);
+  };
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div
-        className="flex items-center justify-between px-4 py-2"
+        className="note-toolbar h-14 flex items-center justify-between px-4 py-2"
         style={{
           borderBottom: '1px solid var(--border-subtle)',
           background: 'var(--bg-surface)',
@@ -195,15 +214,40 @@ function NoteEditorInner() {
               <ChevronLeft size={16} />
             </button>
           )}
-          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            {noteService.currentNote?.title} · {blockCount} 个块
+          <span className="text-xs flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+            {isEditingTitle ? (
+              <input
+                ref={titleInputRef}
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                onBlur={commitTitle}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitTitle();
+                  if (e.key === 'Escape') setIsEditingTitle(false);
+                }}
+                className="text-xs bg-transparent outline-none border-b"
+                style={{
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--accent)',
+                  width: Math.max(80, editTitle.length * 8),
+                }}
+              />
+            ) : (
+              <span
+                onClick={startEditingTitle}
+                className="cursor-pointer hover:underline underline-offset-2 decoration-[var(--border-subtle)]"
+              >
+                {noteService.currentNote?.title}
+              </span>
+            )}
+            · {blockCount} 个块
           </span>
         </div>
         <div className="flex items-center gap-3">
           <div className="lang-dropdown-container relative">
             <button
               onClick={() => setLangDropdownOpen((prev) => !prev)}
-              className="flex items-center gap-1 rounded px-2 py-0.5 text-xs"
+              className="flex items-center gap-1 rounded px-2 py-1 text-xs"
               style={{
                 color: 'var(--accent)',
                 border: '1px solid var(--border-subtle)',
