@@ -36,6 +36,13 @@
       "when": 1778201852416,
       "tag": "0004_flawless_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1778516862108,
+      "tag": "0005_clever_masked_marvel",
+      "breakpoints": true
     }
   ]
 }

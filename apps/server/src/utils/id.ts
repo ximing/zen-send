@@ -19,6 +19,10 @@ export function generateChunkId(): string {
   return `c${generateId()}`;
 }
 
+export function generateNoteId(): string {
+  return `n${generateId()}`;
+}
+
 export function generateUserId(): string {
   return `u${generateId()}`;
 }

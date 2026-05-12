@@ -70,3 +70,35 @@ export interface UserProfileResponse {
   nickname?: string;
   avatarUrl?: string;
 }
+
+// Note DTOs
+export interface CreateNoteRequest {
+  title?: string;
+  content?: string;
+}
+
+export interface UpdateNoteRequest {
+  title?: string;
+  content?: string;
+}
+
+export interface ReorderNotesRequest {
+  orders: Array<{ id: string; sortOrder: number }>;
+}
+
+export interface NoteListItem {
+  id: string;
+  title: string;
+  sortOrder: number;
+  updatedAt: number;
+}
+
+export interface NoteDetail {
+  id: string;
+  userId: string;
+  title: string;
+  content: string;
+  sortOrder: number;
+  createdAt: number;
+  updatedAt: number;
+}
