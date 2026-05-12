@@ -26,29 +26,39 @@
 
 **当前**: `GET /api/transfers?limit=50&offset=0`，返回 `createdAt DESC`
 
-**改为**: `GET /api/transfers?limit=50&beforeId=<id>`，返回 `createdAt ASC`（最早在前）
+**改为**: `GET /api/transfers?limit=50&beforeCreatedAt=<ts>&beforeId=<id>`，返回 `createdAt ASC`（最早在前）
+
+> **Why 复合游标**: `id` 是 varchar(24) 非自增主键，无法直接做游标比较。`createdAt` 是 int 时间戳，同一秒可能有多条记录，单用会丢数据。因此采用 `createdAt + id` 复合游标，利用 MySQL 行构造器比较一步解决。
 
 | 参数 | 说明 |
 |------|------|
 | `limit` | 每页条数，默认50 |
-| `beforeId` | 游标，获取 id < beforeId 的记录（更早的数据）。省略时获取最新一页 |
+| `beforeCreatedAt` | 游标-时间戳，配合 beforeId 使用 |
+| `beforeId` | 游标-ID，配合 beforeCreatedAt 使用。两者同时传或同时省略 |
 
-**初始加载**（无 beforeId）：
+**初始加载**（无游标）：
 
 ```sql
 SELECT * FROM transfer_sessions
 WHERE user_id = ?
-ORDER BY id DESC LIMIT 50
+ORDER BY created_at DESC, id DESC LIMIT 50
 -- 应用层反转结果，得到 ASC 顺序（最早在前）
 ```
 
-**加载更多**（有 beforeId）：
+**加载更早数据**（有游标）：
 
 ```sql
 SELECT * FROM transfer_sessions
-WHERE user_id = ? AND id < ?
-ORDER BY id ASC LIMIT 50
+WHERE user_id = ?
+  AND (created_at, id) < (beforeCreatedAt, beforeId)
+ORDER BY created_at ASC, id ASC
+LIMIT 50
 ```
+
+`(created_at, id) < (beforeCreatedAt, beforeId)` 等价于：
+`created_at < beforeCreatedAt OR (created_at = beforeCreatedAt AND id < beforeId)`
+
+同一秒内多条记录也不会丢失。客户端取数组第一条的 `createdAt` 和 `id` 作为下次请求的游标。
 
 ### 响应格式
 
@@ -93,7 +103,7 @@ interface TransferListResponse {
 
 - `transfers[]` 改为 ASC 顺序（最早在前，最新在后）
 - `loadTransfers()`: 获取最新一页（ASC 顺序），替换 transfers
-- `loadOlderTransfers()`: 传入 `beforeId=transfers[0].id`，结果 prepend 到数组头部
+- `loadOlderTransfers()`: 传入 `beforeCreatedAt=transfers[0].createdAt&beforeId=transfers[0].id`，结果 prepend 到数组头部
 - `addTransfer(session)`: 追加到数组末尾（push）
 - 删除 `loadMoreTransfers()`
 - 新增 `hasMore` observable
@@ -135,7 +145,7 @@ interface TransferListResponse {
 - 与 Web 端相同逻辑
 - `transfers[]` 改为 ASC 顺序
 - `loadTransfers()`: 获取最新一页
-- `loadOlder()`: `beforeId=transfers[0].id`，prepend
+- `loadOlder()`: `beforeCreatedAt=transfers[0].createdAt&beforeId=transfers[0].id`，prepend
 - `addTransfer(session)`: push 到末尾
 - 删除 `refresh()` 中的全量重载逻辑
 
@@ -173,7 +183,7 @@ interface TransferListResponse {
 ### 服务端
 
 - `apps/server/src/services/transfer.service.ts` — 游标分页查询
-- `apps/server/src/controllers/transfer.controller.ts` — 新增 beforeId 参数
+- `apps/server/src/controllers/transfer.controller.ts` — 新增 beforeCreatedAt + beforeId 参数
 - `apps/server/src/socket/socket.ts` — transfer:new payload 改为完整 session
 - `packages/dto/src/index.ts` — TransferListResponse 增加 hasMore
 - `packages/shared/src/index.ts` — 同步类型
