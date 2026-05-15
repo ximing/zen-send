@@ -5,7 +5,7 @@ class BlockMarker implements LayerMarker {
   constructor(
     readonly className: string,
     readonly top: number,
-    readonly height: number,
+    readonly height: number
   ) {}
 
   draw() {
@@ -22,7 +22,9 @@ class BlockMarker implements LayerMarker {
   }
 
   eq(other: BlockMarker) {
-    return this.className === other.className && this.top === other.top && this.height === other.height;
+    return (
+      this.className === other.className && this.top === other.top && this.height === other.height
+    );
   }
 }
 
@@ -33,7 +35,8 @@ function buildMarkers(view: EditorView): LayerMarker[] {
   for (let index = 0; index < blocks.length; index++) {
     const block = blocks[index];
     const className = index % 2 === 0 ? 'cm-block-even' : 'cm-block-odd';
-    const fromPos = block.type === 'code' && block.delimiter ? block.delimiter.from : block.content.from;
+    const fromPos =
+      block.type === 'code' && block.delimiter ? block.delimiter.from : block.content.from;
     const toPos = block.content.to;
 
     try {

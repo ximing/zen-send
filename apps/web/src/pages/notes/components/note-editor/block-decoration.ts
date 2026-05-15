@@ -1,5 +1,18 @@
-import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate, WidgetType } from '@codemirror/view';
-import { EditorState, RangeSetBuilder, StateEffect, StateField, type Range } from '@codemirror/state';
+import {
+  Decoration,
+  type DecorationSet,
+  EditorView,
+  ViewPlugin,
+  type ViewUpdate,
+  WidgetType,
+} from '@codemirror/view';
+import {
+  EditorState,
+  RangeSetBuilder,
+  StateEffect,
+  StateField,
+  type Range,
+} from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
 import { blockState } from './block-state';
 import { heynoteEvent, findClosingFence } from './block-commands';
@@ -53,10 +66,12 @@ export const copiedHighlightPlugin = ViewPlugin.fromClass(
     build(view: EditorView): DecorationSet {
       const range = view.state.field(copiedHighlightState);
       if (!range) return Decoration.none;
-      return Decoration.set([Decoration.mark({ class: 'cm-block-copied' }).range(range.from, range.to)]);
+      return Decoration.set([
+        Decoration.mark({ class: 'cm-block-copied' }).range(range.from, range.to),
+      ]);
     }
   },
-  { decorations: (v) => v.decorations },
+  { decorations: (v) => v.decorations }
 );
 
 class LanguageLabelWidget extends WidgetType {
@@ -86,58 +101,59 @@ class LanguageLabelWidget extends WidgetType {
   }
 }
 
-export const blockDecorations = EditorView.decorations.compute(
-  [blockState],
-  (state) => {
-    const blocks = state.field(blockState);
-    const ranges: Range<Decoration>[] = [];
-    const doc = state.doc;
+export const blockDecorations = EditorView.decorations.compute([blockState], (state) => {
+  const blocks = state.field(blockState);
+  const ranges: Range<Decoration>[] = [];
+  const doc = state.doc;
 
-    // Track which lines are already handled by block-state parsed blocks
-    const hiddenLines = new Set<number>();
+  // Track which lines are already handled by block-state parsed blocks
+  const hiddenLines = new Set<number>();
 
-    for (const block of blocks) {
-      if (block.type !== 'code' || !block.delimiter) continue;
+  for (const block of blocks) {
+    if (block.type !== 'code' || !block.delimiter) continue;
 
-      // Safety: skip blocks with positions outside current document
-      if (block.delimiter.from > doc.length || block.content.to > doc.length) continue;
+    // Safety: skip blocks with positions outside current document
+    if (block.delimiter.from > doc.length || block.content.to > doc.length) continue;
 
-      // Language label widget before the opening ``` line
-      const openingLine = doc.lineAt(block.delimiter.from);
+    // Language label widget before the opening ``` line
+    const openingLine = doc.lineAt(block.delimiter.from);
+    ranges.push(
+      Decoration.widget({
+        widget: new LanguageLabelWidget(block.language),
+        side: -1,
+        block: true,
+      }).range(openingLine.from)
+    );
+
+    // Hide the opening ```lang line (including newline to remove empty space)
+    ranges.push(
+      Decoration.replace({}).range(openingLine.from, Math.min(openingLine.to + 1, doc.length))
+    );
+    hiddenLines.add(openingLine.number);
+
+    // Hide the closing ``` line (including newline to remove empty space)
+    const closing = findClosingFence(doc, block);
+    if (closing) {
       ranges.push(
-        Decoration.widget({
-          widget: new LanguageLabelWidget(block.language),
-          side: -1,
-          block: true,
-        }).range(openingLine.from),
+        Decoration.replace({}).range(closing.line.from, Math.min(closing.line.to + 1, doc.length))
       );
-
-      // Hide the opening ```lang line (including newline to remove empty space)
-      ranges.push(Decoration.replace({}).range(openingLine.from, Math.min(openingLine.to + 1, doc.length)));
-      hiddenLines.add(openingLine.number);
-
-      // Hide the closing ``` line (including newline to remove empty space)
-      const closing = findClosingFence(doc, block);
-      if (closing) {
-        ranges.push(Decoration.replace({}).range(closing.line.from, Math.min(closing.line.to + 1, doc.length)));
-        hiddenLines.add(closing.lineNum);
-      }
+      hiddenLines.add(closing.lineNum);
     }
+  }
 
-    // Catch-all: hide fence delimiter lines recognized by the syntax tree
-    // but not yet covered by the block-state loop above
-    const fenceLines = collectFenceLines(state);
-    for (const lineNum of fenceLines) {
-      if (hiddenLines.has(lineNum)) continue;
-      const line = doc.line(lineNum);
-      ranges.push(Decoration.replace({}).range(line.from, Math.min(line.to + 1, doc.length)));
-    }
+  // Catch-all: hide fence delimiter lines recognized by the syntax tree
+  // but not yet covered by the block-state loop above
+  const fenceLines = collectFenceLines(state);
+  for (const lineNum of fenceLines) {
+    if (hiddenLines.has(lineNum)) continue;
+    const line = doc.line(lineNum);
+    ranges.push(Decoration.replace({}).range(line.from, Math.min(line.to + 1, doc.length)));
+  }
 
-    // Sort by from position (required by Decoration.set)
-    ranges.sort((a, b) => a.from - b.from);
-    return Decoration.set(ranges, true);
-  },
-);
+  // Sort by from position (required by Decoration.set)
+  ranges.sort((a, b) => a.from - b.from);
+  return Decoration.set(ranges, true);
+});
 
 // changeFilter: protect ``` delimiter lines from direct user editing
 // Block commands carry heynoteEvent annotation and bypass this filter

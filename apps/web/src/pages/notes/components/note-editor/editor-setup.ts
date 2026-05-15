@@ -1,9 +1,28 @@
-import { EditorView, keymap, highlightActiveLine, drawSelection, rectangularSelection, highlightSpecialChars } from '@codemirror/view';
+import {
+  EditorView,
+  keymap,
+  highlightActiveLine,
+  drawSelection,
+  rectangularSelection,
+  highlightSpecialChars,
+} from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
-import { syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemirror/language';
+import {
+  syntaxHighlighting,
+  defaultHighlightStyle,
+  foldGutter,
+  indentOnInput,
+  bracketMatching,
+  foldKeymap,
+} from '@codemirror/language';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
-import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import {
+  autocompletion,
+  completionKeymap,
+  closeBrackets,
+  closeBracketsKeymap,
+} from '@codemirror/autocomplete';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 
@@ -46,12 +65,20 @@ function createEditorTheme() {
     '.cm-content': {
       fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', monospace",
       padding: '8px 0',
+      lineHeight: '1.4',
     },
     '.cm-gutters': {
       backgroundColor: 'var(--bg-surface)',
       color: 'var(--text-muted)',
       border: 'none',
       borderRight: '1px solid var(--border-subtle)',
+      lineHeight: '1.4',
+    },
+    '.cm-gutterElement': {
+      lineHeight: '1.4',
+    },
+    '.cm-line': {
+      lineHeight: '1.4',
     },
     '.cm-activeLineGutter': {
       backgroundColor: 'var(--accent-soft)',

@@ -13,7 +13,7 @@ export class NoteService extends Service {
   _saveNowFn: (() => void) | null = null;
   private _inflightSave: Promise<void> | null = null;
   private _manualTitleEdited: Set<string> = new Set(
-    JSON.parse(localStorage.getItem('zen_send_manual_title_edited') || '[]'),
+    JSON.parse(localStorage.getItem('zen_send_manual_title_edited') || '[]')
   );
 
   private get authService() {
@@ -122,6 +122,9 @@ export class NoteService extends Service {
 
   markTitleManuallyEdited(noteId: string): void {
     this._manualTitleEdited.add(noteId);
-    localStorage.setItem('zen_send_manual_title_edited', JSON.stringify([...this._manualTitleEdited]));
+    localStorage.setItem(
+      'zen_send_manual_title_edited',
+      JSON.stringify([...this._manualTitleEdited])
+    );
   }
 }

@@ -1,7 +1,7 @@
 import type { Server, Socket } from 'socket.io';
 import { Container } from 'typedi';
 import { verifyAccessToken, type TokenPayload } from '../utils/jwt.js';
-import { DeviceService, type DeviceInfo } from '../services/device.service.js';
+import { DeviceService } from '../services/device.service.js';
 import { TransferService } from '../services/transfer.service.js';
 import { logger } from '@zen-send/logger';
 import { setSocketIO } from './socket-instance.js';
@@ -13,7 +13,8 @@ interface AuthenticatedSocket extends Socket {
 
 interface DeviceSocket {
   socketId: string;
-  device: DeviceInfo;
+  deviceId: string;
+  deviceName: string;
 }
 
 // In-memory map of device IDs to their socket info
@@ -71,15 +72,45 @@ export function setupSocket(io: Server): void {
     // Handle explicit device registration
     socket.on(
       'device:register',
-      async (data: { deviceId: string; deviceName: string; deviceType: string }) => {
-        const { deviceId, deviceName } = data;
+      async (data: {
+        deviceId?: string;
+        deviceName?: string;
+        deviceType?: string;
+        name?: string;
+        type?: string;
+      }) => {
+        const deviceId = data.deviceId || data.name || socket.id;
+        const deviceName = data.deviceName || data.name || 'Unknown';
+        const deviceType = data.deviceType || data.type || 'unknown';
 
         if (socket.user?.userId) {
-          // Update device as online
-          await Container.get(DeviceService).updateDeviceHeartbeat(deviceId);
+          // Ensure device exists in DB, then update heartbeat
+          const deviceService = Container.get(DeviceService);
+          const existing = await deviceService.getDeviceById(deviceId);
+          if (!existing) {
+            try {
+              await deviceService.registerDevice({
+                id: deviceId,
+                userId: socket.user.userId,
+                name: deviceName,
+                type: deviceType as 'web' | 'android' | 'ios' | 'desktop',
+              });
+            } catch {
+              await deviceService.updateDeviceHeartbeat(deviceId);
+            }
+          } else {
+            await deviceService.updateDeviceHeartbeat(deviceId);
+          }
 
           // Store deviceId on socket for later use
           socket.deviceId = deviceId;
+
+          // Add to deviceSockets map for targeted notifications
+          deviceSockets.set(deviceId, {
+            socketId: socket.id,
+            deviceId,
+            deviceName,
+          });
 
           logger.info(
             { socketId: socket.id, deviceId, deviceName },
@@ -96,9 +127,7 @@ export function setupSocket(io: Server): void {
 
       try {
         const transferService = Container.get(TransferService);
-        const transfer = userId
-          ? await transferService.getTransferById(sessionId, userId)
-          : null;
+        const transfer = userId ? await transferService.getTransferById(sessionId, userId) : null;
 
         const targetSocketInfo = deviceSockets.get(targetDeviceId);
         if (targetSocketInfo?.socketId) {

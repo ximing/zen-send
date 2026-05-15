@@ -56,8 +56,9 @@ export class SocketService extends Service {
       console.log('[Socket] Connected, socket ID:', this.socket?.id);
       this.connected = true;
       this.socket?.emit('device:register', {
-        name: deviceName,
-        type: deviceType,
+        deviceId,
+        deviceName,
+        deviceType,
       });
     });
 

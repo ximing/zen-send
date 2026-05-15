@@ -1,4 +1,15 @@
-import { JsonController, Get, Post, Patch, Delete, Body, Param, CurrentUser, Authorized, HttpError } from 'routing-controllers';
+import {
+  JsonController,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  CurrentUser,
+  Authorized,
+  HttpError,
+} from 'routing-controllers';
 import { Service } from 'typedi';
 import { NoteService } from '../services/note.service.js';
 import { CreateNoteDto, UpdateNoteDto, ReorderNotesDto } from '../validators/note.validator.js';
@@ -39,7 +50,11 @@ export class NoteController {
   }
 
   @Patch('/:id')
-  async update(@Param('id') id: string, @Body() dto: UpdateNoteDto, @CurrentUser() user: TokenPayload) {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateNoteDto,
+    @CurrentUser() user: TokenPayload
+  ) {
     const updated = await this.noteService.updateNote(id, user.userId, dto);
     if (!updated) {
       throw new HttpError(404, 'Note not found');

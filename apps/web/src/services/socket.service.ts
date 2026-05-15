@@ -56,9 +56,14 @@ export class SocketService extends Service {
   registerDevice() {
     if (!this.socket?.connected) return;
     this.socket.emit('device:register', {
-      name: this.getDeviceName(),
-      type: this.getDeviceType(),
+      deviceId: this.getDeviceId(),
+      deviceName: this.getDeviceName(),
+      deviceType: this.getDeviceType(),
     });
+  }
+
+  private getDeviceId(): string {
+    return 'web-' + (this.authService.user?.id || 'unknown');
   }
 
   private getDeviceName(): string {

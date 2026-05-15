@@ -19,6 +19,7 @@ export interface RegisterDeviceInput {
   userId: string;
   name: string;
   type: 'web' | 'android' | 'ios' | 'desktop';
+  id?: string;
 }
 
 @Service()
@@ -30,7 +31,7 @@ export class DeviceService {
   }
 
   async registerDevice(input: RegisterDeviceInput): Promise<DeviceInfo> {
-    const id = generateDeviceId();
+    const id = input.id || generateDeviceId();
     const now = Math.floor(Date.now() / 1000);
 
     await this.db.insert(devices).values({

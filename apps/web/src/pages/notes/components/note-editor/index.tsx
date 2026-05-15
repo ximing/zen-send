@@ -6,8 +6,20 @@ import { ChevronLeft, ChevronDown } from 'lucide-react';
 import { NoteService } from '../../../../services/note.service';
 import { createEditorExtensions } from './editor-setup';
 import { blockState, getActiveBlock } from './block-state';
-import { blockKeymap, getLanguageList, convertBlockToCode, convertBlockToMarkdown, changeBlockLanguage } from './block-commands';
-import { blockDecorations, blockChangeFilter, blockAtomicRanges, copiedHighlightState, copiedHighlightPlugin } from './block-decoration';
+import {
+  blockKeymap,
+  getLanguageList,
+  convertBlockToCode,
+  convertBlockToMarkdown,
+  changeBlockLanguage,
+} from './block-commands';
+import {
+  blockDecorations,
+  blockChangeFilter,
+  blockAtomicRanges,
+  copiedHighlightState,
+  copiedHighlightPlugin,
+} from './block-decoration';
 import { blockLayer } from './block-layer';
 import { blockLineNumbers } from './block-line-numbers';
 import { useIsWide } from '../../../../hooks/use-is-wide';
@@ -57,7 +69,7 @@ function NoteEditorInner() {
       extensions: [
         ...createEditorExtensions(),
         blockState,
-        blockLineNumbers,
+        ...blockLineNumbers,
         blockDecorations,
         blockChangeFilter,
         blockAtomicRanges,
@@ -207,14 +219,14 @@ function NoteEditorInner() {
       >
         <div className="flex items-center gap-2">
           {!isWide && (
-            <button
-              onClick={() => navigate('/notes')}
-              style={{ color: 'var(--text-secondary)' }}
-            >
+            <button onClick={() => navigate('/notes')} style={{ color: 'var(--text-secondary)' }}>
               <ChevronLeft size={16} />
             </button>
           )}
-          <span className="text-xs flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+          <span
+            className="text-xs flex items-center gap-1.5"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             {isEditingTitle ? (
               <input
                 ref={titleInputRef}
@@ -278,7 +290,8 @@ function NoteEditorInner() {
                   onClick={() => handleLanguageSelect('markdown')}
                   className="lang-dropdown-item block w-full text-left px-3 py-1.5 text-xs rounded"
                   style={{
-                    color: activeBlock?.type === 'markdown' ? 'var(--accent)' : 'var(--text-primary)',
+                    color:
+                      activeBlock?.type === 'markdown' ? 'var(--accent)' : 'var(--text-primary)',
                     fontWeight: activeBlock?.type === 'markdown' ? 600 : 400,
                   }}
                 >
@@ -292,8 +305,14 @@ function NoteEditorInner() {
                       onClick={() => handleLanguageSelect(lang)}
                       className="lang-dropdown-item block w-full text-left px-3 py-1.5 text-xs rounded"
                       style={{
-                        color: activeBlock?.type === 'code' && activeBlock?.language === lang ? 'var(--accent)' : 'var(--text-primary)',
-                        fontWeight: activeBlock?.type === 'code' && activeBlock?.language === lang ? 600 : 400,
+                        color:
+                          activeBlock?.type === 'code' && activeBlock?.language === lang
+                            ? 'var(--accent)'
+                            : 'var(--text-primary)',
+                        fontWeight:
+                          activeBlock?.type === 'code' && activeBlock?.language === lang
+                            ? 600
+                            : 400,
                       }}
                     >
                       {lang.toUpperCase()}
