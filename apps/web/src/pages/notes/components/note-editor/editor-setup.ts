@@ -151,7 +151,11 @@ export function createEditorTheme(isDark: boolean) {
       '.cm-panel.cm-search input:focus': {
         borderColor: t.accent,
       },
+      '.cm-button': {
+        backgroundImage: 'none',
+      },
       '.cm-panel.cm-search button': {
+        backgroundImage: 'none',
         backgroundColor: 'transparent',
         border: `1px solid ${isDark ? '#2e2e30' : '#e8e5e0'}`,
         borderRadius: '4px',
@@ -162,8 +166,13 @@ export function createEditorTheme(isDark: boolean) {
         margin: '0',
       },
       '.cm-panel.cm-search button:hover': {
+        backgroundImage: 'none',
         backgroundColor: t.bgPrimary,
         color: t.textPrimary,
+      },
+      '.cm-panel.cm-search button:active': {
+        backgroundImage: 'none',
+        backgroundColor: t.bgElevated,
       },
       '.cm-panel.cm-search button[name=close]': {
         border: 'none',
