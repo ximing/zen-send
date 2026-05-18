@@ -1,11 +1,68 @@
-import { StateField, type EditorState } from '@codemirror/state';
-import { syntaxTree } from '@codemirror/language';
+import { StateField, type EditorState, Transaction } from '@codemirror/state';
+import { syntaxTree, syntaxTreeAvailable } from '@codemirror/language';
+import { IterMode } from '@lezer/common';
+import { Note, Document, NoteDelimiter } from './lang-heynote/parser.terms';
+import { LANGUAGE_TOKENS } from './languages';
+
+export const BLOCK_MARKER = '∞∞∞';
+export const DEFAULT_BLOCK_LANGUAGE = 'markdown';
+
+const languageTokensMatcher = LANGUAGE_TOKENS.join('|');
+export const BLOCK_DELIMITER_REGEX = new RegExp(
+  `\\n${BLOCK_MARKER}(${languageTokensMatcher})(-a)?(?:;[^\\n]+)*\\n`,
+  'g',
+);
+const CREATED_METADATA_REGEX = /;created=([^;\n]+)/;
+
+export function getBlockDelimiter(language: string, auto = false, date?: Date): string {
+  date = date ?? new Date();
+  return `\n${BLOCK_MARKER}${auto ? language + '-a' : language};created=${date.toISOString()}\n`;
+}
+
+export const DEFAULT_BLOCK_CONTENT = getBlockDelimiter(DEFAULT_BLOCK_LANGUAGE);
+
+export function migrateFromMarkdownFormat(content: string): string {
+  if (content.includes(BLOCK_MARKER)) return content;
+  if (!content) return DEFAULT_BLOCK_CONTENT;
+
+  const FENCE_REGEX = /```([a-zA-Z0-9+-.]*)\n([\s\S]*?)```/g;
+  let result = '';
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = FENCE_REGEX.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      const mdContent = content.slice(lastIndex, match.index).trim();
+      if (mdContent) {
+        result += getBlockDelimiter('markdown') + mdContent;
+      }
+    }
+    const lang = match[1] || 'text';
+    const codeContent = match[2].trimEnd();
+    result += getBlockDelimiter(lang) + codeContent;
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < content.length) {
+    const remaining = content.slice(lastIndex).trim();
+    if (remaining) {
+      result += getBlockDelimiter('markdown') + remaining;
+    }
+  }
+
+  if (!result) {
+    result = getBlockDelimiter('markdown') + content.trim();
+  }
+
+  return result;
+}
 
 export interface Block {
-  type: 'markdown' | 'code';
-  language: string;
+  language: { name: string; auto: boolean };
   content: { from: number; to: number };
-  delimiter?: { from: number; to: number };
+  delimiter: { from: number; to: number };
+  range: { from: number; to: number };
+  created?: string;
 }
 
 export interface VisibleBlockLine {
@@ -15,123 +72,126 @@ export interface VisibleBlockLine {
 
 export interface VisibleBlock {
   blockIndex: number;
-  type: 'markdown' | 'code';
+  language: string;
   visibleStartLine: number;
   visibleEndLine: number;
-  topAnchorPos: number;
-  bottomAnchorPos: number;
+  contentTopPos?: number;
+  contentBottomPos?: number;
+  blockTopPos: number;
+  blockBottomPos: number;
   hasNumberedLines: boolean;
   lines: VisibleBlockLine[];
 }
 
-function clampPos(state: EditorState, pos: number): number {
-  return Math.max(0, Math.min(pos, state.doc.length));
-}
+export let firstBlockDelimiterSize: number | undefined;
 
-function parseBlocks(state: EditorState): Block[] {
+function getBlocksFromSyntaxTree(state: EditorState): Block[] {
   const blocks: Block[] = [];
-  const doc = state.doc;
   const tree = syntaxTree(state);
-  let lastEnd = 0;
+  if (!tree) return blocks;
 
   tree.iterate({
-    enter(node) {
-      if (node.name === 'FencedCode') {
-        if (node.from > lastEnd) {
-          const mdContent = doc.sliceString(lastEnd, node.from).trim();
-          if (mdContent) {
-            blocks.push({
-              type: 'markdown',
-              language: 'markdown',
-              content: { from: lastEnd, to: node.from },
-            });
+    enter(type) {
+      if (type.type.id === Document || type.type.id === Note) {
+        return true;
+      } else if (type.type.id === NoteDelimiter) {
+        const langNode = type.node.getChild('NoteLanguage');
+        const language = langNode ? state.doc.sliceString(langNode.from, langNode.to) : 'text';
+        const isAuto = !!type.node.getChild('Auto');
+
+        let created: string | undefined;
+        const metadataNode = type.node.getChild('Metadata');
+        if (metadataNode) {
+          for (let entry = metadataNode.firstChild; entry; entry = entry.nextSibling) {
+            if (entry.name === 'MetadataEntry') {
+              const keyNode = entry.getChild('MetadataKey');
+              const valueNode = entry.getChild('MetadataValue');
+              if (!keyNode || !valueNode) continue;
+              const key = state.doc.sliceString(keyNode.from, keyNode.to);
+              const value = state.doc.sliceString(valueNode.from, valueNode.to);
+              if (key === 'created') {
+                created = value;
+              }
+            }
           }
         }
 
-        let language = '';
-        let codeTextFrom = -1;
-        let codeTextTo = -1;
+        const contentNode = type.node.nextSibling;
 
-        for (let child = node.node.firstChild; child; child = child.nextSibling) {
-          if (child.name === 'CodeInfo') {
-            language = doc.sliceString(child.from, child.to).trim();
-          }
-          if (child.name === 'CodeText') {
-            codeTextFrom = child.from;
-            codeTextTo = child.to;
-          }
+        if (contentNode) {
+          blocks.push({
+            language: { name: language, auto: isAuto },
+            content: { from: contentNode.from, to: contentNode.to },
+            delimiter: { from: type.from, to: type.to },
+            range: { from: type.node.from, to: contentNode.to },
+            created,
+          });
+        } else {
+          blocks.push({
+            language: { name: language, auto: isAuto },
+            content: { from: type.to, to: type.to },
+            delimiter: { from: type.from, to: type.to },
+            range: { from: type.node.from, to: type.to },
+            created,
+          });
         }
-
-        const openingLine = doc.lineAt(node.from);
-        const openingLineTo = openingLine.to;
-
-        if (codeTextFrom === -1) {
-          codeTextFrom = openingLineTo + 1;
-          codeTextTo = openingLineTo + 1;
-        }
-
-        const contentFrom = clampPos(state, codeTextFrom);
-        const contentEnd = clampPos(state, codeTextTo);
-
-        blocks.push({
-          type: 'code',
-          language: language || 'text',
-          content: { from: contentFrom, to: contentEnd },
-          delimiter: { from: node.from, to: openingLineTo },
-        });
-
-        lastEnd = node.to;
+        return false;
       }
+      return false;
     },
+    mode: IterMode.IgnoreMounts,
   });
 
-  if (lastEnd < doc.length) {
-    const mdContent = doc.sliceString(lastEnd, doc.length).trim();
-    if (mdContent) {
-      blocks.push({
-        type: 'markdown',
-        language: 'markdown',
-        content: { from: lastEnd, to: doc.length },
-      });
-    }
-  }
-
-  if (blocks.length === 0 && doc.length > 0) {
-    blocks.push({
-      type: 'markdown',
-      language: 'markdown',
-      content: { from: 0, to: doc.length },
-    });
-  }
-
+  firstBlockDelimiterSize = blocks[0]?.delimiter.to;
   return blocks;
 }
 
-function getClosingFenceLine(state: EditorState, block: Block) {
-  if (block.type !== 'code' || !block.delimiter) {
-    return null;
-  }
-
+function getBlocksFromString(state: EditorState): Block[] {
+  const blocks: Block[] = [];
   const doc = state.doc;
-  const openingLineNumber = doc.lineAt(clampPos(state, block.delimiter.from)).number;
+  if (doc.length === 0) return blocks;
 
-  for (let lineNumber = openingLineNumber + 1; lineNumber <= doc.lines; lineNumber++) {
-    const line = doc.line(lineNumber);
-    if (line.text.trim().startsWith('```')) {
-      return line;
-    }
+  const text = doc.sliceString(0, doc.length);
+  const matches = [...text.matchAll(BLOCK_DELIMITER_REGEX)];
+
+  for (let i = 0; i < matches.length; i++) {
+    const match = matches[i];
+    const nextMatch = i < matches.length - 1 ? matches[i + 1] : null;
+
+    const blockStart = match.index!;
+    const blockEnd = nextMatch ? nextMatch.index! : doc.length;
+    const delimiterEnd = blockStart + match[0].length;
+
+    const delimiterText = match[0];
+    const createdMatch = delimiterText.match(CREATED_METADATA_REGEX);
+    const created = createdMatch ? createdMatch[1] : undefined;
+
+    blocks.push({
+      language: {
+        name: match[1],
+        auto: match[2] === '-a',
+      },
+      content: { from: delimiterEnd, to: blockEnd },
+      delimiter: { from: blockStart, to: delimiterEnd },
+      range: { from: blockStart, to: blockEnd },
+      created,
+    });
   }
 
-  return null;
+  firstBlockDelimiterSize = blocks[0]?.delimiter.to;
+  return blocks;
+}
+
+function getBlocks(state: EditorState): Block[] {
+  if (syntaxTreeAvailable(state, state.doc.length)) {
+    return getBlocksFromSyntaxTree(state);
+  }
+  return getBlocksFromString(state);
 }
 
 function getVisibleLines(state: EditorState, block: Block): VisibleBlockLine[] {
-  let from = clampPos(state, block.content.from);
-  const to = clampPos(state, block.content.to);
-
-  if (block.type === 'markdown' && from > 0 && from < to && state.doc.sliceString(from, from + 1) === '\n') {
-    from++;
-  }
+  const from = Math.max(0, block.content.from);
+  const to = Math.min(block.content.to, state.doc.length);
 
   if (from >= to || state.doc.length === 0) {
     return [];
@@ -151,45 +211,35 @@ function getVisibleLines(state: EditorState, block: Block): VisibleBlockLine[] {
   return lines;
 }
 
-function getFallbackAnchors(state: EditorState, block: Block) {
+function getBlockGeometry(state: EditorState, block: Block) {
   const doc = state.doc;
-  const fallbackLine =
-    block.type === 'code' && block.delimiter
-      ? doc.lineAt(clampPos(state, block.delimiter.from))
-      : doc.lineAt(clampPos(state, block.content.from));
-
-  if (block.type === 'code' && block.delimiter) {
-    const closingFenceLine = getClosingFenceLine(state, block) ?? fallbackLine;
-
-    return {
-      visibleStartLine: fallbackLine.number,
-      visibleEndLine: closingFenceLine.number,
-      topAnchorPos: fallbackLine.from,
-      bottomAnchorPos: closingFenceLine.to,
-    };
-  }
+  const delimiterLine = doc.lineAt(Math.max(0, Math.min(block.delimiter.from, doc.length - 1)));
+  const contentEndLine = doc.lineAt(
+    Math.max(0, Math.min(Math.max(block.content.to - 1, 0), doc.length - 1)),
+  );
 
   return {
-    visibleStartLine: fallbackLine.number,
-    visibleEndLine: fallbackLine.number,
-    topAnchorPos: fallbackLine.from,
-    bottomAnchorPos: fallbackLine.to,
+    visibleStartLine: delimiterLine.number,
+    visibleEndLine: contentEndLine.number,
+    blockTopPos: delimiterLine.from,
+    blockBottomPos: contentEndLine.to,
   };
 }
 
 export function getVisibleBlocks(state: EditorState): VisibleBlock[] {
-  const blocks = state.field(blockState, false) ?? parseBlocks(state);
+  const blocks = state.field(blockState, false) ?? getBlocks(state);
 
   return blocks.map((block, blockIndex) => {
     const lines = getVisibleLines(state, block);
+    const geometry = getBlockGeometry(state, block);
 
     if (lines.length === 0) {
       return {
         blockIndex,
-        type: block.type,
+        language: block.language.name,
         hasNumberedLines: false,
         lines,
-        ...getFallbackAnchors(state, block),
+        ...geometry,
       };
     }
 
@@ -198,11 +248,13 @@ export function getVisibleBlocks(state: EditorState): VisibleBlock[] {
 
     return {
       blockIndex,
-      type: block.type,
+      language: block.language.name,
       visibleStartLine: lines[0].lineNumber,
       visibleEndLine: lines.at(-1)!.lineNumber,
-      topAnchorPos: firstLine.from,
-      bottomAnchorPos: lastLine.to,
+      contentTopPos: firstLine.from,
+      contentBottomPos: lastLine.to,
+      blockTopPos: geometry.blockTopPos,
+      blockBottomPos: geometry.blockBottomPos,
       hasNumberedLines: true,
       lines,
     };
@@ -211,11 +263,11 @@ export function getVisibleBlocks(state: EditorState): VisibleBlock[] {
 
 export const blockState = StateField.define<Block[]>({
   create(state) {
-    return parseBlocks(state);
+    return getBlocks(state);
   },
   update(blocks, tr) {
     if (tr.docChanged || blocks.length === 0) {
-      return parseBlocks(tr.state);
+      return getBlocks(tr.state);
     }
     return blocks;
   },
@@ -223,11 +275,38 @@ export const blockState = StateField.define<Block[]>({
 
 export function getActiveBlock(state: EditorState): Block | null {
   const blocks = state.field(blockState);
-  const pos = state.selection.main.from;
+  if (blocks.length === 0) return null;
+  const head = state.selection.main.head;
+  for (let i = 0; i < blocks.length; i++) {
+    if (blocks[i].content.to >= head) {
+      return blocks[i];
+    }
+  }
+  return blocks[blocks.length - 1];
+}
+
+export function getBlockFromPos(state: EditorState, pos: number): Block | null {
+  const blocks = state.field(blockState);
   for (let i = blocks.length - 1; i >= 0; i--) {
-    if (blocks[i].content.from <= pos) {
+    if (blocks[i].range.from <= pos && blocks[i].range.to >= pos) {
       return blocks[i];
     }
   }
   return blocks[0] ?? null;
+}
+
+export function getBlockLineFromPos(state: EditorState, pos: number) {
+  const line = state.doc.lineAt(pos);
+  const block = state
+    .field(blockState)
+    .find((b) => b.content.from <= line.from && b.content.to >= line.from);
+  if (block) {
+    const firstBlockLine = state.doc.lineAt(block.content.from).number;
+    return {
+      line: line.number - firstBlockLine + 1,
+      col: pos - line.from + 1,
+      length: line.length,
+    };
+  }
+  return null;
 }
