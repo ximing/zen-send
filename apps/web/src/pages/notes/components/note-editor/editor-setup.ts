@@ -7,7 +7,7 @@ import {
   highlightSpecialChars,
 } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
-import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
+import { defaultKeymap, history, historyKeymap, indentWithTab, selectAll } from '@codemirror/commands';
 import {
   syntaxHighlighting,
   defaultHighlightStyle,
@@ -16,18 +16,18 @@ import {
   bracketMatching,
   foldKeymap,
 } from '@codemirror/language';
-import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import { searchKeymap } from '@codemirror/search';
 import {
   autocompletion,
   completionKeymap,
   closeBrackets,
   closeBracketsKeymap,
 } from '@codemirror/autocomplete';
-import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
-import { languages } from '@codemirror/language-data';
+import { heynoteLang } from './lang-heynote/heynote';
 
 export function createEditorExtensions() {
   return [
+    heynoteLang(),
     highlightActiveLine(),
     highlightSpecialChars(),
     history(),
@@ -40,11 +40,9 @@ export function createEditorExtensions() {
     closeBrackets(),
     autocompletion(),
     rectangularSelection(),
-    highlightSelectionMatches(),
-    markdown({ base: markdownLanguage, codeLanguages: languages }),
     keymap.of([
       ...closeBracketsKeymap,
-      ...defaultKeymap,
+      ...defaultKeymap.filter((binding) => binding.run !== selectAll),
       ...searchKeymap,
       ...historyKeymap,
       ...foldKeymap,
@@ -96,27 +94,32 @@ function createEditorTheme() {
     '.cm-scroller': {
       overflow: 'auto',
     },
-    '.cm-block-even': {
+    '.heynote-blocks-layer': {
+      width: '100%',
+    },
+    '.heynote-blocks-layer .block-even': {
+      width: '100%',
+      boxSizing: 'content-box',
       backgroundColor: 'var(--bg-surface)',
-    },
-    '.cm-block-odd': {
-      backgroundColor: 'var(--bg-primary)',
-    },
-    '.cm-blocks-layer': {
-      pointerEvents: 'none',
-    },
-    // Block separator — first line of each block gets a top border
-    '.cm-block-start': {
       borderTop: '1px solid var(--border-subtle)',
-      paddingTop: '6px',
-      marginTop: '6px',
     },
-    // Code block lines — subtle background
-    '.cm-block-code': {
-      backgroundColor: 'var(--bg-surface)',
+    '.heynote-blocks-layer .block-odd': {
+      width: '100%',
+      boxSizing: 'content-box',
+      backgroundColor: 'var(--bg-primary)',
+      borderTop: '1px solid var(--border-subtle)',
     },
-    '.cm-block-code-body': {
-      backgroundColor: 'var(--bg-surface)',
+    '.heynote-blocks-layer .block-even:first-child': {
+      borderTop: 'none',
+    },
+    '.heynote-block-start': {
+      height: '12px',
+    },
+    '.heynote-block-start.first': {
+      height: '0px',
+    },
+    '.cm-activeLine.heynote-empty-block-selected': {
+      backgroundColor: 'var(--accent-soft)',
     },
     '.cm-block-copied': {
       animation: 'cm-block-flash 200ms ease-out',
