@@ -117,7 +117,7 @@ function BottomToolbarInner() {
   }, []);
 
   return (
-    <div className="w-full bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] px-3 py-2 shrink-0">
+    <div className="w-full bg-[var(--bg-surface)] px-3 py-2 shrink-0">
       {/* Icons row */}
       <div className="flex items-center gap-1 mb-2">
         <button

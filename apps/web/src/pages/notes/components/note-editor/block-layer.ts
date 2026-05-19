@@ -1,62 +1,66 @@
-import { EditorView, layer, type LayerMarker, type ViewUpdate } from '@codemirror/view';
-import { getVisibleBlocks } from './block-state';
-
-class BlockMarker implements LayerMarker {
-  constructor(
-    readonly className: string,
-    readonly top: number,
-    readonly height: number,
-  ) {}
-
-  draw() {
-    const elt = document.createElement('div');
-    elt.className = this.className;
-    elt.style.cssText = `position:absolute;top:${this.top}px;height:${this.height}px;left:0;right:0;`;
-    return elt;
-  }
-
-  update(elt: HTMLElement) {
-    elt.style.top = this.top + 'px';
-    elt.style.height = this.height + 'px';
-    return true;
-  }
-
-  eq(other: BlockMarker) {
-    return this.className === other.className && this.top === other.top && this.height === other.height;
-  }
-}
-
-function buildMarkers(view: EditorView): LayerMarker[] {
-  const visibleBlocks = getVisibleBlocks(view.state);
-  const markers: LayerMarker[] = [];
-
-  for (let index = 0; index < visibleBlocks.length; index++) {
-    const visibleBlock = visibleBlocks[index];
-    const className = index % 2 === 0 ? 'cm-block-even' : 'cm-block-odd';
-
-    try {
-      const top = view.coordsAtPos(visibleBlock.topAnchorPos)?.top;
-      const bottom = view.coordsAtPos(visibleBlock.bottomAnchorPos)?.bottom;
-
-      if (top !== undefined && bottom !== undefined) {
-        const editorTop = view.dom.getBoundingClientRect().top;
-        markers.push(new BlockMarker(className, top - editorTop, bottom - top));
-      }
-    } catch {
-      // Skip blocks that can't be positioned
-    }
-  }
-
-  return markers;
-}
+import { EditorView, layer, RectangleMarker } from '@codemirror/view';
+import { blockState } from './block-state';
 
 export const blockLayer = layer({
   above: false,
+
   markers(view: EditorView) {
-    return buildMarkers(view);
+    const markers: RectangleMarker[] = [];
+    let idx = 0;
+
+    function rangesOverlap(
+      range1: { from: number; to: number },
+      range2: { from: number; to: number },
+    ) {
+      return range1.from <= range2.to && range2.from <= range1.to;
+    }
+
+    const blocks = view.state.field(blockState);
+    for (const block of blocks) {
+      // make sure the block is visible
+      if (!view.visibleRanges.some((range) => rangesOverlap(block.content, range))) {
+        idx++;
+        continue;
+      }
+
+      const fromPos = Math.max(block.content.from, view.visibleRanges[0].from);
+      const toPos = Math.min(block.content.to, view.visibleRanges[view.visibleRanges.length - 1].to);
+      const fromCoordsTop = view.lineBlockAt(fromPos)?.top;
+      const toLine = view.state.doc.lineAt(toPos);
+      const toLinePos =
+        toLine.length === 0
+          ? toLine.from
+          : Math.max(fromPos, Math.min(toPos, block.content.to));
+      let toCoordsBottom = view.lineBlockAt(toLinePos)?.bottom;
+
+      // Extend the last block to fill the remaining editor height
+      if (idx === blocks.length - 1) {
+        const extraHeight =
+          (view as unknown as { viewState: { editorHeight: number } }).viewState.editorHeight -
+          (view.defaultLineHeight + view.documentPadding.top + 11);
+        if (extraHeight > 0) {
+          toCoordsBottom += extraHeight;
+        }
+      }
+
+      markers.push(
+        new RectangleMarker(
+          idx % 2 === 0 ? 'block-even' : 'block-odd',
+          0,
+          fromCoordsTop - 2,
+          null, // width is set to 100% in CSS
+          toCoordsBottom - fromCoordsTop + 15,
+        ),
+      );
+      idx++;
+    }
+
+    return markers;
   },
-  update(update: ViewUpdate, _layer: HTMLElement) {
-    return update.docChanged || update.viewportChanged || update.heightChanged || update.geometryChanged;
+
+  update(update) {
+    return update.docChanged || update.viewportChanged;
   },
-  class: 'cm-blocks-layer',
+
+  class: 'heynote-blocks-layer',
 });

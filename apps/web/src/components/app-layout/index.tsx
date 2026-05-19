@@ -94,12 +94,12 @@ function AppLayoutInner() {
         {/* Panel */}
         <div
           style={{ width: '85%', minWidth: 380, maxWidth: '85%' }}
-          className={`absolute right-0 top-0 bottom-0 bg-[var(--bg-primary)] border-l border-[var(--border-subtle)] transition-transform duration-250 ease-in-out flex flex-col ${
+          className={`absolute right-0 top-0 bottom-0 bg-[var(--bg-primary)] transition-transform duration-250 ease-in-out flex flex-col ${
             downloadDrawerOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
           {/* Header */}
-          <div className="h-14 flex items-center justify-between px-4 shrink-0 border-b border-[var(--border-subtle)]">
+          <div className="h-14 flex items-center justify-between px-4 shrink-0 bg-[var(--bg-surface)]">
             <span className="text-base font-semibold text-[var(--text-primary)]">下载记录</span>
             <button
               onClick={() => setDownloadDrawerOpen(false)}

@@ -1,12 +1,38 @@
-import { EditorView } from '@codemirror/view';
-import { Annotation, type EditorState } from '@codemirror/state';
-import { blockState, getActiveBlock, type Block } from './block-state';
+import { EditorView, ViewPlugin, Decoration } from '@codemirror/view';
+import {
+  Annotation,
+  EditorSelection,
+  RangeSetBuilder,
+  StateEffect,
+  StateField,
+  type EditorState,
+} from '@codemirror/state';
+import { selectAll as defaultSelectAll } from '@codemirror/commands';
+import {
+  blockState,
+  getActiveBlock,
+  getBlockDelimiter,
+  DEFAULT_BLOCK_LANGUAGE,
+  type Block,
+} from './block-state';
 import { blockCopiedEffect, clearCopiedEffect } from './block-decoration';
 
 export const heynoteEvent = Annotation.define<string>();
 
+export const HEYNOTE_EVENTS = {
+  ADD_BLOCK: 'addBlock',
+  DELETE_BLOCK: 'deleteBlock',
+  MOVE_BLOCK: 'moveBlock',
+  CHANGE_LANGUAGE: 'changeLanguage',
+  GOTO_BLOCK: 'gotoBlock',
+  COPY_BLOCK: 'copyBlock',
+  SET_CONTENT: 'setContent',
+  UPDATE_CREATED: 'updateCreated',
+} as const;
+
 const LANGUAGES = [
   'markdown',
+  'text',
   'javascript',
   'typescript',
   'python',
@@ -14,18 +40,81 @@ const LANGUAGES = [
   'json',
   'css',
   'html',
-  'text',
 ];
 
 export function getLanguageList(): string[] {
   return LANGUAGES;
 }
 
+/**
+ * StateField tracking when an empty block is visually "selected" via Cmd-A.
+ * Needed because an empty block's content.from === content.to, so we can't
+ * detect "whole block selected" from the selection alone.
+ */
+const setEmptyBlockSelected = StateEffect.define<number>();
+
+export const emptyBlockSelected = StateField.define<number | null>({
+  create: () => null,
+  update(value, tr) {
+    if (tr.selection) return null;
+    for (const e of tr.effects) {
+      if (e.is(setEmptyBlockSelected)) return e.value;
+    }
+    return value;
+  },
+  provide() {
+    const deco = Decoration.line({
+      attributes: { class: 'heynote-empty-block-selected' },
+    });
+    return ViewPlugin.fromClass(
+      class {
+        decorations;
+        constructor(view: EditorView) {
+          this.decorations = this.build(view);
+        }
+        update(update: { view: EditorView }) {
+          this.decorations = this.build(update.view);
+        }
+        build(view: EditorView) {
+          const pos = view.state.field(emptyBlockSelected);
+          if (pos === null) return Decoration.none;
+          const builder = new RangeSetBuilder<Decoration>();
+          const line = view.state.doc.lineAt(pos);
+          builder.add(line.from, line.from, deco);
+          return builder.finish();
+        }
+      },
+      { decorations: (v) => v.decorations },
+    );
+  },
+});
+
 function selectAllInBlock(view: EditorView): boolean {
+  const range = view.state.selection.main;
   const block = getActiveBlock(view.state);
   if (!block) return false;
+
+  // handle empty blocks separately
+  if (block.content.from === block.content.to) {
+    if (view.state.field(emptyBlockSelected, false)) {
+      // empty block already marked as selected → select whole document
+      return defaultSelectAll(view);
+    } else if (range.empty) {
+      // mark the empty block as selected
+      view.dispatch({ effects: setEmptyBlockSelected.of(block.content.from) });
+    }
+    return true;
+  }
+
+  // if the whole block is already selected, select the whole document
+  if (range.from === block.content.from && range.to === block.content.to) {
+    return defaultSelectAll(view);
+  }
+
+  // first Cmd-A: select the current block's content
   view.dispatch({
     selection: { anchor: block.content.from, head: block.content.to },
+    userEvent: 'select',
   });
   return true;
 }
@@ -48,9 +137,7 @@ function copyBlock(view: EditorView): boolean {
         }
       }, 200);
     })
-    .catch(() => {
-      // Clipboard API failed — permissions or insecure context
-    });
+    .catch(() => {});
   return true;
 }
 
@@ -58,41 +145,46 @@ function addNewBlockAfterCurrent(view: EditorView): boolean {
   const block = getActiveBlock(view.state);
   if (!block) return false;
 
-  const doc = view.state.doc;
-
-  // For code blocks, insert after the closing ``` line
-  // For markdown blocks, insert before the next block's opening ``` line
-  // In both cases we want to insert at the boundary between blocks
-  let insertPos: number;
-  if (block.type === 'code' && block.delimiter) {
-    insertPos = getBlockEnd(doc, block);
-  } else {
-    // Markdown block: content.to points to the start of the next block
-    // We need to find where the actual content ends (skip trailing newlines)
-    // but keep at least one newline for separation
-    let end = block.content.to;
-    // Trim trailing newlines from the content range to find the real end
-    while (end > block.content.from && doc.sliceString(end - 1, end) === '\n') {
-      end--;
-    }
-    // Insert after the last non-newline character, keeping one \n before the new block
-    insertPos = end;
-  }
-
-  insertPos = Math.min(insertPos, doc.length);
-
-  const delimiter = `\n\`\`\`markdown\n\n\`\`\`\n`;
-
-  // Find cursor position: the empty line between the ``` pairs
-  const firstNewline = delimiter.indexOf('\n');
-  const secondNewline = delimiter.indexOf('\n', firstNewline + 1);
-  const codeContentPos = insertPos + secondNewline + 1;
+  const delimText = getBlockDelimiter(DEFAULT_BLOCK_LANGUAGE);
+  const insertPos = block.content.to;
 
   view.dispatch({
-    changes: { from: insertPos, insert: delimiter },
-    selection: { anchor: codeContentPos },
+    changes: { from: insertPos, insert: delimText },
+    selection: { anchor: insertPos + delimText.length },
     scrollIntoView: true,
-    annotations: heynoteEvent.of('addBlock'),
+    annotations: heynoteEvent.of(HEYNOTE_EVENTS.ADD_BLOCK),
+  });
+  return true;
+}
+
+function addNewBlockBeforeCurrent(view: EditorView): boolean {
+  const block = getActiveBlock(view.state);
+  if (!block) return false;
+
+  const delimText = getBlockDelimiter(DEFAULT_BLOCK_LANGUAGE);
+  const insertPos = block.delimiter.from;
+
+  view.dispatch({
+    changes: { from: insertPos, insert: delimText },
+    selection: { anchor: insertPos + delimText.length },
+    scrollIntoView: true,
+    annotations: heynoteEvent.of(HEYNOTE_EVENTS.ADD_BLOCK),
+  });
+  return true;
+}
+
+function addNewBlockAfterLast(view: EditorView): boolean {
+  const blocks = view.state.field(blockState);
+  if (blocks.length === 0) return false;
+
+  const lastBlock = blocks[blocks.length - 1];
+  const delimText = getBlockDelimiter(DEFAULT_BLOCK_LANGUAGE);
+
+  view.dispatch({
+    changes: { from: lastBlock.content.to, insert: delimText },
+    selection: { anchor: lastBlock.content.to + delimText.length },
+    scrollIntoView: true,
+    annotations: heynoteEvent.of(HEYNOTE_EVENTS.ADD_BLOCK),
   });
   return true;
 }
@@ -102,86 +194,41 @@ function deleteCurrentBlock(view: EditorView): boolean {
   const block = getActiveBlock(view.state);
   if (!block) return false;
 
-  const doc = view.state.doc;
+  let replace = '';
+  let newSelection: number;
 
-  // Only one block — just clear its content, preserve block structure
   if (blocks.length <= 1) {
-    const content = doc.sliceString(block.content.from, block.content.to).trim();
-    if (content === '') return true; // Already empty, nothing to do
-    view.dispatch({
-      changes: { from: block.content.from, to: block.content.to, insert: '' },
-      selection: { anchor: block.content.from },
-      annotations: heynoteEvent.of('deleteBlock'),
-    });
-    return true;
-  }
-
-  // Multiple blocks — delete entire block and move cursor
-  const idx = blocks.indexOf(block);
-
-  // Calculate full block range
-  const blockFrom = getBlockFrom(block);
-  const blockTo = getBlockEnd(doc, block);
-
-  // Cursor: end of previous block, or start of next block
-  let cursorPos: number;
-  if (idx > 0) {
-    const prev = blocks[idx - 1];
-    cursorPos = Math.max(prev.content.from, prev.content.to - 1);
+    const content = view.state.doc.sliceString(block.content.from, block.content.to).trim();
+    if (content === '') return true;
+    replace = getBlockDelimiter(DEFAULT_BLOCK_LANGUAGE);
+    newSelection = replace.length;
   } else {
-    cursorPos = 0;
+    const idx = blocks.indexOf(block);
+    const nextBlock = idx < blocks.length - 1 ? blocks[idx + 1] : null;
+
+    if (!nextBlock) {
+      newSelection = block.delimiter.from;
+    } else {
+      newSelection = block.delimiter.from + (nextBlock.delimiter.to - nextBlock.delimiter.from);
+    }
   }
 
   view.dispatch({
-    changes: { from: blockFrom, to: blockTo, insert: '' },
-    selection: { anchor: cursorPos },
-    annotations: heynoteEvent.of('deleteBlock'),
+    changes: { from: block.range.from, to: block.range.to, insert: replace },
+    selection: { anchor: newSelection },
+    annotations: heynoteEvent.of(HEYNOTE_EVENTS.DELETE_BLOCK),
   });
   return true;
 }
 
 export function changeBlockLanguage(view: EditorView, newLang: string): boolean {
   const block = getActiveBlock(view.state);
-  if (!block || block.type !== 'code' || !block.delimiter) return false;
+  if (!block) return false;
 
-  const doc = view.state.doc;
-  const line = doc.lineAt(block.delimiter.from);
-  const newLine = `\`\`\`${newLang}`;
-
+  const newDelim = getBlockDelimiter(newLang, block.language.auto, block.created ? new Date(block.created) : undefined);
   view.dispatch({
-    changes: { from: line.from, to: line.to, insert: newLine },
-    annotations: heynoteEvent.of('changeLanguage'),
-  });
-  return true;
-}
-
-export function convertBlockToCode(view: EditorView, language: string): boolean {
-  const block = getActiveBlock(view.state);
-  if (!block || block.type !== 'markdown') return false;
-  const content = view.state.doc.sliceString(block.content.from, block.content.to).trimEnd();
-  const newContent = `\`\`\`${language}\n${content}\n\`\`\`\n`;
-  view.dispatch({
-    changes: { from: block.content.from, to: block.content.to, insert: newContent },
-    selection: { anchor: block.content.from + language.length + 4 },
-    annotations: heynoteEvent.of('convertBlock'),
-  });
-  return true;
-}
-
-export function convertBlockToMarkdown(view: EditorView): boolean {
-  const block = getActiveBlock(view.state);
-  if (!block || block.type !== 'code' || !block.delimiter) return false;
-  const content = view.state.doc.sliceString(block.content.from, block.content.to);
-  const doc = view.state.doc;
-  let to = block.content.to;
-  const closing = findClosingFence(doc, block);
-  if (closing) {
-    to = Math.min(closing.line.to + 1, doc.length);
-  }
-  view.dispatch({
-    changes: { from: block.delimiter.from, to, insert: content },
-    selection: { anchor: block.delimiter.from },
-    annotations: heynoteEvent.of('convertBlock'),
+    changes: { from: block.delimiter.from, to: block.delimiter.to, insert: newDelim },
+    annotations: heynoteEvent.of(HEYNOTE_EVENTS.CHANGE_LANGUAGE),
   });
   return true;
 }
@@ -196,7 +243,7 @@ function gotoNextBlock(view: EditorView): boolean {
     const next = blocks[idx + 1];
     view.dispatch({
       selection: { anchor: next.content.from },
-      annotations: heynoteEvent.of('gotoBlock'),
+      annotations: heynoteEvent.of(HEYNOTE_EVENTS.GOTO_BLOCK),
     });
     return true;
   }
@@ -213,40 +260,11 @@ function gotoPreviousBlock(view: EditorView): boolean {
     const prev = blocks[idx - 1];
     view.dispatch({
       selection: { anchor: prev.content.from },
-      annotations: heynoteEvent.of('gotoBlock'),
+      annotations: heynoteEvent.of(HEYNOTE_EVENTS.GOTO_BLOCK),
     });
     return true;
   }
   return false;
-}
-
-export function findClosingFence(
-  doc: EditorState['doc'],
-  block: Block
-): { lineNum: number; line: { from: number; to: number } } | null {
-  if (block.type !== 'code' || !block.delimiter) return null;
-  const openingLineNum = doc.lineAt(block.delimiter.from).number;
-  for (let i = openingLineNum + 1; i <= doc.lines; i++) {
-    const line = doc.line(i);
-    if (line.text.trim() === '```' || line.text.trim().startsWith('```')) {
-      return { lineNum: i, line };
-    }
-  }
-  return null;
-}
-
-function getBlockEnd(doc: EditorState['doc'], block: Block): number {
-  if (block.type === 'code' && block.delimiter) {
-    const closing = findClosingFence(doc, block);
-    if (closing) {
-      return Math.min(closing.line.to + 1, doc.length);
-    }
-  }
-  return block.content.to;
-}
-
-function getBlockFrom(block: Block): number {
-  return block.type === 'code' && block.delimiter ? block.delimiter.from : block.content.from;
 }
 
 function moveBlockUp(view: EditorView): boolean {
@@ -258,16 +276,20 @@ function moveBlockUp(view: EditorView): boolean {
   if (idx === 0) return false;
 
   const prev = blocks[idx - 1];
-  const prevFrom = getBlockFrom(prev);
-  const blockFrom = getBlockFrom(block);
-  const blockEnd = getBlockEnd(view.state.doc, block);
+  const blockText = view.state.doc.sliceString(block.delimiter.from, block.content.to);
+  const prevText = view.state.doc.sliceString(prev.delimiter.from, prev.content.to);
 
-  const blockText = view.state.doc.sliceString(blockFrom, blockEnd);
-  const prevText = view.state.doc.sliceString(prevFrom, getBlockEnd(view.state.doc, prev));
+  const selectionRange = view.state.selection.main;
+  const newSelectionRange = EditorSelection.range(
+    selectionRange.anchor - block.delimiter.from + prev.delimiter.from,
+    selectionRange.head - block.delimiter.from + prev.delimiter.from,
+  );
 
   view.dispatch({
-    changes: { from: prevFrom, to: blockEnd, insert: blockText + prevText },
-    annotations: heynoteEvent.of('moveBlock'),
+    changes: { from: prev.delimiter.from, to: block.content.to, insert: blockText + prevText },
+    selection: newSelectionRange,
+    scrollIntoView: true,
+    annotations: heynoteEvent.of(HEYNOTE_EVENTS.MOVE_BLOCK),
   });
   return true;
 }
@@ -281,19 +303,24 @@ function moveBlockDown(view: EditorView): boolean {
   if (idx >= blocks.length - 1) return false;
 
   const next = blocks[idx + 1];
-  const blockFrom = getBlockFrom(block);
-  const nextFrom = getBlockFrom(next);
+  const blockText = view.state.doc.sliceString(block.delimiter.from, block.content.to);
+  const nextText = view.state.doc.sliceString(next.delimiter.from, next.content.to);
 
-  const blockText = view.state.doc.sliceString(blockFrom, getBlockEnd(view.state.doc, block));
-  const nextText = view.state.doc.sliceString(nextFrom, getBlockEnd(view.state.doc, next));
+  const selectionRange = view.state.selection.main;
+  const newSelectionRange = EditorSelection.range(
+    selectionRange.anchor + next.content.to - next.delimiter.from,
+    selectionRange.head + next.content.to - next.delimiter.from,
+  );
 
   view.dispatch({
     changes: {
-      from: blockFrom,
-      to: getBlockEnd(view.state.doc, next),
+      from: block.delimiter.from,
+      to: next.content.to,
       insert: nextText + blockText,
     },
-    annotations: heynoteEvent.of('moveBlock'),
+    selection: newSelectionRange,
+    scrollIntoView: true,
+    annotations: heynoteEvent.of(HEYNOTE_EVENTS.MOVE_BLOCK),
   });
   return true;
 }
@@ -303,15 +330,12 @@ function backspaceInBlock(view: EditorView): boolean {
   if (!block) return false;
 
   const sel = view.state.selection.main;
-  // Only intercept when there's no selection (simple cursor) and cursor is at block start
   if (!sel.empty) return false;
   if (sel.from !== block.content.from) return false;
 
-  // Cursor at start of block with no selection — check if block is empty
   const content = view.state.doc.sliceString(block.content.from, block.content.to).trim();
   if (content !== '') return false;
 
-  // Empty block at cursor start — delete the entire block
   return deleteCurrentBlock(view);
 }
 
@@ -320,7 +344,6 @@ function deleteInBlock(view: EditorView): boolean {
   if (!block) return false;
 
   const sel = view.state.selection.main;
-  // Only intercept when there's no selection and cursor is at block end
   if (!sel.empty) return false;
   if (sel.from !== block.content.to) return false;
 
@@ -334,6 +357,7 @@ export const blockKeymap = [
   { key: 'Mod-a', run: selectAllInBlock },
   { key: 'Mod-c', run: copyBlock },
   { key: 'Mod-Enter', run: addNewBlockAfterCurrent },
+  { key: 'Mod-Shift-Enter', run: addNewBlockAfterLast },
   { key: 'Mod-Shift-d', run: deleteCurrentBlock },
   { key: 'Backspace', run: backspaceInBlock },
   { key: 'Delete', run: deleteInBlock },

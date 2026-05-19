@@ -15,7 +15,7 @@ function HeaderInner({ onMenuPress, onSearchPress, onDownloadPress }: HeaderProp
   return (
     <header
       className="h-14 flex items-center justify-between px-4 shrink-0
-                 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]"
+                 bg-[var(--bg-surface)]"
     >
       {onMenuPress ? (
         <button
