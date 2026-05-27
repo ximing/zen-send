@@ -69,13 +69,16 @@ function SharedNotePage() {
   useEffect(() => {
     if (!token) return;
 
-    noteService.getSharedNote(token).then((note) => {
-      setSharedNote(note);
-      setLoading(false);
-    }).catch(() => {
-      setError('链接已失效或笔记不存在');
-      setLoading(false);
-    });
+    noteService
+      .getSharedNote(token)
+      .then((note) => {
+        setSharedNote(note);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('链接已失效或笔记不存在');
+        setLoading(false);
+      });
 
     return () => {
       viewRef.current?.destroy();
@@ -112,9 +115,7 @@ function SharedNotePage() {
     viewRef.current = view;
 
     const userName = authService.user?.nickname ?? authService.user?.email ?? randomGuestName();
-    const userColor = authService.user
-      ? hashToColor(authService.user.id)
-      : randomGuestColor();
+    const userColor = authService.user ? hashToColor(authService.user.id) : randomGuestColor();
 
     const { ytext, awareness } = noteCollabService.joinNote(
       sharedNote.id,
@@ -143,16 +144,26 @@ function SharedNotePage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>加载中...</span>
+      <div
+        className="flex h-screen items-center justify-center"
+        style={{ background: 'var(--bg-primary)' }}
+      >
+        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+          加载中...
+        </span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-3" style={{ background: 'var(--bg-primary)' }}>
-        <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{error}</span>
+      <div
+        className="flex h-screen flex-col items-center justify-center gap-3"
+        style={{ background: 'var(--bg-primary)' }}
+      >
+        <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          {error}
+        </span>
       </div>
     );
   }
@@ -166,7 +177,9 @@ function SharedNotePage() {
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           {sharedNote?.title || '共享笔记'}
         </span>
-        <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>· 协作模式</span>
+        <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+          · 协作模式
+        </span>
       </div>
       <div ref={editorRef} className="flex-1 overflow-hidden" />
     </div>

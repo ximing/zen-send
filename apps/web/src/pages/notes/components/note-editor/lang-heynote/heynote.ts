@@ -1,10 +1,6 @@
 import { parser } from './parser.js';
 import { configureNesting } from './nested-parser.js';
-import {
-  LRLanguage,
-  LanguageSupport,
-  foldNodeProp,
-} from '@codemirror/language';
+import { LRLanguage, LanguageSupport, foldNodeProp } from '@codemirror/language';
 import { styleTags, tags as t } from '@lezer/highlight';
 import { json } from '@codemirror/lang-json';
 

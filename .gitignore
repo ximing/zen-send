@@ -9,3 +9,4 @@ build
 !.env.example
 .worktrees
 .superpowers/
+tsconfig.tsbuildinfo
