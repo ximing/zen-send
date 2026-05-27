@@ -29,9 +29,7 @@ export class SocketService extends Service {
     console.log('[Socket] Connecting to:', socketUrl);
     console.log('[Socket] Auth token exists:', !!this.authService.accessToken);
 
-    const auth = shareToken
-      ? { shareToken }
-      : { token: this.authService.accessToken };
+    const auth = shareToken ? { shareToken } : { token: this.authService.accessToken };
 
     this._socket = io(socketUrl, {
       transports: ['websocket'],

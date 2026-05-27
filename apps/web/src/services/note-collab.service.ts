@@ -119,7 +119,11 @@ export class NoteCollabService extends Service {
       added,
       updated,
       removed,
-    }: { added: number[]; updated: number[]; removed: number[] }) => {
+    }: {
+      added: number[];
+      updated: number[];
+      removed: number[];
+    }) => {
       const changedClients = [...added, ...updated, ...removed];
       const encoded = awarenessProtocol.encodeAwarenessUpdate(awareness, changedClients);
       socket.emit('note:collab:awareness', { noteId, awareness: Array.from(encoded) });

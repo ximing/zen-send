@@ -6,6 +6,7 @@ import { useIsWide } from '../../hooks/use-is-wide';
 import { AuthService } from '../../services/auth.service';
 import { NoteService } from '../../services/note.service';
 import { HomeService } from '../../pages/home/home.service';
+import { SocketService } from '../../services/socket.service';
 import Sidebar from '../sidebar';
 import Drawer from '../drawer';
 import Header from '../header';
@@ -33,12 +34,15 @@ function AppLayoutInner() {
   const authService = useService(AuthService);
   const noteService = useService(NoteService);
   const homeService = useService(HomeService);
+  const socketService = useService(SocketService);
 
-  // Initialize note service when authenticated
+  // Connect socket and initialize services when authenticated
   useEffect(() => {
     if (authService.isAuthenticated) {
+      socketService.connect();
       noteService.loadNoteList();
     } else {
+      socketService.disconnect();
       noteService.notes = [];
       noteService.currentNote = null;
       noteService.currentNoteId = '';

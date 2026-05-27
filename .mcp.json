@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "chrome-devtools-mcp-b": {
+      "command": "npx",
+      "args": [
+        "@mcp-b/chrome-devtools-mcp@latest",
+        "--browser-url=http://127.0.0.1:9222"
+      ]
+    }
+  }
+}

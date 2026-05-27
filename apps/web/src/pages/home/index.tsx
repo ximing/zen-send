@@ -2,7 +2,6 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { observer, useService } from '@rabjs/react';
 import { Upload } from 'lucide-react';
 import { HomeService } from './home.service';
-import { SocketService } from '../../services/socket.service';
 import FilterTabs from '../../components/filter-tabs';
 import TransferList from '../../components/transfer-list';
 import SelectedFiles from '../../components/selected-files';
@@ -12,13 +11,11 @@ import { getMimeTypeFromExtension } from '../../lib/zen-bridge';
 
 const HomeContent = observer(() => {
   const homeService = useService(HomeService);
-  const socketService = useService(SocketService);
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     homeService.loadTransfers();
-    socketService.connect();
-  }, [homeService, socketService]);
+  }, [homeService]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();

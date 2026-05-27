@@ -6,7 +6,7 @@ import { logger } from '@zen-send/logger';
 import { notes } from '../db/schema.js';
 
 const GC_THRESHOLD_BYTES = 1024 * 1024; // 1 MB
-const LRU_TTL_MS = 30 * 60 * 1000;      // 30 分钟无活跃连接后释放
+const LRU_TTL_MS = 30 * 60 * 1000; // 30 分钟无活跃连接后释放
 
 @Service()
 export class NoteCollabService {
