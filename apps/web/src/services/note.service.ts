@@ -2,7 +2,7 @@ import { Service } from '@rabjs/react';
 import { AuthService } from './auth.service';
 import { ApiService } from './api.service';
 import { ToastService } from '../components/toast/toast.service';
-import type { NoteListItem, NoteDetail } from '@zen-send/dto';
+import type { NoteListItem, NoteDetail, ShareNoteResponse, SharedNoteDetail } from '@zen-send/dto';
 
 export class NoteService extends Service {
   notes: NoteListItem[] = [];
@@ -101,6 +101,26 @@ export class NoteService extends Service {
     } catch {
       this.toastService.show('删除笔记失败', 'error');
     }
+  }
+
+  async enableShare(noteId: string): Promise<string> {
+    const { shareToken } = await this.apiService.post<ShareNoteResponse>(`/api/notes/${noteId}/share`, {});
+    if (this.currentNote && this.currentNote.id === noteId) {
+      this.currentNote.isShared = true;
+      this.currentNote.shareToken = shareToken;
+    }
+    return shareToken;
+  }
+
+  async disableShare(noteId: string): Promise<void> {
+    await this.apiService.delete(`/api/notes/${noteId}/share`);
+    if (this.currentNote && this.currentNote.id === noteId) {
+      this.currentNote.isShared = false;
+    }
+  }
+
+  async getSharedNote(token: string): Promise<SharedNoteDetail> {
+    return this.apiService.get<SharedNoteDetail>(`/api/notes/share/${token}`);
   }
 
   setCurrentNoteId(id: string): void {

@@ -1,9 +1,10 @@
+import { randomBytes } from 'crypto';
 import { eq, and, asc } from 'drizzle-orm';
 import { Service } from 'typedi';
 import { DbService } from './db.service.js';
 import { notes } from '../db/schema.js';
 import { generateNoteId } from '../utils/id.js';
-import type { NoteDetail, NoteListItem } from '@zen-send/dto';
+import type { NoteDetail, NoteListItem, SharedNoteDetail } from '@zen-send/dto';
 
 @Service()
 export class NoteService {
@@ -32,7 +33,60 @@ export class NoteService {
       .from(notes)
       .where(and(eq(notes.id, id), eq(notes.userId, userId)))
       .limit(1);
-    return (result[0] as NoteDetail) ?? null;
+    if (!result[0]) return null;
+    const row = result[0];
+    return {
+      id: row.id,
+      userId: row.userId,
+      title: row.title,
+      content: row.content,
+      sortOrder: row.sortOrder,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isShared: row.isShared === 1,
+      shareToken: row.shareToken ?? undefined,
+    };
+  }
+
+  async getNoteByShareToken(token: string): Promise<SharedNoteDetail | null> {
+    const result = await this.db
+      .select({ id: notes.id, title: notes.title, content: notes.content, isShared: notes.isShared })
+      .from(notes)
+      .where(and(eq(notes.shareToken, token), eq(notes.isShared, 1)))
+      .limit(1);
+    if (!result[0]) return null;
+    const row = result[0];
+    return { id: row.id, title: row.title, content: row.content };
+  }
+
+  async enableShare(id: string, userId: string): Promise<string> {
+    const existing = await this.db
+      .select({ shareToken: notes.shareToken })
+      .from(notes)
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .limit(1);
+    if (existing.length === 0) throw new Error('Note not found');
+
+    const token = existing[0].shareToken ?? randomBytes(16).toString('hex');
+    await this.db
+      .update(notes)
+      .set({ shareToken: token, isShared: 1 })
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)));
+    return token;
+  }
+
+  async disableShare(id: string, userId: string): Promise<void> {
+    const existing = await this.db
+      .select({ id: notes.id })
+      .from(notes)
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .limit(1);
+    if (existing.length === 0) throw new Error('Note not found');
+
+    await this.db
+      .update(notes)
+      .set({ isShared: 0 })
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)));
   }
 
   async createNote(

@@ -15,6 +15,7 @@ import { ToastService } from './components/toast/toast.service';
 import { HomeService } from './pages/home/home.service';
 import { UserService } from './services/user.service';
 import { NoteService } from './services/note.service';
+import { NoteCollabService } from './services/note-collab.service';
 
 // Register global Services
 register(ApiService);
@@ -27,6 +28,7 @@ register(ToastService);
 register(HomeService);
 register(UserService);
 register(NoteService);
+register(NoteCollabService);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

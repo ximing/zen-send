@@ -6,7 +6,10 @@ import {
   rectangularSelection,
   highlightSpecialChars,
 } from '@codemirror/view';
-import { Compartment, EditorState } from '@codemirror/state';
+import { Compartment, EditorState, type Extension } from '@codemirror/state';
+import { yCollab } from 'y-codemirror.next';
+import type * as Y from 'yjs';
+import type * as awarenessProtocol from 'y-protocols/awareness';
 import { defaultKeymap, history, historyKeymap, indentWithTab, selectAll } from '@codemirror/commands';
 import {
   syntaxHighlighting,
@@ -27,6 +30,13 @@ import { heynoteLang } from './lang-heynote/heynote';
 import { theme as appTheme } from '../../../../theme/tokens';
 
 export const themeCompartment = new Compartment();
+
+export function createCollabExtensions(
+  ytext: Y.Text,
+  awareness: awarenessProtocol.Awareness
+): Extension {
+  return yCollab(ytext, awareness);
+}
 
 export function createEditorExtensions(isDark: boolean) {
   return [

@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { observer, useService } from '@rabjs/react';
 import { EditorView, keymap } from '@codemirror/view';
-import { EditorState, Prec } from '@codemirror/state';
-import { ChevronLeft, ChevronDown } from 'lucide-react';
+import { EditorState, Prec, StateEffect } from '@codemirror/state';
+import { ChevronLeft, ChevronDown, Share2 } from 'lucide-react';
+import ShareDialog from '../share-dialog/share-dialog';
 import { NoteService } from '../../../../services/note.service';
+import { NoteCollabService } from '../../../../services/note-collab.service';
+import { AuthService } from '../../../../services/auth.service';
 import { useTheme } from '../../../../theme/theme-provider';
-import { createEditorExtensions, createEditorTheme, themeCompartment } from './editor-setup';
-import { blockState, getActiveBlock, DEFAULT_BLOCK_CONTENT, migrateFromMarkdownFormat } from './block-state';
+import { createEditorExtensions, createEditorTheme, themeCompartment, createCollabExtensions } from './editor-setup';
+import { hashToColor } from './collab-colors';
+import { blockState, getActiveBlock } from './block-state';
 import {
   blockKeymap,
   getLanguageList,
@@ -32,12 +36,15 @@ function NoteEditorInner() {
   const viewRef = useRef<EditorView | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const noteService = useService(NoteService);
+  const noteCollabService = useService(NoteCollabService);
+  const authService = useService(AuthService);
   const { resolvedTheme } = useTheme();
   const isWide = useIsWide();
   const navigate = useNavigate();
 
   const [activeBlock, setActiveBlock] = useState<{ language: string } | null>(null);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const prevActiveBlockRef = useRef<{ language: string } | null>(null);
@@ -64,11 +71,16 @@ function NoteEditorInner() {
       handleSaveNow();
     }
 
-    const content = migrateFromMarkdownFormat(noteService.currentNote.content || DEFAULT_BLOCK_CONTENT);
+    const noteId = noteService.currentNote.id;
     const currentSaveTimeoutRef = saveTimeoutRef;
+    const userName = authService.user?.nickname ?? authService.user?.email ?? 'Anonymous';
+    const userColor = hashToColor(authService.user?.id ?? '');
+    const { ytext, awareness } = noteCollabService.joinNote(noteId, userName, userColor);
 
+    // CM6 初始内容必须为空，yCollab 会在 Yjs sync 后把 YText 内容推入 CM6
+    // 不能用 DB content 初始化，否则与 YText sync 叠加会产生重复内容
     const state = EditorState.create({
-      doc: content,
+      doc: '',
       extensions: [
         ...createEditorExtensions(resolvedTheme === 'dark'),
         blockState,
@@ -82,6 +94,7 @@ function NoteEditorInner() {
         blockLayer,
         copiedHighlightState,
         copiedHighlightPlugin,
+        createCollabExtensions(ytext, awareness),
         Prec.high(keymap.of(blockKeymap)),
         keymap.of([
           {
@@ -104,30 +117,28 @@ function NoteEditorInner() {
               }
             }
           }
+          // Yjs 负责内容持久化；这里只在 title 自动提取时保存 title
           if (update.docChanged) {
-            noteService.saveStatus = 'idle';
             if (currentSaveTimeoutRef.current) clearTimeout(currentSaveTimeoutRef.current);
             currentSaveTimeoutRef.current = setTimeout(() => {
               if (!viewRef.current || !noteService.currentNote) return;
-              const doc = viewRef.current.state.doc.toString();
-              const title = noteService.shouldAutoExtractTitle(noteService.currentNote.id)
-                ? noteService.extractTitleFromContent(doc)
-                : noteService.currentNote.title;
-              noteService.saveNote(noteService.currentNote.id, doc, title);
+              if (!noteService.shouldAutoExtractTitle(noteService.currentNote.id)) return;
+              const docText = viewRef.current.state.doc.toString();
+              const title = noteService.extractTitleFromContent(docText);
+              if (title !== noteService.currentNote.title) {
+                noteService.saveNote(noteService.currentNote.id, docText, title);
+              }
             }, 2000);
           }
         }),
       ],
     });
 
-    const view = new EditorView({
-      state,
-      parent: editorRef.current,
-    });
-
+    const view = new EditorView({ state, parent: editorRef.current });
     viewRef.current = view;
 
     return () => {
+      noteCollabService.leaveNote();
       handleSaveNow();
       view.destroy();
       viewRef.current = null;
@@ -208,8 +219,22 @@ function NoteEditorInner() {
     noteService.saveNote(noteService.currentNoteId, noteService.currentNote.content || '', trimmed);
   };
 
+  const connectionStatus = noteCollabService.connectionStatus;
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
+      {/* 离线 / 重连 Banner */}
+      {connectionStatus !== 'connected' && (
+        <div
+          className="flex items-center justify-center px-4 py-1 text-xs"
+          style={{
+            background: connectionStatus === 'reconnecting' ? 'var(--color-warning)' : 'var(--color-error)',
+            color: '#fff',
+          }}
+        >
+          {connectionStatus === 'disconnected' ? '连接已断开，编辑内容将在重连后自动同步' : '正在重新连接...'}
+        </div>
+      )}
       <div
         className="note-toolbar h-14 flex items-center justify-between px-4 py-2"
         style={{
@@ -255,6 +280,52 @@ function NoteEditorInner() {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          {/* 在线协作者头像堆叠 */}
+          {noteCollabService.collaborators.length > 0 && (
+            <div className="flex items-center" style={{ marginRight: -4 }}>
+              {noteCollabService.collaborators.slice(0, 5).map((collab) => (
+                <div
+                  key={collab.clientId}
+                  title={collab.name}
+                  className="flex items-center justify-center rounded-full text-white text-xs font-medium shrink-0"
+                  style={{
+                    width: 22,
+                    height: 22,
+                    backgroundColor: collab.color,
+                    border: '2px solid var(--bg-surface)',
+                    marginLeft: -6,
+                    fontSize: 9,
+                  }}
+                >
+                  {collab.name.slice(0, 1).toUpperCase()}
+                </div>
+              ))}
+              {noteCollabService.collaborators.length > 5 && (
+                <div
+                  className="flex items-center justify-center rounded-full text-xs font-medium shrink-0"
+                  style={{
+                    width: 22,
+                    height: 22,
+                    backgroundColor: 'var(--bg-elevated)',
+                    color: 'var(--text-secondary)',
+                    border: '2px solid var(--bg-surface)',
+                    marginLeft: -6,
+                    fontSize: 9,
+                  }}
+                >
+                  +{noteCollabService.collaborators.length - 5}
+                </div>
+              )}
+            </div>
+          )}
+          <button
+            onClick={() => setShareDialogOpen(true)}
+            className="rounded px-2 py-1 flex items-center"
+            style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', background: 'var(--bg-primary)' }}
+            title="分享笔记"
+          >
+            <Share2 size={13} />
+          </button>
           <div className="lang-dropdown-container relative">
             <button
               onClick={() => setLangDropdownOpen((prev) => !prev)}
@@ -310,6 +381,13 @@ function NoteEditorInner() {
         </div>
       </div>
       <div ref={editorRef} className="flex-1 overflow-hidden" />
+      {noteService.currentNoteId && (
+        <ShareDialog
+          noteId={noteService.currentNoteId}
+          open={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+        />
+      )}
     </div>
   );
 }

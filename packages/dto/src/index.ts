@@ -101,4 +101,16 @@ export interface NoteDetail {
   sortOrder: number;
   createdAt: number;
   updatedAt: number;
+  isShared?: boolean;
+  shareToken?: string;
+}
+
+export interface ShareNoteResponse {
+  shareToken: string;
+}
+
+export interface SharedNoteDetail {
+  id: string;
+  title: string;
+  content: string;
 }

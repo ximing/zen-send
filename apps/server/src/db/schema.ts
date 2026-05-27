@@ -1,4 +1,10 @@
-import { mysqlTable, varchar, int, bigint, text, tinyint } from 'drizzle-orm/mysql-core';
+import { mysqlTable, varchar, int, bigint, text, tinyint, customType } from 'drizzle-orm/mysql-core';
+
+const mediumblob = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return 'mediumblob';
+  },
+});
 
 export const users = mysqlTable('users', {
   id: varchar('id', { length: 24 }).primaryKey(),
@@ -57,6 +63,9 @@ export const notes = mysqlTable('notes', {
   userId: varchar('userId', { length: 24 }).notNull(),
   title: varchar('title', { length: 100 }).notNull().default('未命名笔记'),
   content: text('content').notNull().default(''),
+  yjsState: mediumblob('yjsState'),
+  shareToken: varchar('shareToken', { length: 32 }),
+  isShared: tinyint('isShared').notNull().default(0),
   sortOrder: int('sortOrder').notNull().default(0),
   createdAt: int('createdAt').notNull(),
   updatedAt: int('updatedAt').notNull(),
