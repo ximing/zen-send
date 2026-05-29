@@ -6,10 +6,9 @@ const MODIFIER_KEYS = new Set(['Meta', 'Control', 'Alt', 'Shift']);
 
 function normalizeAccelerator(e: KeyboardEvent): string {
   const parts: string[] = [];
-  if (e.ctrlKey) parts.push('Ctrl');
+  if (e.metaKey || e.ctrlKey) parts.push('CommandOrControl');
   if (e.altKey) parts.push('Alt');
   if (e.shiftKey) parts.push('Shift');
-  if (e.metaKey) parts.push('CommandOrControl');
   if (!MODIFIER_KEYS.has(e.key)) {
     parts.push(e.key.length === 1 ? e.key.toUpperCase() : e.key);
   }
@@ -34,7 +33,7 @@ export default function GeneralSettings() {
   const [recordedKeys, setRecordedKeys] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const recordingRef = useRef(false);
+  const recordedKeysRef = useRef('');
 
   useEffect(() => {
     bridge.getGlobalShortcut?.().then((v) => setShortcut(v || ''));
@@ -42,26 +41,33 @@ export default function GeneralSettings() {
 
   useEffect(() => {
     if (!isRecording) return;
-    recordingRef.current = true;
+    recordedKeysRef.current = '';
 
     const handleKeyDown = (e: KeyboardEvent) => {
       e.preventDefault();
       if (e.key === 'Escape') {
         setIsRecording(false);
         setRecordedKeys('');
+        recordedKeysRef.current = '';
         return;
       }
       const acc = normalizeAccelerator(e);
-      if (acc) setRecordedKeys(acc);
+      if (acc) {
+        setRecordedKeys(acc);
+        recordedKeysRef.current = acc;
+      }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
       e.preventDefault();
-      if (!recordingRef.current) return;
-      if (!MODIFIER_KEYS.has(e.key) && recordedKeys) {
+      const acc = recordedKeysRef.current;
+      if (!acc) return;
+      // 检查 acc 里是否包含非修饰键（即有主键部分）
+      const hasNonModifier = acc.split('+').some((p) => !['CommandOrControl', 'Ctrl', 'Alt', 'Shift'].includes(p));
+      if (hasNonModifier) {
         setIsRecording(false);
-        const acc = recordedKeys;
         setRecordedKeys('');
+        recordedKeysRef.current = '';
         commitShortcut(acc);
       }
     };
@@ -71,9 +77,8 @@ export default function GeneralSettings() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown, true);
       window.removeEventListener('keyup', handleKeyUp, true);
-      recordingRef.current = false;
     };
-  }, [isRecording, recordedKeys]);
+  }, [isRecording]);
 
   const commitShortcut = async (acc: string) => {
     setError('');
