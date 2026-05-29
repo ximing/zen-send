@@ -5,6 +5,39 @@ import { DbService } from './db.service.js';
 import { logger } from '@zen-send/logger';
 import { notes } from '../db/schema.js';
 
+const BLOCK_MARKER = '∞∞∞';
+const FENCE_REGEX = /```([a-zA-Z0-9+-.]*)\n([\s\S]*?)```/g;
+
+function getBlockDelimiter(language: string): string {
+  return `\n${BLOCK_MARKER}${language};created=${new Date().toISOString()}\n`;
+}
+
+function migrateToBlockFormat(content: string): string {
+  if (content.includes(BLOCK_MARKER)) return content;
+  if (!content) return getBlockDelimiter('markdown');
+
+  FENCE_REGEX.lastIndex = 0;
+  let result = '';
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = FENCE_REGEX.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      const mdContent = content.slice(lastIndex, match.index).trim();
+      if (mdContent) result += getBlockDelimiter('markdown') + mdContent;
+    }
+    result += getBlockDelimiter(match[1] || 'text') + match[2].trimEnd();
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < content.length) {
+    const remaining = content.slice(lastIndex).trim();
+    if (remaining) result += getBlockDelimiter('markdown') + remaining;
+  }
+
+  return result || getBlockDelimiter('markdown') + content.trim();
+}
+
 const GC_THRESHOLD_BYTES = 1024 * 1024; // 1 MB
 const LRU_TTL_MS = 30 * 60 * 1000; // 30 分钟无活跃连接后释放
 
@@ -48,17 +81,35 @@ export class NoteCollabService {
         const content = tempDoc.getText('content').toString();
         tempDoc.destroy();
         doc.transact(() => {
-          doc.getText('content').insert(0, content);
+          doc.getText('content').insert(0, migrateToBlockFormat(content));
         });
         logger.info({ noteId, originalSize: stateBytes.length }, 'Yjs GC: doc rebuilt');
         // 立即持久化压缩后的 state
         this.schedulePersist(noteId, doc);
       } else {
         Y.applyUpdate(doc, new Uint8Array(stateBytes));
+        // Migrate legacy notes that don't have block delimiters yet
+        const ytext = doc.getText('content');
+        const existingContent = ytext.toString();
+        if (existingContent && !existingContent.includes(BLOCK_MARKER)) {
+          const migrated = migrateToBlockFormat(existingContent);
+          doc.transact(() => {
+            ytext.delete(0, ytext.length);
+            ytext.insert(0, migrated);
+          });
+          this.schedulePersist(noteId, doc);
+          logger.info({ noteId }, 'Yjs: migrated legacy note to block format');
+        }
       }
     } else if (row?.content) {
       doc.transact(() => {
-        doc.getText('content').insert(0, row.content);
+        doc.getText('content').insert(0, migrateToBlockFormat(row.content));
+      });
+    } else {
+      // New empty note: initialize with a default block delimiter so the editor
+      // always has a valid block structure from the start.
+      doc.transact(() => {
+        doc.getText('content').insert(0, getBlockDelimiter('markdown'));
       });
     }
 

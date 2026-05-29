@@ -330,6 +330,7 @@ function moveBlockDown(view: EditorView): boolean {
 }
 
 function backspaceInBlock(view: EditorView): boolean {
+  const blocks = view.state.field(blockState);
   const block = getActiveBlock(view.state);
   if (!block) return false;
 
@@ -340,10 +341,15 @@ function backspaceInBlock(view: EditorView): boolean {
   const content = view.state.doc.sliceString(block.content.from, block.content.to).trim();
   if (content !== '') return false;
 
+  // Only intercept backspace when there are multiple blocks; with a single block,
+  // let the default handler delete the empty line normally.
+  if (blocks.length <= 1) return false;
+
   return deleteCurrentBlock(view);
 }
 
 function deleteInBlock(view: EditorView): boolean {
+  const blocks = view.state.field(blockState);
   const block = getActiveBlock(view.state);
   if (!block) return false;
 
@@ -353,6 +359,8 @@ function deleteInBlock(view: EditorView): boolean {
 
   const content = view.state.doc.sliceString(block.content.from, block.content.to).trim();
   if (content !== '') return false;
+
+  if (blocks.length <= 1) return false;
 
   return deleteCurrentBlock(view);
 }

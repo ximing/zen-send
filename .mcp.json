@@ -3,8 +3,9 @@
     "chrome-devtools-mcp-b": {
       "command": "npx",
       "args": [
-        "@mcp-b/chrome-devtools-mcp@latest",
-        "--browser-url=http://127.0.0.1:9222"
+        "@mcp-b/chrome-devtools-mcp@2.3.2",
+        "--browser-url=http://127.0.0.1:9222",
+        "--category-experimental-webmcp"
       ]
     }
   }
