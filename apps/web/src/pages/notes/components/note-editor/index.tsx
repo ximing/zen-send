@@ -7,6 +7,7 @@ import ShareDialog from '../share-dialog/share-dialog';
 import { NoteService } from '../../../../services/note.service';
 import { NoteCollabService } from '../../../../services/note-collab.service';
 import { AuthService } from '../../../../services/auth.service';
+import { ToastService } from '../../../../components/toast/toast.service';
 import { useTheme } from '../../../../theme/theme-provider';
 import {
   createEditorExtensions,
@@ -43,6 +44,7 @@ function NoteEditorInner() {
   const noteService = useService(NoteService);
   const noteCollabService = useService(NoteCollabService);
   const authService = useService(AuthService);
+  const toastService = useService(ToastService);
   const { resolvedTheme } = useTheme();
   const isWide = useIsWide();
   const navigate = useNavigate();
@@ -102,6 +104,10 @@ function NoteEditorInner() {
         createCollabExtensions(ytext, awareness),
         Prec.high(keymap.of(blockKeymap)),
         keymap.of([
+          {
+            key: 'Mod-s',
+            run: () => true,
+          },
           {
             key: 'Mod-l',
             run: () => {
@@ -164,6 +170,17 @@ function NoteEditorInner() {
       noteService._saveNowFn = null;
     };
   }, [handleSaveNow, noteService]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        toastService.show('已保存', 'success');
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [toastService]);
 
   useEffect(() => {
     if (!langDropdownOpen) return;
