@@ -12,12 +12,11 @@ function NotesPage() {
   useEffect(() => {
     if (id && id !== noteService.currentNoteId) {
       if (noteService._saveNowFn) noteService._saveNowFn();
-
       noteService.loadNote(id);
     }
   }, [id]);
 
-  if (!id || !noteService.currentNote) {
+  if (!id) {
     return <NoteEmptyState />;
   }
 

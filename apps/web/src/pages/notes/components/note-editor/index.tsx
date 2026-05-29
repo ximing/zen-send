@@ -13,8 +13,12 @@ import {
   createEditorExtensions,
   createEditorTheme,
   themeCompartment,
+  highlightCompartment,
+  darkHighlight,
+  lightHighlight,
   createCollabExtensions,
 } from './editor-setup';
+import { syntaxHighlighting } from '@codemirror/language';
 import { hashToColor } from './collab-colors';
 import { blockState, getActiveBlock } from './block-state';
 import {
@@ -163,8 +167,14 @@ function NoteEditorInner() {
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
+    const isDark = resolvedTheme === 'dark';
     view.dispatch({
-      effects: themeCompartment.reconfigure(createEditorTheme(resolvedTheme === 'dark')),
+      effects: [
+        themeCompartment.reconfigure(createEditorTheme(isDark)),
+        highlightCompartment.reconfigure(
+          syntaxHighlighting(isDark ? darkHighlight : lightHighlight, { fallback: true })
+        ),
+      ],
     });
   }, [resolvedTheme]);
 
@@ -217,7 +227,9 @@ function NoteEditorInner() {
   }[noteService.saveStatus];
 
   const languages = getLanguageList();
-  const displayLanguage = activeBlock ? activeBlock.language.toUpperCase() : '';
+  const displayLanguage = activeBlock
+    ? (languages.find((l) => l.token === activeBlock.language)?.name ?? activeBlock.language).toUpperCase()
+    : '';
 
   const handleLanguageSelect = (lang: string) => {
     const view = viewRef.current;
@@ -227,8 +239,11 @@ function NoteEditorInner() {
     setLangDropdownOpen(false);
   };
 
+  const editingNoteIdRef = useRef<string>('');
+
   const startEditingTitle = () => {
     if (!noteService.currentNote) return;
+    editingNoteIdRef.current = noteService.currentNoteId;
     setEditTitle(noteService.currentNote.title);
     setIsEditingTitle(true);
     setTimeout(() => titleInputRef.current?.select(), 0);
@@ -237,10 +252,16 @@ function NoteEditorInner() {
   const commitTitle = () => {
     setIsEditingTitle(false);
     const trimmed = editTitle.trim();
-    if (!trimmed || !noteService.currentNote || !noteService.currentNoteId) return;
-    if (trimmed === noteService.currentNote.title) return;
-    noteService.markTitleManuallyEdited(noteService.currentNoteId);
-    noteService.saveNote(noteService.currentNoteId, noteService.currentNote.content || '', trimmed);
+    const noteId = editingNoteIdRef.current;
+    if (!trimmed || !noteId) return;
+    const note = noteService.notes.find((n) => n.id === noteId);
+    const currentTitle = noteId === noteService.currentNoteId ? noteService.currentNote?.title : note?.title;
+    if (!currentTitle || trimmed === currentTitle) return;
+    noteService.markTitleManuallyEdited(noteId);
+    const content = noteId === noteService.currentNoteId
+      ? (viewRef.current?.state.doc.toString() ?? noteService.currentNote?.content ?? '')
+      : (note ? '' : '');
+    noteService.saveNote(noteId, content, trimmed);
   };
 
   const connectionStatus = noteCollabService.connectionStatus;
@@ -389,16 +410,16 @@ function NoteEditorInner() {
               >
                 {languages.map((lang) => (
                   <button
-                    key={lang}
-                    onClick={() => handleLanguageSelect(lang)}
+                    key={lang.token}
+                    onClick={() => handleLanguageSelect(lang.token)}
                     className="lang-dropdown-item block w-full text-left px-3 py-1.5 text-xs rounded"
                     style={{
                       color:
-                        activeBlock?.language === lang ? 'var(--accent)' : 'var(--text-primary)',
-                      fontWeight: activeBlock?.language === lang ? 600 : 400,
+                        activeBlock?.language === lang.token ? 'var(--accent)' : 'var(--text-primary)',
+                      fontWeight: activeBlock?.language === lang.token ? 600 : 400,
                     }}
                   >
-                    {lang.toUpperCase()}
+                    {lang.name}
                   </button>
                 ))}
               </div>
