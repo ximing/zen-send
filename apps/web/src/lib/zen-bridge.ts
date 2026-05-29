@@ -29,6 +29,11 @@ export interface ZenBridge {
   // Server configuration (Electron only)
   getServerUrl?: () => string;
   setServerUrl?: (url: string) => void;
+
+  // Global shortcut (Electron only)
+  getGlobalShortcut?: () => Promise<string>;
+  setGlobalShortcut?: (accelerator: string) => Promise<{ success: boolean; error?: string }>;
+  clearGlobalShortcut?: () => Promise<void>;
 }
 
 // Get zenBridge instance

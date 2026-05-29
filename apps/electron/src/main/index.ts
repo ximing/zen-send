@@ -1,4 +1,4 @@
-import { app, ipcMain, dialog } from 'electron';
+import { app, ipcMain, dialog, globalShortcut } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
@@ -22,12 +22,26 @@ const serverUrlStore = new Store<{ serverUrl: string }>({
   defaults: { serverUrl: process.env.VITE_DEFAULT_SERVER_URL || '' },
 });
 
+// Global shortcut store
+const shortcutStore = new Store<{ accelerator: string }>({
+  name: 'global-shortcut',
+  defaults: { accelerator: '' },
+});
+
 export function getIsQuitting(): boolean {
   return isQuitting;
 }
 
 export function setIsQuitting(value: boolean): void {
   isQuitting = value;
+}
+
+function registerGlobalShortcut(windowManager: WindowManager, accelerator: string): boolean {
+  globalShortcut.unregisterAll();
+  if (!accelerator) return true;
+  return globalShortcut.register(accelerator, () => {
+    windowManager.show();
+  });
 }
 
 export async function initializeApp(): Promise<void> {
@@ -47,6 +61,12 @@ export async function initializeApp(): Promise<void> {
     menuManager.create();
   }, 1000);
 
+  // Restore global shortcut from store
+  const savedShortcut = shortcutStore.store.accelerator;
+  if (savedShortcut) {
+    registerGlobalShortcut(windowManager, savedShortcut);
+  }
+
   // App event handlers
   app.on('window-all-closed', () => {
     // Keep running with tray icon on all platforms
@@ -62,14 +82,14 @@ export async function initializeApp(): Promise<void> {
   });
 
   app.on('will-quit', () => {
-    // Cleanup
+    globalShortcut.unregisterAll();
     trayManager.destroy();
   });
 
   logger.info({ version: app.getVersion() }, 'Zen Send Electron app initialized');
 }
 
-function registerIpcHandlers(_windowManager: WindowManager): void {
+function registerIpcHandlers(windowManager: WindowManager): void {
   // Log preload info
   ipcMain.handle('log-preload', (_event, data) => {
     logger.info('[Preload] Log received:', data);
@@ -116,6 +136,30 @@ function registerIpcHandlers(_windowManager: WindowManager): void {
   ipcMain.on('server-url:changed', (_event, url: string) => {
     serverUrlStore.set('serverUrl', url);
     logger.info('[Server URL] Updated: %s', url);
+  });
+
+  // Global shortcut: get
+  ipcMain.handle('shortcut:get', () => {
+    return shortcutStore.store.accelerator || '';
+  });
+
+  // Global shortcut: set
+  ipcMain.handle('shortcut:set', (_event, accelerator: string) => {
+    const success = registerGlobalShortcut(windowManager, accelerator);
+    if (success) {
+      shortcutStore.set('accelerator', accelerator);
+      logger.info('[Shortcut] Registered: %s', accelerator);
+    } else {
+      logger.warn('[Shortcut] Failed to register: %s', accelerator);
+    }
+    return { success, error: success ? undefined : '快捷键注册失败，可能已被其他应用占用' };
+  });
+
+  // Global shortcut: clear
+  ipcMain.handle('shortcut:clear', () => {
+    globalShortcut.unregisterAll();
+    shortcutStore.set('accelerator', '');
+    logger.info('[Shortcut] Cleared');
   });
 }
 
