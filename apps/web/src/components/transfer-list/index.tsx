@@ -1,10 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer, useService } from '@rabjs/react';
-import {
-  VirtuosoMessageList,
-  VirtuosoMessageListLicense,
-  VirtuosoMessageListMethods,
-} from '@virtuoso.dev/message-list';
+import { VList, type VListHandle } from 'virtua';
 import { ChevronDown, MailOpen } from 'lucide-react';
 import { HomeService } from '../../pages/home/home.service';
 import { DeviceService } from '../../services/device.service';
@@ -19,12 +15,11 @@ function TransferListInner() {
   const deviceService = useService(DeviceService);
   const socketService = useService(SocketService);
   const toastService = useService(ToastService);
-  const virtuosoRef = useRef<VirtuosoMessageListMethods<TransferSession, null>>(null);
+  const vlistRef = useRef<VListHandle>(null);
   const [atBottom, setAtBottom] = useState(true);
   const [newTransferCount, setNewTransferCount] = useState(0);
   const atBottomRef = useRef(true);
 
-  // Keep ref in sync with state
   useEffect(() => {
     atBottomRef.current = atBottom;
   }, [atBottom]);
@@ -39,7 +34,6 @@ function TransferListInner() {
       const session = payload.session;
       if (!session) return;
 
-      // addTransfer already deduplicates by id
       homeService.addTransfer(session);
 
       if (!atBottomRef.current) {
@@ -62,9 +56,27 @@ function TransferListInner() {
   }, [socketService, homeService]);
 
   const scrollToBottom = useCallback(() => {
-    virtuosoRef.current?.scrollToItem({ index: 'LAST', align: 'end' });
+    const handle = vlistRef.current;
+    if (!handle) return;
+    handle.scrollToIndex(homeService.filteredTransfers.length - 1, { align: 'end', smooth: true });
     setNewTransferCount(0);
-  }, []);
+  }, [homeService]);
+
+  const handleScroll = useCallback(
+    (offset: number) => {
+      const handle = vlistRef.current;
+      if (!handle) return;
+
+      const isAtBottom = offset + handle.viewportSize >= handle.scrollSize - 1;
+      setAtBottom(isAtBottom);
+      if (isAtBottom) setNewTransferCount(0);
+
+      if (offset === 0 && homeService.hasMore && !homeService.isLoadingOlder) {
+        homeService.loadOlderTransfers();
+      }
+    },
+    [homeService]
+  );
 
   const handlePreview = useCallback(
     (transfer: TransferSession) => {
@@ -129,49 +141,28 @@ function TransferListInner() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative">
-      <VirtuosoMessageListLicense licenseKey="">
-        <VirtuosoMessageList<TransferSession, null>
-          ref={virtuosoRef}
-          data={{
-            data: transfers,
-            scrollModifier: {
-              type: 'auto-scroll-to-bottom',
-              autoScroll: ({ atBottom, scrollInProgress }) => {
-                if (atBottom || scrollInProgress) {
-                  return { index: 'LAST', align: 'end', behavior: 'smooth' };
-                }
-                return false;
-              },
-            },
-          }}
-          style={{ height: '100%' }}
-          computeItemKey={({ data }) => data.id}
-          ItemContent={({ data }) => (
-            <TransferItem
-              transfer={data}
-              onPreview={handlePreview}
-              onDownload={handleDownload}
-              onDelete={handleDelete}
-            />
-          )}
-          onScroll={(location) => {
-            setAtBottom(location.isAtBottom);
-            if (location.isAtBottom) setNewTransferCount(0);
-            if (location.listOffset === 0 && homeService.hasMore && !homeService.isLoadingOlder) {
-              homeService.loadOlderTransfers();
-            }
-          }}
-          Header={() =>
-            homeService.isLoadingOlder ? (
-              <div className="py-4 text-center">
-                <div className="w-5 h-5 border-2 border-[var(--text-secondary)] border-t-transparent rounded-full animate-spin mx-auto" />
-              </div>
-            ) : null
-          }
-        />
-      </VirtuosoMessageListLicense>
+      <VList
+        ref={vlistRef}
+        shift
+        style={{ height: '100%' }}
+        onScroll={handleScroll}
+      >
+        {homeService.isLoadingOlder && (
+          <div className="py-4 text-center">
+            <div className="w-5 h-5 border-2 border-[var(--text-secondary)] border-t-transparent rounded-full animate-spin mx-auto" />
+          </div>
+        )}
+        {transfers.map((transfer) => (
+          <TransferItem
+            key={transfer.id}
+            transfer={transfer}
+            onPreview={handlePreview}
+            onDownload={handleDownload}
+            onDelete={handleDelete}
+          />
+        ))}
+      </VList>
 
-      {/* New transfer banner */}
       {newTransferCount > 0 && (
         <div
           className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2
@@ -184,7 +175,6 @@ function TransferListInner() {
         </div>
       )}
 
-      {/* Scroll to bottom button */}
       {!atBottom && newTransferCount === 0 && (
         <button
           className="absolute bottom-4 right-4 w-10 h-10 rounded-full
