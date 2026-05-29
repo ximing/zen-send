@@ -10,6 +10,7 @@ import { SocketService } from '../../services/socket.service';
 import Sidebar from '../sidebar';
 import Drawer from '../drawer';
 import Header from '../header';
+import Toast from '../toast';
 
 const HEADERLESS_PATHS = ['/notes', '/devices', '/settings'];
 
@@ -161,6 +162,7 @@ function AppLayoutInner() {
           )}
         </div>
       </div>
+      <Toast />
     </div>
   );
 }
