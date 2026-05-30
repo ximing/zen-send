@@ -59,6 +59,17 @@ function DrawerContentInner({ onClose }: DrawerContentProps) {
 
       {/* Actions Section */}
       <View style={styles.actionsSection}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => {
+            onClose?.();
+            router.push('/(main)/notes');
+          }}
+        >
+          <Ionicons name="document-text-outline" size={20} color={colors.textPrimary} />
+          <Text style={[styles.actionText, { color: colors.textPrimary }]}>笔记</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.actionButton} onPress={handleDownloads}>
           <Ionicons name="cloud-download-outline" size={20} color={colors.textPrimary} />
           <Text style={[styles.actionText, { color: colors.textPrimary }]}>下载</Text>
