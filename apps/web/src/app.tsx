@@ -11,6 +11,7 @@ import SettingsPage from './pages/settings';
 import SearchPage from './pages/search';
 import NotesPage from './pages/notes';
 import SharedNotePage from './pages/shared-note';
+import NoteEmbedPage from './pages/notes-embed';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/setup" element={<SetupPage />} />
           <Route path="/notes/shared/:token" element={<SharedNotePage />} />
+          <Route path="/notes/embed/:id" element={<NoteEmbedPage />} />
 
           {/* Authenticated routes - wrapped by AppLayout */}
           <Route element={<AppLayout />}>
