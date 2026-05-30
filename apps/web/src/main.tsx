@@ -16,6 +16,7 @@ import { HomeService } from './pages/home/home.service';
 import { UserService } from './services/user.service';
 import { NoteService } from './services/note.service';
 import { NoteCollabService } from './services/note-collab.service';
+import { EmbedAuthService } from './pages/notes-embed/embed-auth.service';
 
 // Register global Services
 register(ApiService);
@@ -29,6 +30,7 @@ register(HomeService);
 register(UserService);
 register(NoteService);
 register(NoteCollabService);
+register(EmbedAuthService);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
