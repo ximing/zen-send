@@ -83,11 +83,16 @@ export class NoteCollabService extends Service {
       });
     };
 
+    // per-session synced flag，避免共享 this.synced 被旧 session 污染
+    let sessionSynced = false;
+    let sessionCleaned = false;
+
     // ── 接收 sync（首次全量或重连增量）───────────────────────────
     const onSync = (data: { noteId: string; update: number[] }) => {
-      if (data.noteId !== noteId) return;
+      if (sessionCleaned || data.noteId !== noteId) return;
       Y.applyUpdate(doc, new Uint8Array(data.update), 'remote');
-      if (!this.synced) {
+      if (!sessionSynced) {
+        sessionSynced = true;
         this.synced = true;
         resolveSyncPromise();
       }
@@ -162,6 +167,7 @@ export class NoteCollabService extends Service {
     idb.whenSynced.then(() => emitJoin());
 
     const cleanup = () => {
+      sessionCleaned = true; // 防止 socket.off 失效时旧 onSync 仍被处理
       socket.off('note:collab:sync', onSync);
       socket.off('note:collab:update', onUpdate);
       socket.off('note:collab:awareness', onAwareness);

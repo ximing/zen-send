@@ -148,15 +148,33 @@ function NoteEditorInner() {
     const view = new EditorView({ state, parent: editorRef.current });
     viewRef.current = view;
 
-    let destroyed = false;
+    // waitForSync resolve 时用 view 实例而非 destroyed 标志做有效性检查
+    // 原因：React StrictMode 会先 unmount 再 remount，旧 waitForSync 可能在 remount
+    // 后才 resolve，导致 view 实例不匹配而跳过滚动。改用 view 引用对比更可靠。
     waitForSync.then(() => {
-      if (destroyed || !viewRef.current) return;
-      const end = viewRef.current.state.doc.length;
-      viewRef.current.dispatch({ effects: EditorView.scrollIntoView(end) });
+      if (viewRef.current !== view) return;
+      // 等待 doc 有内容后用 CM6 scrollIntoView 滚到末尾，确保最后一行对齐视口底部
+      // CM 惰性渲染可能让 scrollHeight 逐帧增大，多帧滚动确保到达真正底部
+      const tryScroll = (attempt: number) => {
+        if (viewRef.current !== view) return;
+        const { state } = view;
+        if (state.doc.length > 0) {
+          // 用 CM6 的 scrollIntoView 把文档末尾滚到视口底部
+          // yMargin:0 确保最后一行紧贴视口底边，不留额外空白
+          view.dispatch({
+            effects: EditorView.scrollIntoView(state.doc.length, { y: 'end', yMargin: 60 }),
+          });
+          if (attempt < 12) {
+            requestAnimationFrame(() => tryScroll(attempt + 1));
+          }
+        } else if (attempt < 20) {
+          requestAnimationFrame(() => tryScroll(attempt + 1));
+        }
+      };
+      requestAnimationFrame(() => tryScroll(0));
     });
 
     return () => {
-      destroyed = true;
       noteCollabService.leaveNote();
       if (currentSaveTimeoutRef.current) {
         clearTimeout(currentSaveTimeoutRef.current);
