@@ -6,7 +6,6 @@ import {
   Sun,
   Moon,
   LogOut,
-  Smartphone,
   Settings,
   Notebook,
   Plus,
@@ -40,11 +39,6 @@ function NavContentInner({ onNavigate }: NavContentProps) {
     navigate('/login');
   };
 
-  const handleDevices = () => {
-    navigate('/devices');
-    onNavigate?.();
-  };
-
   const handleHome = () => {
     navigate('/');
     onNavigate?.();
@@ -52,14 +46,9 @@ function NavContentInner({ onNavigate }: NavContentProps) {
 
   const user = authService.user;
 
-  const navItems = [
-    { path: '/', label: '文件传输', icon: ArrowLeftRight, onClick: handleHome },
-    { path: '/devices', label: '设备管理', icon: Smartphone, onClick: handleDevices },
-  ];
-
   return (
-    <div className="flex flex-col h-full">
-      {/* User Info Section */}
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* User Info Section - Fixed */}
       <div
         className="h-14 flex items-center gap-2 px-4 shrink-0 hover:bg-[var(--bg-surface)] transition-colors cursor-pointer"
         onClick={() => {
@@ -85,38 +74,32 @@ function NavContentInner({ onNavigate }: NavContentProps) {
         </span>
       </div>
 
-      {/* Navigation Items */}
-      <div className="pt-2 px-3">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
-          return (
-            <button
-              key={item.path}
-              onClick={item.onClick}
-              className={`w-full flex items-center gap-3 py-3.5 px-3 rounded-lg transition-colors relative
-                ${
-                  isActive
-                    ? 'bg-[var(--bg-surface)] text-[var(--accent)]'
-                    : 'hover:bg-[var(--bg-surface)] text-[var(--text-primary)]'
-                }`}
-            >
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r bg-[var(--accent)]" />
-              )}
-              <Icon size={20} />
-              <span className="text-base">{item.label}</span>
-            </button>
-          );
-        })}
+      {/* Navigation Items - Fixed */}
+      <div className="pt-2 px-3 shrink-0">
+        <button
+          onClick={handleHome}
+          className={`w-full flex items-center gap-3 py-3.5 px-3 rounded-lg transition-colors relative
+            ${
+              location.pathname === '/'
+                ? 'bg-[var(--bg-surface)] text-[var(--accent)]'
+                : 'hover:bg-[var(--bg-surface)] text-[var(--text-primary)]'
+            }`}
+        >
+          {location.pathname === '/' && (
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r bg-[var(--accent)]" />
+          )}
+          <ArrowLeftRight size={20} />
+          <span className="text-base">文件传输</span>
+        </button>
       </div>
 
-      {/* Note section */}
-      <div className="h-3" />
-      <div className="px-3">
+      {/* Note section - Fixed header + Scrollable list */}
+      <div className="h-3 shrink-0" />
+      <div className="px-3 flex flex-col min-h-0 flex-1">
+        {/* Note button - Fixed */}
         <button
           onClick={() => noteService.toggleNoteList()}
-          className={`w-full flex items-center gap-3 py-3.5 px-3 rounded-lg transition-colors relative
+          className={`w-full flex items-center gap-3 py-3.5 px-3 rounded-lg transition-colors relative shrink-0
             ${
               location.pathname.startsWith('/notes')
                 ? 'bg-[var(--bg-surface)] text-[var(--accent)]'
@@ -142,9 +125,16 @@ function NavContentInner({ onNavigate }: NavContentProps) {
           />
         </button>
 
-        {/* Note list (expanded) */}
+        {/* Note list - Scrollable only this part */}
         {noteService.noteListExpanded && (
-          <div style={{ paddingLeft: '24px' }}>
+          <div
+            className="overflow-y-auto min-h-0 flex-1"
+            style={{
+              paddingLeft: '24px',
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'var(--text-muted) transparent',
+            }}
+          >
             {noteService.notes.length === 0 && (
               <div className="px-3 py-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                 还没有笔记，点击 + 创建
@@ -193,8 +183,8 @@ function NavContentInner({ onNavigate }: NavContentProps) {
         )}
       </div>
 
-      {/* Bottom Actions */}
-      <div className="mt-auto px-3 pb-4">
+      {/* Bottom Actions - Fixed */}
+      <div className="shrink-0 px-3 pb-4 pt-2 border-t border-[var(--border-subtle)] mt-auto">
         <button
           onClick={handleThemeToggle}
           className="w-full flex items-center gap-3 py-3.5 px-3 hover:bg-[var(--bg-surface)] rounded-lg transition-colors"
