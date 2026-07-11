@@ -6,7 +6,6 @@ import HomePage from './pages/home';
 import LoginPage from './pages/login';
 import RegisterPage from './pages/register';
 import SetupPage from './pages/setup';
-import DevicesPage from './pages/devices';
 import SettingsPage from './pages/settings';
 import SearchPage from './pages/search';
 import NotesPage from './pages/notes';
@@ -29,11 +28,13 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/search" element={<SearchPage />} />
-            <Route path="/devices" element={<DevicesPage />} />
             <Route path="/notes" element={<NotesPage />} />
             <Route path="/notes/:id" element={<NotesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
+
+          {/* Redirect old /devices to settings with devices tab */}
+          <Route path="/devices" element={<Navigate to="/settings" state={{ activeTab: 'devices' }} replace />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

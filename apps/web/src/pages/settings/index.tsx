@@ -1,23 +1,36 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { observer, bindServices } from '@rabjs/react';
-import { ChevronLeft, User, Settings } from 'lucide-react';
+import { ChevronLeft, User, Settings, Smartphone } from 'lucide-react';
 import { getZenBridge } from '../../lib/zen-bridge';
 import AccountSettings from './components/account-settings';
 import GeneralSettings from './components/general-settings';
+import DeviceSettings from './components/device-settings';
 
 const isElectron = getZenBridge().isElectron;
 
-type Tab = 'account' | 'general';
+type Tab = 'account' | 'devices' | 'general';
 
 const tabs: { id: Tab; label: string; icon: typeof User; electronOnly?: boolean }[] = [
   { id: 'account', label: '账户设置', icon: User },
+  { id: 'devices', label: '设备管理', icon: Smartphone },
   { id: 'general', label: '通用设置', icon: Settings, electronOnly: true },
 ];
 
 function SettingsPageInner() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>('account');
+
+  // Handle navigation state for tab selection
+  useEffect(() => {
+    const state = location.state as { activeTab?: Tab } | null;
+    if (state?.activeTab) {
+      setActiveTab(state.activeTab);
+      // Clear the state after using it
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   const visibleTabs = tabs.filter((t) => !t.electronOnly || isElectron);
 
@@ -65,6 +78,7 @@ function SettingsPageInner() {
         {/* Content */}
         <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
           {activeTab === 'account' && <AccountSettings />}
+          {activeTab === 'devices' && <DeviceSettings />}
           {activeTab === 'general' && isElectron && <GeneralSettings />}
         </div>
       </div>
