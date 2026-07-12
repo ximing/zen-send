@@ -183,7 +183,7 @@ function NoteEditorInner() {
       const doc = view.state.doc.toString();
       const title = noteService.shouldAutoExtractTitle(noteId)
         ? noteService.extractTitleFromContent(doc)
-        : noteService.notes.find((n) => n.id === noteId)?.title ?? '未命名笔记';
+        : noteService.currentNote?.title ?? noteService.notes.find((n) => n.id === noteId)?.title ?? '未命名笔记';
       noteService.saveNote(noteId, doc, title);
       view.destroy();
       viewRef.current = null;
