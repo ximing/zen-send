@@ -79,6 +79,8 @@ function NoteEditorInner() {
     if (!editorRef.current || !noteService.currentNote) return;
 
     const noteId = noteService.currentNote.id;
+    // 闭包捕获当前笔记标题，避免清理函数执行时 currentNote 已被更新
+    const currentNoteTitle = noteService.currentNote.title;
     const currentSaveTimeoutRef = saveTimeoutRef;
     const userName = authService.user?.nickname ?? authService.user?.email ?? 'Anonymous';
     const userColor = hashToColor(authService.user?.id ?? '');
@@ -183,7 +185,7 @@ function NoteEditorInner() {
       const doc = view.state.doc.toString();
       const title = noteService.shouldAutoExtractTitle(noteId)
         ? noteService.extractTitleFromContent(doc)
-        : noteService.currentNote?.title ?? noteService.notes.find((n) => n.id === noteId)?.title ?? '未命名笔记';
+        : currentNoteTitle;
       noteService.saveNote(noteId, doc, title);
       view.destroy();
       viewRef.current = null;
