@@ -60,8 +60,6 @@ function NoteEditorInner() {
   const [editTitle, setEditTitle] = useState('');
   const prevActiveBlockRef = useRef<{ language: string } | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  // 用于保存当前笔记标题，在 effect cleanup 中使用
-  const currentNoteTitleRef = useRef<string>('');
 
   const handleSaveNow = useCallback(() => {
     if (saveTimeoutRef.current) {
@@ -81,8 +79,6 @@ function NoteEditorInner() {
     if (!editorRef.current || !noteService.currentNote) return;
 
     const noteId = noteService.currentNote.id;
-    // 保存当前笔记标题到 ref，供 cleanup 使用
-    currentNoteTitleRef.current = noteService.currentNote.title;
     const currentSaveTimeoutRef = saveTimeoutRef;
     const userName = authService.user?.nickname ?? authService.user?.email ?? 'Anonymous';
     const userColor = hashToColor(authService.user?.id ?? '');
@@ -180,15 +176,17 @@ function NoteEditorInner() {
 
     return () => {
       noteCollabService.leaveNote();
+      // 如果有待定的自动保存，立即执行
       if (currentSaveTimeoutRef.current) {
         clearTimeout(currentSaveTimeoutRef.current);
         currentSaveTimeoutRef.current = null;
+        // 立即执行最后一次保存（标题自动提取）
+        if (noteService.shouldAutoExtractTitle(noteId)) {
+          const docText = view.state.doc.toString();
+          const title = noteService.extractTitleFromContent(docText);
+          noteService.saveNote(noteId, docText, title);
+        }
       }
-      const doc = view.state.doc.toString();
-      const title = noteService.shouldAutoExtractTitle(noteId)
-        ? noteService.extractTitleFromContent(doc)
-        : currentNoteTitleRef.current;
-      noteService.saveNote(noteId, doc, title);
       view.destroy();
       viewRef.current = null;
     };
