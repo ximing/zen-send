@@ -1,14 +1,40 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer, useService } from '@rabjs/react';
 import { VList, type VListHandle } from 'virtua';
-import { ChevronDown, MailOpen } from 'lucide-react';
+import { ChevronUp, Paperclip } from 'lucide-react';
 import { HomeService } from '../../pages/home/home.service';
 import { DeviceService } from '../../services/device.service';
 import { SocketService } from '../../services/socket.service';
 import { ToastService } from '../toast/toast.service';
 import TransferItem from '../transfer-item';
 import { PreviewModal } from '../preview-modal';
+import { getDayGroupKey, getDayGroupLabel } from '../../lib/format-time-of-day';
 import type { TransferSession } from '@zen-send/shared';
+
+type TransferListRow =
+  | { type: 'header'; key: string; label: string }
+  | { type: 'item'; key: string; transfer: TransferSession };
+
+function buildTransferListRows(transfers: TransferSession[]): TransferListRow[] {
+  const newestFirst = transfers.slice().reverse();
+  const rows: TransferListRow[] = [];
+  let lastDayKey = '';
+
+  for (const transfer of newestFirst) {
+    const dayKey = getDayGroupKey(transfer.createdAt);
+    if (dayKey !== lastDayKey) {
+      lastDayKey = dayKey;
+      rows.push({
+        type: 'header',
+        key: `day-${dayKey}`,
+        label: getDayGroupLabel(transfer.createdAt),
+      });
+    }
+    rows.push({ type: 'item', key: transfer.id, transfer });
+  }
+
+  return rows;
+}
 
 function TransferListInner() {
   const homeService = useService(HomeService);
@@ -16,13 +42,8 @@ function TransferListInner() {
   const socketService = useService(SocketService);
   const toastService = useService(ToastService);
   const vlistRef = useRef<VListHandle>(null);
-  const [atBottom, setAtBottom] = useState(true);
   const [newTransferCount, setNewTransferCount] = useState(0);
-  const atBottomRef = useRef(true);
-
-  useEffect(() => {
-    atBottomRef.current = atBottom;
-  }, [atBottom]);
+  const atTopRef = useRef(true);
 
   useEffect(() => {
     deviceService.loadDevices();
@@ -36,7 +57,7 @@ function TransferListInner() {
 
       homeService.addTransfer(session);
 
-      if (!atBottomRef.current) {
+      if (!atTopRef.current) {
         setNewTransferCount((c) => c + 1);
       }
     };
@@ -55,23 +76,22 @@ function TransferListInner() {
     };
   }, [socketService, homeService]);
 
-  const scrollToBottom = useCallback(() => {
-    const handle = vlistRef.current;
-    if (!handle) return;
-    handle.scrollToIndex(homeService.filteredTransfers.length - 1, { align: 'end', smooth: true });
+  const scrollToTop = useCallback(() => {
+    vlistRef.current?.scrollToIndex(0, { smooth: true });
     setNewTransferCount(0);
-  }, [homeService]);
+  }, []);
 
   const handleScroll = useCallback(
     (offset: number) => {
       const handle = vlistRef.current;
       if (!handle) return;
 
-      const isAtBottom = offset + handle.viewportSize >= handle.scrollSize - 1;
-      setAtBottom(isAtBottom);
-      if (isAtBottom) setNewTransferCount(0);
+      const isAtTop = offset <= 1;
+      atTopRef.current = isAtTop;
+      if (isAtTop) setNewTransferCount(0);
 
-      if (offset === 0 && homeService.hasMore && !homeService.isLoadingOlder) {
+      const isAtBottom = offset + handle.viewportSize >= handle.scrollSize - 1;
+      if (isAtBottom && homeService.hasMore && !homeService.isLoadingOlder) {
         homeService.loadOlderTransfers();
       }
     },
@@ -130,61 +150,67 @@ function TransferListInner() {
   const transfers = homeService.filteredTransfers;
 
   if (transfers.length === 0) {
+    const isFilterEmpty = homeService.filter !== 'all';
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-center pt-20">
-        <MailOpen size={48} className="text-[var(--text-secondary)] mb-3" />
-        <p className="text-sm text-[var(--text-secondary)]">No transfers yet</p>
+      <div className="flex-1 flex flex-col items-center text-center pt-[72px] pb-10 px-4">
+        <div className="w-[76px] h-[76px] rounded-full bg-[var(--bg-elevated)] text-[var(--text-muted)] flex items-center justify-center mb-[18px]">
+          <Paperclip size={32} />
+        </div>
+        <p className="text-[15px] font-medium text-[var(--text-primary)]">
+          {isFilterEmpty ? '该分类下暂无记录' : '还没有传输记录'}
+        </p>
+        <p className="text-[13px] text-[var(--text-secondary)] mt-1.5 leading-[1.7]">
+          把文件拖进窗口,或在上方写一段文字
+          <br />
+          记录会按天整理在这里
+        </p>
         <PreviewModal />
       </div>
     );
   }
 
+  const rows = buildTransferListRows(transfers);
+
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative">
-      <VList
-        ref={vlistRef}
-        shift
-        style={{ height: '100%' }}
-        onScroll={handleScroll}
-      >
+      <VList ref={vlistRef} style={{ height: '100%' }} onScroll={handleScroll}>
+        {rows.map((row, index) =>
+          row.type === 'header' ? (
+            <div
+              key={row.key}
+              className={`text-[12px] text-[var(--text-muted)] mx-[18px] mb-2 ${
+                index === 0 ? 'mt-0' : 'mt-[22px]'
+              }`}
+            >
+              {row.label}
+            </div>
+          ) : (
+            <TransferItem
+              key={row.key}
+              transfer={row.transfer}
+              onPreview={handlePreview}
+              onDownload={handleDownload}
+              onDelete={handleDelete}
+            />
+          )
+        )}
         {homeService.isLoadingOlder && (
           <div className="py-4 text-center">
             <div className="w-5 h-5 border-2 border-[var(--text-secondary)] border-t-transparent rounded-full animate-spin mx-auto" />
           </div>
         )}
-        {transfers.map((transfer) => (
-          <TransferItem
-            key={transfer.id}
-            transfer={transfer}
-            onPreview={handlePreview}
-            onDownload={handleDownload}
-            onDelete={handleDelete}
-          />
-        ))}
       </VList>
 
       {newTransferCount > 0 && (
         <div
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2
+          className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2
             px-4 py-2 rounded-full bg-[var(--accent)] text-white text-sm font-medium
             shadow-lg cursor-pointer hover:bg-[var(--accent)]/90 transition-colors z-10"
-          onClick={scrollToBottom}
+          onClick={scrollToTop}
         >
-          <span>{newTransferCount} 条新传输</span>
-          <ChevronDown size={16} />
+          <ChevronUp size={16} />
+          <span>有 {newTransferCount} 条新记录</span>
         </div>
-      )}
-
-      {!atBottom && newTransferCount === 0 && (
-        <button
-          className="absolute bottom-4 right-4 w-10 h-10 rounded-full
-            bg-[var(--bg-surface)] border border-[var(--border-subtle)]
-            shadow-md flex items-center justify-center
-            hover:bg-[var(--bg-elevated)] transition-colors z-10"
-          onClick={scrollToBottom}
-        >
-          <ChevronDown size={20} className="text-[var(--text-secondary)]" />
-        </button>
       )}
 
       <PreviewModal />

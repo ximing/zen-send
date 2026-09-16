@@ -24,7 +24,6 @@ export interface UploadingFile {
 
 export class HomeService extends Service {
   transfers: TransferSession[] = [];
-  selectedFiles: { name: string; size: number; type?: string; data?: ArrayBuffer }[] = [];
   filter: TransferFilter = 'all';
   timeFilter: TimeFilter = 'all';
   searchQuery = '';
@@ -156,20 +155,7 @@ export class HomeService extends Service {
     }
   }
 
-  addFiles(files: { name: string; size: number; type?: string; data?: ArrayBuffer }[]) {
-    this.selectedFiles = [...this.selectedFiles, ...files];
-  }
-
-  removeFile(index: number) {
-    this.selectedFiles = this.selectedFiles.filter((_, i) => i !== index);
-  }
-
-  clearFiles() {
-    this.selectedFiles = [];
-  }
-
-  async uploadFiles() {
-    const files = this.selectedFiles;
+  async sendFiles(files: { name: string; size: number; type?: string; data?: ArrayBuffer }[]) {
     if (files.length === 0) return;
 
     for (const file of files) {
@@ -190,7 +176,6 @@ export class HomeService extends Service {
         data: file.data,
       });
 
-      // Add temporary session to list (appears at bottom in ASC order)
       const tempSession: TransferSession = {
         id: uploadId,
         userId: this.authService.user?.id || '',
@@ -225,8 +210,6 @@ export class HomeService extends Service {
 
       this.executeUpload(uploadId, file);
     }
-
-    this.selectedFiles = [];
   }
 
   private async executeUpload(
@@ -368,13 +351,14 @@ export class HomeService extends Service {
   }
 
   private updateUploadStatus(uploadId: string, updates: Partial<UploadingFile>) {
+    const prev = this.uploadingFiles.find((f) => f.id === uploadId);
     this.uploadingFiles = this.uploadingFiles.map((f) =>
       f.id === uploadId ? { ...f, ...updates } : f
     );
 
     if (updates.sessionId) {
       this.transfers = this.transfers.map((t) =>
-        t.id === uploadId ? { ...t, id: updates.sessionId! } : t
+        t.id === uploadId || t.id === prev?.sessionId ? { ...t, id: updates.sessionId! } : t
       );
     }
 
@@ -386,13 +370,35 @@ export class HomeService extends Service {
     }
   }
 
+  private removeTransferForUpload(uploadId: string, sessionId?: string) {
+    this.transfers = this.transfers.filter((t) => t.id !== uploadId && t.id !== sessionId);
+  }
+
   async cancelUpload(uploadId: string) {
     const file = this.uploadingFiles.find((f) => f.id === uploadId);
     if (file?.sessionId) {
-      await this.apiService.deleteTransfer(file.sessionId);
+      try {
+        await this.apiService.deleteTransfer(file.sessionId);
+      } catch {
+        // still drop the list item
+      }
     }
     this.updateUploadStatus(uploadId, { status: 'cancelled' });
+    this.removeTransferForUpload(uploadId, file?.sessionId);
     setTimeout(() => this.removeUpload(uploadId), 3000);
+  }
+
+  async discardFailedUpload(uploadId: string) {
+    const file = this.uploadingFiles.find((f) => f.id === uploadId);
+    if (file?.sessionId) {
+      try {
+        await this.apiService.deleteTransfer(file.sessionId);
+      } catch {
+        // ignore cleanup errors
+      }
+    }
+    this.removeTransferForUpload(uploadId, file?.sessionId);
+    this.removeUpload(uploadId);
   }
 
   removeUpload(uploadId: string) {
@@ -404,21 +410,32 @@ export class HomeService extends Service {
     const fileData = this._fileData.get(uploadId);
     if (!fileData) return;
 
-    const newUploadId = `upload-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const uploadingFile: UploadingFile = {
-      id: newUploadId,
-      name: fileData.name,
-      size: fileData.size,
-      progress: 0,
-      status: 'pending',
-    };
+    const existing = this.uploadingFiles.find((f) => f.id === uploadId);
+    if (existing?.sessionId) {
+      try {
+        await this.apiService.deleteTransfer(existing.sessionId);
+      } catch {
+        // ignore cleanup of the previous failed session
+      }
+    }
 
-    this.updateUploadStatus(uploadId, { status: 'cancelled' });
-    this.uploadingFiles = this.uploadingFiles.filter((f) => f.id !== uploadId);
-    this.uploadingFiles = [...this.uploadingFiles, uploadingFile];
-    this._fileData.set(newUploadId, fileData);
-    this._fileData.delete(uploadId);
-    this.executeUpload(newUploadId, fileData);
+    this.transfers = this.transfers.map((t) =>
+      t.id === uploadId || t.id === existing?.sessionId
+        ? { ...t, id: uploadId, status: 'pending' }
+        : t
+    );
+
+    this.updateUploadStatus(uploadId, {
+      status: 'pending',
+      progress: 0,
+      error: undefined,
+      speed: 0,
+      eta: 0,
+      uploadedBytes: 0,
+      sessionId: undefined,
+    });
+
+    this.executeUpload(uploadId, fileData);
   }
 
   async sendText(content: string) {

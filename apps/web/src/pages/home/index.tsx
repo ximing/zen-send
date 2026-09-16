@@ -2,10 +2,9 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { observer, useService } from '@rabjs/react';
 import { Upload } from 'lucide-react';
 import { HomeService } from './home.service';
+import { TextInputBar } from '../../components/text-input-bar';
 import FilterTabs from '../../components/filter-tabs';
 import TransferList from '../../components/transfer-list';
-import SelectedFiles from '../../components/selected-files';
-import BottomToolbar from '../../components/bottom-toolbar';
 import { getMimeTypeFromExtension } from '../../lib/zen-bridge';
 
 const HomeContent = observer(() => {
@@ -79,8 +78,7 @@ const HomeContent = observer(() => {
       }
 
       if (files.length > 0) {
-        homeService.addFiles(files);
-        homeService.uploadFiles();
+        homeService.sendFiles(files);
       }
     },
     [homeService]
@@ -94,20 +92,25 @@ const HomeContent = observer(() => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <SelectedFiles />
-      <FilterTabs />
-      <TransferList />
-      <BottomToolbar />
+      <div className="flex-1 min-h-0 flex flex-col w-full max-w-[680px] mx-auto">
+        <div className="px-4 pt-[18px] shrink-0">
+          <TextInputBar />
+        </div>
+        <FilterTabs />
+        <TransferList />
+      </div>
 
       {isDragging && (
-        <div className="absolute inset-0 bg-[var(--bg-primary)]/80 flex items-center justify-center z-50">
-          <div className="rounded-2xl p-16 text-center bg-[var(--bg-surface)]">
-            <Upload size={64} className="text-[var(--accent)] mx-auto mb-4" />
-            <p className="text-xl text-[var(--text-primary)] font-medium">Release to upload</p>
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[color-mix(in_srgb,var(--bg-primary)_82%,transparent)]">
+          <div className="rounded-[24px] px-[72px] py-[52px] text-center bg-[var(--bg-surface)] shadow-[0_20px_60px_-20px_rgba(44,44,44,0.18)]">
+            <div className="w-[84px] h-[84px] rounded-full bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center mx-auto mb-[18px]">
+              <Upload size={36} />
+            </div>
+            <p className="text-[18px] font-semibold text-[var(--text-primary)]">松开即发送</p>
+            <p className="text-[13px] text-[var(--text-secondary)] mt-1.5">支持多文件和文件夹</p>
           </div>
         </div>
       )}
-
     </div>
   );
 });

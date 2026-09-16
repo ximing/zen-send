@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { prepare, layout } from '@chenglou/pretext';
 import { observer, useService } from '@rabjs/react';
-import { FileText, PenLine, Image, Copy, Link, Download, Trash2, QrCode } from 'lucide-react';
-import { ThemeService } from '../../services/theme.service';
+import { FileText, Image, Copy, Link, Download, Trash2, QrCode, X, ArrowUp } from 'lucide-react';
 import { ApiService } from '../../services/api.service';
 import { HomeService } from '../../pages/home/home.service';
 import { ToastService } from '../toast/toast.service';
 import { QRCodeDialog } from '../qr-code-dialog';
+import { formatTimeOfDay } from '../../lib/format-time-of-day';
 import type { TransferSession } from '@zen-send/shared';
 
 function formatSize(bytes: number): string {
@@ -16,22 +16,34 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
 }
 
-function getRelativeTime(timestamp: number): string {
-  const ts = timestamp > 1e12 ? timestamp : timestamp * 1000;
-  const diff = Date.now() - ts;
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return 'JUST NOW';
-  if (minutes < 60) return `${minutes}M AGO`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}H AGO`;
-  const days = Math.floor(hours / 24);
-  return `${days}D AGO`;
+function formatBytePair(uploaded: number, total: number): string {
+  const divisor =
+    total < 1024
+      ? 1
+      : total < 1024 * 1024
+        ? 1024
+        : total < 1024 * 1024 * 1024
+          ? 1024 * 1024
+          : 1024 * 1024 * 1024;
+  const unit =
+    divisor === 1 ? 'B' : divisor === 1024 ? 'KB' : divisor === 1024 * 1024 ? 'MB' : 'GB';
+  if (unit === 'B') {
+    return `${Math.round(uploaded)} / ${Math.round(total)} B`;
+  }
+  return `${(uploaded / divisor).toFixed(1)} / ${(total / divisor).toFixed(1)} ${unit}`;
 }
 
 const isImageMimeType = (mimeType: string | null | undefined): boolean => {
   if (!mimeType) return false;
   return mimeType.startsWith('image/');
 };
+
+const rowIconBtnClass =
+  'w-[34px] h-[34px] inline-flex items-center justify-center rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors';
+const rowDangerBtnClass =
+  'w-[34px] h-[34px] inline-flex items-center justify-center rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--color-error)] transition-colors';
+const noteIconBtnClass =
+  'w-[30px] h-[30px] inline-flex items-center justify-center rounded-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors';
 
 interface TransferItemProps {
   transfer: TransferSession;
@@ -41,12 +53,10 @@ interface TransferItemProps {
 }
 
 function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: TransferItemProps) {
-  const themeService = useService(ThemeService);
   const apiService = useService(ApiService);
   const homeService = useService(HomeService);
   const toastService = useService(ToastService);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOverflow, setIsOverflow] = useState(false);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
@@ -57,13 +67,23 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
   const isText = firstItem?.type === 'text';
   const isImage = !isText && isImageMimeType(firstItem?.mimeType);
   const name = isText
-    ? firstItem?.content?.slice(0, 30) || 'Text'
-    : transfer.originalFileName || 'File';
-  const size = isText ? 'Text' : firstItem?.size ? formatSize(firstItem.size) : 'File';
-  const timeAgo = getRelativeTime(transfer.createdAt);
+    ? firstItem?.content?.slice(0, 30) || '文字'
+    : transfer.originalFileName || '文件';
+  const size = firstItem?.size
+    ? formatSize(firstItem.size)
+    : transfer.totalSize
+      ? formatSize(transfer.totalSize)
+      : '';
+  const absoluteTime = formatTimeOfDay(transfer.createdAt);
+
+  const uploadingFile = homeService.uploadingFiles.find(
+    (f) => f.id === transfer.id || f.sessionId === transfer.id
+  );
+  const isUploading = uploadingFile?.status === 'pending' || uploadingFile?.status === 'uploading';
+  const isFailed = uploadingFile?.status === 'failed';
 
   useEffect(() => {
-    if (!isImage || !firstItem?.id) {
+    if (!isImage || !firstItem?.id || isUploading || isFailed) {
       setThumbnailUrl(null);
       return;
     }
@@ -88,7 +108,7 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
     return () => {
       revoked = true;
     };
-  }, [isImage, firstItem, transfer.id, apiService]);
+  }, [isImage, firstItem, transfer.id, apiService, isUploading, isFailed]);
 
   useEffect(() => {
     if (!isText || !firstItem?.content || isExpanded || !contentAreaRef.current) return;
@@ -103,21 +123,25 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
 
     const prepared = prepare(firstItem.content, font);
     const { lineCount } = layout(prepared, el.clientWidth, lineHeight);
-    setIsOverflow(lineCount > 2);
+    setIsOverflow(lineCount > 3);
 
-    const observer = new ResizeObserver(() => {
+    const resizeObserver = new ResizeObserver(() => {
       if (!contentAreaRef.current) return;
-      const { lineCount } = layout(prepared, contentAreaRef.current.clientWidth, lineHeight);
-      setIsOverflow(lineCount > 2);
+      const { lineCount: nextCount } = layout(
+        prepared,
+        contentAreaRef.current.clientWidth,
+        lineHeight
+      );
+      setIsOverflow(nextCount > 3);
     });
-    observer.observe(el);
-    return () => observer.disconnect();
+    resizeObserver.observe(el);
+    return () => resizeObserver.disconnect();
   }, [isText, firstItem?.content, isExpanded]);
 
   const handleCopyText = () => {
     if (firstItem?.content) {
       navigator.clipboard.writeText(firstItem.content);
-      toastService.show('Copied to clipboard', 'success');
+      toastService.show('已复制到剪贴板', 'success');
     }
   };
 
@@ -126,9 +150,9 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
       try {
         const { url } = await apiService.getTransferExternalLink(transfer.id);
         await navigator.clipboard.writeText(url);
-        toastService.show('Link copied', 'success');
+        toastService.show('链接已复制', 'success');
       } catch {
-        toastService.show('Failed to copy link', 'error');
+        toastService.show('复制链接失败', 'error');
       }
     }
   };
@@ -144,133 +168,224 @@ function TransferItemInner({ transfer, onPreview, onDownload, onDelete }: Transf
       }
       setQrDialogOpen(true);
     } catch {
-      toastService.show('Failed to generate QR code', 'error');
+      toastService.show('生成二维码失败', 'error');
     }
   };
+
+  const thumb = (
+    <div className="relative w-[46px] h-[46px] rounded-[10px] bg-[var(--bg-elevated)] flex items-center justify-center overflow-hidden shrink-0">
+      {isImage && thumbnailUrl ? (
+        <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
+      ) : isImage ? (
+        <Image size={20} className="text-[var(--text-secondary)]" />
+      ) : (
+        <FileText size={20} className="text-[var(--text-secondary)]" />
+      )}
+      {isUploading && uploadingFile && (
+        <span className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_srgb,var(--primary)_35%,transparent)] text-[11px] font-semibold tabular-nums text-white">
+          {Math.round(uploadingFile.progress)}%
+        </span>
+      )}
+    </div>
+  );
+
+  if (isText) {
+    return (
+      <>
+        <div
+          className="group mx-4 mb-2 rounded-[14px] bg-[var(--accent-soft)] pt-[14px] px-4 pb-[11px] cursor-pointer"
+          onClick={() => onPreview(transfer)}
+        >
+          <div
+            ref={contentAreaRef}
+            className={`text-[14px] leading-[1.65] text-[var(--text-primary)] whitespace-pre-wrap break-words ${
+              !isExpanded ? 'line-clamp-3' : ''
+            }`}
+          >
+            {firstItem?.content || '文字'}
+          </div>
+          {isOverflow && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="text-xs text-[var(--accent)] mt-0.5 hover:underline"
+            >
+              {isExpanded ? '收起' : '展开'}
+            </button>
+          )}
+          <div className="flex items-center justify-between mt-[9px]">
+            <span className="text-[11.5px] text-[var(--text-secondary)]">{absoluteTime}</span>
+            <div className="flex opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+              <button
+                type="button"
+                title="复制"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyText();
+                }}
+                className={noteIconBtnClass}
+              >
+                <Copy size={15} />
+              </button>
+              <button
+                type="button"
+                title="二维码"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQrCode();
+                }}
+                className={noteIconBtnClass}
+              >
+                <QrCode size={15} />
+              </button>
+              <button
+                type="button"
+                title="删除"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(transfer);
+                }}
+                className={noteIconBtnClass}
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          </div>
+        </div>
+        <QRCodeDialog url={qrCodeUrl} open={qrDialogOpen} onClose={() => setQrDialogOpen(false)} />
+      </>
+    );
+  }
 
   return (
     <>
       <div
-        className={`flex ${isText ? 'items-start' : 'items-center'} p-3 mx-4 mb-2 rounded-xl bg-[var(--bg-surface)]
-        transition-all duration-150 cursor-pointer
-        ${isHovered ? 'shadow-sm' : ''}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onClick={() => onPreview(transfer)}
+        className={`group flex items-center px-[14px] py-[11px] mx-4 mb-2 rounded-[14px] bg-[var(--bg-surface)] transition-[box-shadow] duration-150 ${
+          isUploading ? 'cursor-default' : 'cursor-pointer hover:shadow-sm'
+        }`}
+        onClick={() => {
+          if (isUploading || isFailed) return;
+          onPreview(transfer);
+        }}
       >
-        {/* Icon/Thumbnail */}
-        <div className="w-[42px] h-[42px] rounded-[10px] bg-[var(--bg-elevated)] flex items-center justify-center overflow-hidden shrink-0">
-          {isImage && thumbnailUrl ? (
-            <img
-              src={thumbnailUrl}
-              alt=""
-              className="w-[42px] h-[42px] rounded-[10px] object-cover"
-            />
-          ) : isText ? (
-            <PenLine size={20} className="text-[var(--text-secondary)]" />
-          ) : isImage ? (
-            <Image size={20} className="text-[var(--text-secondary)]" />
+        {thumb}
+        <div className="flex-1 min-w-0 ml-3">
+          <div className="text-sm font-medium text-[var(--text-primary)] truncate">{name}</div>
+          {isUploading && uploadingFile ? (
+            <>
+              <div className="text-xs mt-[3px] tabular-nums text-[var(--accent)]">
+                {formatBytePair(uploadingFile.uploadedBytes ?? 0, uploadingFile.size)} ·{' '}
+                {formatSize(uploadingFile.speed ?? 0)}/s
+              </div>
+              <div className="h-[3px] rounded-[2px] bg-[var(--bg-elevated)] mt-2 overflow-hidden">
+                <div
+                  className="h-full rounded-[2px] bg-[var(--accent)] transition-[width] duration-300"
+                  style={{ width: `${uploadingFile.progress}%` }}
+                />
+              </div>
+            </>
+          ) : isFailed ? (
+            <div className="text-xs mt-[3px] tabular-nums text-[var(--text-secondary)]">
+              <span className="text-[var(--color-error)]">上传失败</span>
+              {size ? ` · ${size}` : ''} · {absoluteTime}
+            </div>
           ) : (
-            <FileText size={20} className="text-[var(--text-secondary)]" />
+            <div className="text-xs mt-[3px] tabular-nums text-[var(--text-secondary)]">
+              {size} · {absoluteTime}
+            </div>
           )}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 ml-3 min-w-0" ref={contentAreaRef}>
-          {isText ? (
-            <>
-              <div
-                className={`text-sm font-medium text-[var(--text-primary)] whitespace-pre-wrap break-words ${
-                  !isExpanded ? 'line-clamp-2' : ''
-                }`}
-              >
-                {firstItem?.content || 'Text'}
-              </div>
-              {isOverflow && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsExpanded(!isExpanded);
-                  }}
-                  className="text-xs text-[var(--accent)] mt-0.5 hover:underline"
-                >
-                  {isExpanded ? '收起' : '展开'}
-                </button>
-              )}
-              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
-                {size} · {timeAgo}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="text-sm font-medium text-[var(--text-primary)] truncate">{name}</div>
-              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
-                {size} · {timeAgo}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-0.5 shrink-0">
-          {isText ? (
+        {isUploading && uploadingFile ? (
+          <button
+            type="button"
+            title="取消"
+            onClick={(e) => {
+              e.stopPropagation();
+              homeService.cancelUpload(uploadingFile.id);
+            }}
+            className="w-[34px] h-[34px] ml-2.5 inline-flex items-center justify-center rounded-[10px] text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+          >
+            <X size={15} />
+          </button>
+        ) : isFailed && uploadingFile ? (
+          <div className="flex ml-2.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             <button
+              type="button"
+              title="重试"
               onClick={(e) => {
                 e.stopPropagation();
-                handleCopyText();
+                homeService.retryUpload(uploadingFile.id);
               }}
-              className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-              title="Copy"
+              className="w-[34px] h-[34px] inline-flex items-center justify-center rounded-[10px] text-[var(--accent)] hover:bg-[var(--bg-elevated)] transition-colors"
             >
-              <Copy size={18} className="text-[var(--text-secondary)]" />
+              <ArrowUp size={16} />
             </button>
-          ) : (
-            <>
-              {firstItem?.storageType === 's3' && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCopyLink();
-                  }}
-                  className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-                  title="Copy Link"
-                >
-                  <Link size={18} className="text-[var(--text-secondary)]" />
-                </button>
-              )}
+            <button
+              type="button"
+              title="删除"
+              onClick={(e) => {
+                e.stopPropagation();
+                homeService.discardFailedUpload(uploadingFile.id);
+              }}
+              className={rowDangerBtnClass}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ) : (
+          <div className="flex ml-2.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            <button
+              type="button"
+              title="下载"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDownload(transfer);
+              }}
+              className={rowIconBtnClass}
+            >
+              <Download size={16} />
+            </button>
+            {firstItem?.storageType === 's3' && (
               <button
+                type="button"
+                title="复制链接"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDownload(transfer);
+                  handleCopyLink();
                 }}
-                className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-                title="Download"
+                className={rowIconBtnClass}
               >
-                <Download size={18} className="text-[var(--text-secondary)]" />
+                <Link size={16} />
               </button>
-            </>
-          )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleQrCode();
-            }}
-            className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-            title="QR Code"
-          >
-            <QrCode size={18} className="text-[var(--text-secondary)]" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(transfer);
-            }}
-            className="p-1.5 hover:bg-[var(--accent)]/20 rounded-lg transition-colors"
-            title="Delete"
-          >
-            <Trash2 size={18} className="text-[var(--text-secondary)]" />
-          </button>
-        </div>
+            )}
+            <button
+              type="button"
+              title="二维码"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleQrCode();
+              }}
+              className={rowIconBtnClass}
+            >
+              <QrCode size={16} />
+            </button>
+            <button
+              type="button"
+              title="删除"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(transfer);
+              }}
+              className={rowDangerBtnClass}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        )}
       </div>
 
       <QRCodeDialog url={qrCodeUrl} open={qrDialogOpen} onClose={() => setQrDialogOpen(false)} />
