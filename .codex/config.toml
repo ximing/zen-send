@@ -1,0 +1,13 @@
+[shell_environment_policy]
+inherit = "core"
+
+[shell_environment_policy.set]
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
+
+[mcp_servers.chrome-devtools-rabjs]
+command = "npx"
+args = [
+    "@rabjs/chrome-devtools-mcp@latest",
+    "--browser-url=http://127.0.0.1:9222",
+    "--category-experimental-webmcp",
+]

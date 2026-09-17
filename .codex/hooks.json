@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'notify --title \"zen-send项目\" --message \"claude code 执行完毕\"' | nc -U /tmp/console.sock 2 > /dev/null"
+          }
+        ]
+      }
+    ]
+  }
+}
