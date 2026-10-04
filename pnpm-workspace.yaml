@@ -5,6 +5,4 @@ packages:
 
 onlyBuiltDependencies:
   - bcrypt
-  - electron
-  - electron-winstaller
   - esbuild

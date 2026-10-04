@@ -10,6 +10,7 @@
     "dev:web": "pnpm --filter @zen-send/web dev",
     "dev:server": "pnpm --filter @zen-send/server dev",
     "dev:mobile": "pnpm --filter @zen-send/mobile start",
+    "dev:desktop": "pnpm --filter @zen-send/desktop dev",
     "build": "pnpm -r build",
     "build:web": "pnpm --filter @zen-send/web build",
     "build:server": "pnpm --filter @zen-send/server build",

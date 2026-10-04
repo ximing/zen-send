@@ -1,0 +1,27 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "Desktop shell commands for the remote Zen Send web app",
+  "windows": ["main"],
+  "remote": {
+    "urls": [
+      "https://zs.aimo.plus",
+      "https://zs.aimo.plus/*",
+      "http://localhost:5274",
+      "http://localhost:5274/*",
+      "http://127.0.0.1:5274",
+      "http://127.0.0.1:5274/*"
+    ]
+  },
+  "permissions": [
+    "core:default",
+    "allow-set-server-url",
+    "allow-get-global-shortcut",
+    "allow-set-global-shortcut",
+    "allow-clear-global-shortcut",
+    "allow-open-file-dialog",
+    "allow-save-file-dialog",
+    "allow-read-file",
+    "allow-write-file"
+  ]
+}

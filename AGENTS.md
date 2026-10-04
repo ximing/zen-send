@@ -9,7 +9,7 @@ Zen Send - Cross-platform clipboard, text, and file transfer tool (like LocalSen
 - **apps/server**: Express.js backend with Socket.io for real-time communication
 - **apps/web**: React 19 frontend with Vite (port 5274, proxies API to server)
 - **apps/mobile**: React Native (Expo) for Android and iOS
-- **apps/electron**: Electron desktop app for Windows/macOS/Linux
+- **apps/tauri**: Tauri desktop shell for Windows/macOS/Linux. It loads the remote web app.
 
 ### Packages
 
@@ -49,11 +49,11 @@ cd apps/web && pnpm dev          # Run web only
 cd apps/web && pnpm build        # Build web for production (outputs to server/public)
 cd apps/web && pnpm typecheck   # Type-check web only
 
-# Electron-specific
-cd apps/electron && pnpm dev     # Run Electron app in dev mode
-cd apps/electron && pnpm dist:mac  # Build macOS .app
-cd apps/electron && pnpm dist:win  # Build Windows .exe
-cd apps/electron && pnpm dist:linux  # Build Linux AppImage
+# Desktop (Tauri)
+cd apps/tauri && pnpm dev        # Shell loads http://localhost:5274
+cd apps/tauri && pnpm dist:mac   # Build macOS .app / .dmg
+cd apps/tauri && pnpm dist:win   # Build Windows .exe
+cd apps/tauri && pnpm dist:linux # Build Linux AppImage / .deb
 ```
 
 ## Naming Conventions
@@ -85,7 +85,7 @@ components/
 - **Server**: Express.js + routing-controllers + Socket.io + typedi
 - **Web**: React 19 + Vite + Tailwind CSS v4 + @rabjs/react
 - **Mobile**: React Native + Expo
-- **Desktop**: Electron 40 + Vite + @rabjs/react
+- **Desktop**: Tauri 2 shell that loads the web app (production: https://zs.aimo.plus)
 - **Validation**: class-validator + class-transformer
 - **Database**: Drizzle ORM + MySQL
 - **File Storage**: AWS S3 (presigned URLs for direct client upload)
@@ -130,6 +130,6 @@ Detailed rules for each subsystem live in their own directories:
 - `apps/server/AGENTS.md` — Server architecture, IOC, DTO, database, Socket.io, transfer module
 - `apps/web/AGENTS.md` — Web @rabjs/react rules, design system, directory structure
 - `apps/mobile/AGENTS.md` — Mobile @rabjs/react rules, design system, platform specifics
-- `.Codex/rules/rabjs.md` — Cross-app @rabjs/react critical rules (web + electron + mobile)
+- `.Codex/rules/rabjs.md` — Cross-app @rabjs/react critical rules (web + mobile)
 
 使用中文对话

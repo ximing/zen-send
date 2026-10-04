@@ -21,8 +21,8 @@
 ┌─────────────────────────────────────────────────────────┐
 │                      客户端应用                          │
 ├──────────┬──────────┬──────────┬──────────┬────────────┤
-│  Web     │   iOS    │ Android  │ Electron │   Mobile   │
-│  (Vite)  │  (Expo)  │  (Expo)  │ Desktop │   (RN)     │
+│  Web     │   iOS    │ Android  │  Tauri   │   Mobile   │
+│  (Vite)  │  (Expo)  │  (Expo)  │ Desktop  │   (RN)     │
 └────┬─────┴────┬─────┴────┬─────┴────┬─────┴─────┬──────┘
      │          │          │          │           │
      └──────────┴──────────┴──────────┴───────────┘
@@ -47,7 +47,7 @@
 | -------- | ----------------------------------------------------- |
 | Web 前端 | React 19 + Vite + Tailwind CSS v4 + @rabjs/react      |
 | 移动端   | React Native + Expo                                   |
-| 桌面端   | Electron 40 + Vite                                    |
+| 桌面端   | Tauri 2，加载远端 Web                                 |
 | 后端     | Express.js + routing-controllers + Socket.io + typedi |
 | 数据库   | Drizzle ORM + MySQL                                   |
 | 文件存储 | AWS S3 (预签名 URL 直传)                              |
@@ -92,8 +92,8 @@ pnpm dev:web
 # 启动移动端
 pnpm dev:mobile
 
-# 启动 Electron 桌面端
-cd apps/electron && pnpm dev
+# 启动 Tauri 桌面端（开发时加载 http://localhost:5274，需先启动 Web）
+cd apps/tauri && pnpm dev
 ```
 
 ## 项目结构
@@ -104,7 +104,7 @@ zen-send/
 │   ├── server/           # Express.js 后端服务
 │   ├── web/              # React Web 应用
 │   ├── mobile/           # React Native 移动端
-│   └── electron/         # Electron 桌面端
+│   └── tauri/            # Tauri 桌面壳，加载远端 Web
 ├── packages/
 │   ├── dto/              # 共享 TypeScript 接口
 │   ├── shared/           # 共享类型和工具
@@ -140,10 +140,10 @@ pnpm typecheck        # TypeScript 类型检查
 pnpm --filter @zen-send/server migrate:generate  # 生成迁移
 pnpm --filter @zen-send/server migrate:migrate  # 执行迁移
 
-# Electron 构建
-cd apps/electron && pnpm dist:mac    # 构建 macOS .app
-cd apps/electron && pnpm dist:win    # 构建 Windows .exe
-cd apps/electron && pnpm dist:linux  # 构建 Linux AppImage
+# 桌面端构建（生产包加载 https://zs.aimo.plus）
+cd apps/tauri && pnpm dist:mac    # 构建 macOS .app / .dmg
+cd apps/tauri && pnpm dist:win    # 构建 Windows .exe
+cd apps/tauri && pnpm dist:linux  # 构建 Linux AppImage / .deb
 ```
 
 ## 环境变量

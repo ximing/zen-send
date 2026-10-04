@@ -21,8 +21,8 @@ Cross-platform clipboard, text, and file transfer tool (like LocalSend)
 ┌─────────────────────────────────────────────────────────┐
 │                      Client Apps                        │
 ├──────────┬──────────┬──────────┬──────────┬────────────┤
-│  Web     │   iOS    │ Android  │ Electron │   Mobile   │
-│  (Vite)  │  (Expo)  │  (Expo)  │ Desktop │   (RN)     │
+│  Web     │   iOS    │ Android  │  Tauri   │   Mobile   │
+│  (Vite)  │  (Expo)  │  (Expo)  │ Desktop  │   (RN)     │
 └────┬─────┴────┬─────┴────┬─────┴────┬─────┴─────┬──────┘
      │          │          │          │           │
      └──────────┴──────────┴──────────┴───────────┘
@@ -47,7 +47,7 @@ Cross-platform clipboard, text, and file transfer tool (like LocalSend)
 | --------------- | ----------------------------------------------------- |
 | Web Frontend    | React 19 + Vite + Tailwind CSS v4 + @rabjs/react      |
 | Mobile          | React Native + Expo                                   |
-| Desktop         | Electron 40 + Vite                                    |
+| Desktop         | Tauri 2 shell that loads the remote web app           |
 | Backend         | Express.js + routing-controllers + Socket.io + typedi |
 | Database        | Drizzle ORM + MySQL                                   |
 | File Storage    | AWS S3 (Presigned URL Direct Upload)                  |
@@ -92,8 +92,8 @@ pnpm dev:web
 # Mobile app
 pnpm dev:mobile
 
-# Electron desktop app
-cd apps/electron && pnpm dev
+# Tauri desktop shell (dev loads http://localhost:5274; start the web app first)
+cd apps/tauri && pnpm dev
 ```
 
 ## Project Structure
@@ -104,7 +104,7 @@ zen-send/
 │   ├── server/           # Express.js backend
 │   ├── web/              # React Web app
 │   ├── mobile/           # React Native mobile
-│   └── electron/         # Electron desktop
+│   └── tauri/            # Tauri shell that loads the remote web app
 ├── packages/
 │   ├── dto/              # Shared TypeScript interfaces
 │   ├── shared/           # Shared types and utilities
@@ -140,10 +140,10 @@ pnpm typecheck        # TypeScript check
 pnpm --filter @zen-send/server migrate:generate  # Generate migration
 pnpm --filter @zen-send/server migrate:migrate    # Run migration
 
-# Electron Build
-cd apps/electron && pnpm dist:mac    # Build macOS .app
-cd apps/electron && pnpm dist:win    # Build Windows .exe
-cd apps/electron && pnpm dist:linux  # Build Linux AppImage
+# Desktop build (production loads https://zs.aimo.plus)
+cd apps/tauri && pnpm dist:mac    # Build macOS .app / .dmg
+cd apps/tauri && pnpm dist:win    # Build Windows .exe
+cd apps/tauri && pnpm dist:linux  # Build Linux AppImage / .deb
 ```
 
 ## Environment Variables
