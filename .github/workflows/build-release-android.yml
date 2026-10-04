@@ -33,6 +33,9 @@ jobs:
 
       - name: 🤖 Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # Google 已下架废弃的 tools 包，默认安装会让 sdkmanager 失败。
+          packages: platform-tools
 
       - name: 📦 Install dependencies
         run: pnpm install
