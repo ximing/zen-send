@@ -55,6 +55,8 @@ pub fn run() {
             if let RunEvent::ExitRequested { .. } = event {
                 commands::mark_quitting(app);
             }
+            // `Reopen` is the macOS dock click. The variant does not exist on Windows or Linux.
+            #[cfg(target_os = "macos")]
             if let RunEvent::Reopen { .. } = event {
                 window::show_main(app);
             }

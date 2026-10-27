@@ -26,6 +26,7 @@ describe('Tauri desktop contract', () => {
     assert.equal(conf.app.windows[0].create, false);
     assert.match(windowRs, /WebviewWindowBuilder::from_config/);
     assert.match(windowRs, /FrontendDist::Url/);
+    assert.match(lib, /#\[cfg\(target_os = "macos"\)\]\n\s+if let RunEvent::Reopen/);
   });
 
   it('keeps the desktop bridge on the remote page without the global Tauri object', () => {
