@@ -1,9 +1,21 @@
+#[cfg(not(target_os = "macos"))]
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+#[cfg(not(target_os = "macos"))]
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Manager};
+#[cfg(not(target_os = "macos"))]
+use tauri::Manager;
+use tauri::AppHandle;
 
+#[cfg(not(target_os = "macos"))]
 use crate::window::show_main;
 
+/// macOS 右上角状态栏不放文字，也不放图标。窗口从 Dock 或全局快捷键唤起。
+#[cfg(target_os = "macos")]
+pub fn install(_app: &AppHandle) -> tauri::Result<()> {
+    Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
 pub fn install(app: &AppHandle) -> tauri::Result<()> {
     let show = MenuItem::with_id(app, "tray-show", "显示主窗口", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "tray-quit", "退出应用", true, None::<&str>)?;
@@ -31,21 +43,12 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
             }
         });
 
-    // macOS 菜单栏状态项只留文字。彩色应用图标会占在状态菜单上。
-    #[cfg(target_os = "macos")]
-    {
-        builder = builder.title("Zen Send");
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        if let Some(icon) = app.default_window_icon() {
-            builder = builder.icon(icon.clone());
-        } else {
-            builder = builder.icon(tauri::image::Image::from_bytes(include_bytes!(
-                "../icons/32x32.png"
-            ))?);
-        }
+    if let Some(icon) = app.default_window_icon() {
+        builder = builder.icon(icon.clone());
+    } else {
+        builder = builder.icon(tauri::image::Image::from_bytes(include_bytes!(
+            "../icons/32x32.png"
+        ))?);
     }
 
     builder.build(app)?;

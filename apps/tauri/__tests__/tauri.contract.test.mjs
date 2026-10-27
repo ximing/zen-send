@@ -38,12 +38,12 @@ describe('Tauri desktop contract', () => {
     assert.match(lib, /create_main_window/);
   });
 
-  it('puts text, not an icon, on the macOS status item', () => {
-    assert.match(tray, /target_os = "macos"/);
-    assert.match(tray, /\.title\("Zen Send"\)/);
+  it('leaves the macOS menu bar empty', () => {
+    assert.match(tray, /#\[cfg\(target_os = "macos"\)\]\npub fn install\(_app: &AppHandle\)/);
     assert.match(tray, /not\(target_os = "macos"\)/);
-    const macos = tray.slice(tray.indexOf('target_os = "macos"'), tray.indexOf('not(target_os'));
-    assert.doesNotMatch(macos, /\.icon\(/);
+    assert.doesNotMatch(tray, /\.title\(/);
+    const macos = tray.slice(0, tray.indexOf('not(target_os'));
+    assert.doesNotMatch(macos, /TrayIconBuilder/);
   });
 
   it('limits the webview to shell commands', () => {
