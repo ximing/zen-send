@@ -60,9 +60,23 @@ pub fn bridge_script(server_url: &str, version: &str, platform: &str) -> String 
         )
 }
 
+/// Dev uses `devUrl`. Release uses `frontendDist` when it is a URL.
+fn configured_page(app: &AppHandle) -> String {
+    let build = &app.config().build;
+    let url = if cfg!(debug_assertions) {
+        build.dev_url.clone()
+    } else {
+        match &build.frontend_dist {
+            Some(tauri::utils::config::FrontendDist::Url(url)) => Some(url.clone()),
+            _ => None,
+        }
+    };
+    url.map(|url| url.as_str().trim_end_matches('/').to_string())
+        .unwrap_or_default()
+}
+
 pub fn create_main_window(app: &AppHandle) -> tauri::Result<()> {
     let page = app_url();
-    let parsed: Url = page.parse().expect("invalid ZEN_SEND_WEB_URL");
     let state = app.state::<DesktopState>();
     let (saved, server_url) = {
         let config = state.config.lock().expect("config");
@@ -71,10 +85,26 @@ pub fn create_main_window(app: &AppHandle) -> tauri::Result<()> {
     let version = app.package_info().version.to_string();
     let script = bridge_script(&server_url, &version, crate::state::electron_platform());
 
-    let mut builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(parsed.clone()))
-        .title("Zen Send")
+    let window_config = app
+        .config()
+        .app
+        .windows
+        .iter()
+        .find(|window| window.label == "main")
+        .cloned()
+        .expect("main window config");
+    let configured = configured_page(app);
+    let mut builder = if page.trim_end_matches('/') == configured {
+        WebviewWindowBuilder::from_config(app, &window_config)?
+    } else {
+        let parsed: Url = page.parse().expect("invalid ZEN_SEND_WEB_URL");
+        WebviewWindowBuilder::new(app, "main", WebviewUrl::External(parsed))
+            .title("Zen Send")
+            .min_inner_size(460.0, 600.0)
+    };
+
+    builder = builder
         .inner_size(saved.width, saved.height)
-        .min_inner_size(460.0, 600.0)
         .visible(false)
         .initialization_script(script)
         .on_page_load(|window, payload| {

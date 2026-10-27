@@ -12,7 +12,8 @@
     "dist": "tauri build",
     "dist:mac": "tauri build --bundles dmg,app",
     "dist:win": "tauri build --bundles nsis",
-    "dist:linux": "tauri build --bundles appimage,deb"
+    "dist:linux": "tauri build --bundles appimage,deb",
+    "test": "node --test __tests__/tauri.contract.test.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"

@@ -4,12 +4,25 @@
   "version": "1.0.11",
   "identifier": "com.zensend.app",
   "build": {
-    "frontendDist": "../frontend",
-    "devUrl": "http://localhost:5274"
+    "beforeDevCommand": "node scripts/before-dev.mjs",
+    "devUrl": "http://localhost:5274",
+    "frontendDist": "https://zs.aimo.plus"
   },
   "app": {
-    "withGlobalTauri": true,
-    "windows": [],
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "create": false,
+        "title": "Zen Send",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 460,
+        "minHeight": 600,
+        "resizable": true,
+        "visible": false
+      }
+    ],
     "security": {
       "csp": null
     }
@@ -29,7 +42,8 @@
     "longDescription": "Zen Send - Cross-platform clipboard, text, and file transfer tool",
     "copyright": "Copyright © 2026 Zen Send",
     "macOS": {
-      "minimumSystemVersion": "10.15"
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": "-"
     }
   }
 }

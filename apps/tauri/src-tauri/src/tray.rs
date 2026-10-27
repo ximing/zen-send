@@ -31,12 +31,21 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
             }
         });
 
-    if let Some(icon) = app.default_window_icon() {
-        builder = builder.icon(icon.clone());
-    } else {
-        builder = builder.icon(tauri::image::Image::from_bytes(include_bytes!(
-            "../icons/32x32.png"
-        ))?);
+    // macOS 菜单栏状态项只留文字。彩色应用图标会占在状态菜单上。
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.title("Zen Send");
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        if let Some(icon) = app.default_window_icon() {
+            builder = builder.icon(icon.clone());
+        } else {
+            builder = builder.icon(tauri::image::Image::from_bytes(include_bytes!(
+                "../icons/32x32.png"
+            ))?);
+        }
     }
 
     builder.build(app)?;

@@ -3,6 +3,7 @@
   "identifier": "main",
   "description": "Desktop shell commands for the remote Zen Send web app",
   "windows": ["main"],
+  "local": true,
   "remote": {
     "urls": [
       "https://zs.aimo.plus",
@@ -14,7 +15,6 @@
     ]
   },
   "permissions": [
-    "core:default",
     "allow-set-server-url",
     "allow-get-global-shortcut",
     "allow-set-global-shortcut",

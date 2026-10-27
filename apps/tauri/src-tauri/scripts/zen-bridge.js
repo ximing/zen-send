@@ -8,11 +8,11 @@
   const fileDropListeners = new Set();
 
   function invoke(cmd, args) {
-    const tauri = window.__TAURI__;
-    if (!tauri || !tauri.core || typeof tauri.core.invoke !== 'function') {
+    const internals = window.__TAURI_INTERNALS__;
+    if (!internals || typeof internals.invoke !== 'function') {
       return Promise.reject(new Error('desktop bridge unavailable'));
     }
-    return tauri.core.invoke(cmd, args || {});
+    return internals.invoke(cmd, args || {});
   }
 
   window.__zenEmitFileDrop = (paths) => {
