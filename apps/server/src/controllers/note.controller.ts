@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  QueryParams,
   CurrentUser,
   Authorized,
   HttpError,
@@ -30,7 +31,20 @@ export class NoteController {
   }
 
   @Get('/:id')
-  async getOne(@Param('id') id: string, @CurrentUser() user: TokenPayload) {
+  async getOne(
+    @Param('id') id: string,
+    @QueryParams() query: { q?: string },
+    @CurrentUser() user: TokenPayload
+  ) {
+    // routing-controllers keeps the first matching route. /:id is registered
+    // before a static /search route, so this param has to recognize it.
+    if (id === 'search') {
+      const q = (query.q ?? '').trim();
+      if (!q) return ResponseUtil.success([]);
+      if (q.length > 100) throw new HttpError(400, 'Query too long');
+      const hits = await this.noteService.searchNotes(user.userId, q);
+      return ResponseUtil.success(hits);
+    }
     const note = await this.noteService.getNoteById(id, user.userId);
     if (!note) {
       throw new HttpError(404, 'Note not found');

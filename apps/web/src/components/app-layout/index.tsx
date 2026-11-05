@@ -11,6 +11,7 @@ import Sidebar from '../sidebar';
 import Drawer from '../drawer';
 import Header from '../header';
 import Toast from '../toast';
+import NoteSearchDialog from '../note-search-dialog';
 
 const HEADERLESS_PATHS = ['/notes', '/devices', '/settings'];
 
@@ -162,6 +163,7 @@ function AppLayoutInner() {
           )}
         </div>
       </div>
+      <NoteSearchDialog />
       <Toast />
     </div>
   );

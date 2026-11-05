@@ -5,7 +5,9 @@ import { EditorState, Prec, StateEffect } from '@codemirror/state';
 import { ChevronLeft, ChevronDown, Share2 } from 'lucide-react';
 import ShareDialog from '../share-dialog/share-dialog';
 import { NoteService } from '../../../../services/note.service';
+import { NoteSearchService } from '../../../../services/note-search.service';
 import { NoteCollabService } from '../../../../services/note-collab.service';
+import { revealMatch } from './jump-to-match';
 import { AuthService } from '../../../../services/auth.service';
 import { ToastService } from '../../../../components/toast/toast.service';
 import { useTheme } from '../../../../theme/theme-provider';
@@ -46,6 +48,7 @@ function NoteEditorInner() {
   const viewRef = useRef<EditorView | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const noteService = useService(NoteService);
+  const noteSearch = useService(NoteSearchService);
   const noteCollabService = useService(NoteCollabService);
   const authService = useService(AuthService);
   const toastService = useService(ToastService);
@@ -82,7 +85,42 @@ function NoteEditorInner() {
     const currentSaveTimeoutRef = saveTimeoutRef;
     const userName = authService.user?.nickname ?? authService.user?.email ?? 'Anonymous';
     const userColor = hashToColor(authService.user?.id ?? '');
-    const { ytext, awareness, waitForSync } = noteCollabService.joinNote(noteId, userName, userColor);
+    const { ytext, awareness, waitForSync } = noteCollabService.joinNote(
+      noteId,
+      userName,
+      userColor
+    );
+
+    // Yjs 同步可能晚于 waitForSync，空文档上取走 pending 会把跳转丢掉。
+    let jumped = false;
+    const maybeReveal = (view: EditorView): boolean => {
+      if (jumped || view.state.doc.length === 0) return false;
+      if (noteSearch.pendingNoteId !== noteId || !noteSearch.pendingQuery) return false;
+      const doc = view.state.doc.toString();
+      const query = noteSearch.pendingQuery;
+      const start = noteSearch.pendingStart;
+      const end = noteSearch.pendingEnd;
+      const needle = query.toLowerCase();
+      const offsetHit =
+        start != null &&
+        end != null &&
+        end <= doc.length &&
+        end > start &&
+        doc.slice(start, end).toLowerCase() === needle;
+      const hasOffset = start != null && end != null;
+      // 正文命中要等这段文字进文档再取走 pending，避免 Yjs 还在灌内容时跳空。
+      if (hasOffset && !offsetHit && !doc.toLowerCase().includes(needle)) return false;
+      const pending = noteSearch.takePending(noteId);
+      if (!pending) return false;
+      jumped = true;
+      const reveal = (frame: number) => {
+        if (viewRef.current !== view) return;
+        revealMatch(view, pending.query, pending.start, pending.end);
+        if (frame < 4) requestAnimationFrame(() => reveal(frame + 1));
+      };
+      reveal(0);
+      return true;
+    };
 
     // CM6 初始内容必须为空，yCollab 会在 Yjs sync 后把 YText 内容推入 CM6
     // 不能用 DB content 初始化，否则与 YText sync 叠加会产生重复内容
@@ -130,6 +168,7 @@ function NoteEditorInner() {
           }
           // Yjs 负责内容持久化；这里只在 title 自动提取时保存 title
           if (update.docChanged) {
+            maybeReveal(update.view);
             if (currentSaveTimeoutRef.current) clearTimeout(currentSaveTimeoutRef.current);
             currentSaveTimeoutRef.current = setTimeout(() => {
               if (!viewRef.current || !noteService.currentNote) return;
@@ -153,25 +192,28 @@ function NoteEditorInner() {
     // 后才 resolve，导致 view 实例不匹配而跳过滚动。改用 view 引用对比更可靠。
     waitForSync.then(() => {
       if (viewRef.current !== view) return;
-      // 等待 doc 有内容后用 CM6 scrollIntoView 滚到末尾，确保最后一行对齐视口底部
-      // CM 惰性渲染可能让 scrollHeight 逐帧增大，多帧滚动确保到达真正底部
-      const tryScroll = (attempt: number) => {
-        if (viewRef.current !== view) return;
-        const { state } = view;
-        if (state.doc.length > 0) {
-          // 用 CM6 的 scrollIntoView 把文档末尾滚到视口底部
-          // yMargin:0 确保最后一行紧贴视口底边，不留额外空白
-          view.dispatch({
-            effects: EditorView.scrollIntoView(state.doc.length, { y: 'end', yMargin: 60 }),
-          });
-          if (attempt < 12) {
-            requestAnimationFrame(() => tryScroll(attempt + 1));
-          }
-        } else if (attempt < 20) {
-          requestAnimationFrame(() => tryScroll(attempt + 1));
+      // 等待 doc 有内容后再决定滚到搜索命中还是文末。
+      // CM 惰性渲染可能让 scrollHeight 逐帧增大，滚到文末时多帧滚动才能到底。
+      const trySettle = (attempt: number) => {
+        if (viewRef.current !== view || jumped) return;
+        const waitingForJump = noteSearch.pendingNoteId === noteId && !!noteSearch.pendingQuery;
+        if (waitingForJump) {
+          if (maybeReveal(view)) return;
+          if (attempt < 180) requestAnimationFrame(() => trySettle(attempt + 1));
+          return;
+        }
+        if (view.state.doc.length === 0 && attempt < 20) {
+          requestAnimationFrame(() => trySettle(attempt + 1));
+          return;
+        }
+        view.dispatch({
+          effects: EditorView.scrollIntoView(view.state.doc.length, { y: 'end', yMargin: 60 }),
+        });
+        if (attempt < 12) {
+          requestAnimationFrame(() => trySettle(attempt + 1));
         }
       };
-      requestAnimationFrame(() => tryScroll(0));
+      requestAnimationFrame(() => trySettle(0));
     });
 
     return () => {
@@ -191,6 +233,16 @@ function NoteEditorInner() {
       viewRef.current = null;
     };
   }, [noteService.currentNoteId]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const noteId = noteService.currentNoteId;
+    if (!view || !noteId || view.state.doc.length === 0) return;
+    if (noteSearch.pendingNoteId !== noteId || !noteSearch.pendingQuery) return;
+    const pending = noteSearch.takePending(noteId);
+    if (!pending) return;
+    revealMatch(view, pending.query, pending.start, pending.end);
+  }, [noteSearch.jumpToken]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -256,7 +308,9 @@ function NoteEditorInner() {
 
   const languages = getLanguageList();
   const displayLanguage = activeBlock
-    ? (languages.find((l) => l.token === activeBlock.language)?.name ?? activeBlock.language).toUpperCase()
+    ? (
+        languages.find((l) => l.token === activeBlock.language)?.name ?? activeBlock.language
+      ).toUpperCase()
     : '';
 
   const handleLanguageSelect = (lang: string) => {
@@ -283,12 +337,16 @@ function NoteEditorInner() {
     const noteId = editingNoteIdRef.current;
     if (!trimmed || !noteId) return;
     const note = noteService.notes.find((n) => n.id === noteId);
-    const currentTitle = noteId === noteService.currentNoteId ? noteService.currentNote?.title : note?.title;
+    const currentTitle =
+      noteId === noteService.currentNoteId ? noteService.currentNote?.title : note?.title;
     if (!currentTitle || trimmed === currentTitle) return;
     noteService.markTitleManuallyEdited(noteId);
-    const content = noteId === noteService.currentNoteId
-      ? (viewRef.current?.state.doc.toString() ?? noteService.currentNote?.content ?? '')
-      : (note ? '' : '');
+    const content =
+      noteId === noteService.currentNoteId
+        ? (viewRef.current?.state.doc.toString() ?? noteService.currentNote?.content ?? '')
+        : note
+          ? ''
+          : '';
     noteService.saveNote(noteId, content, trimmed);
   };
 
@@ -443,7 +501,9 @@ function NoteEditorInner() {
                     className="lang-dropdown-item block w-full text-left px-3 py-1.5 text-xs rounded"
                     style={{
                       color:
-                        activeBlock?.language === lang.token ? 'var(--accent)' : 'var(--text-primary)',
+                        activeBlock?.language === lang.token
+                          ? 'var(--accent)'
+                          : 'var(--text-primary)',
                       fontWeight: activeBlock?.language === lang.token ? 600 : 400,
                     }}
                   >

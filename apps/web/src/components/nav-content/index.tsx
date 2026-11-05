@@ -10,11 +10,14 @@ import {
   Notebook,
   Plus,
   Trash2,
+  Search,
 } from 'lucide-react';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { NoteService } from '../../services/note.service';
+import { NoteSearchService } from '../../services/note-search.service';
 import { ToastService } from '../toast/toast.service';
+import { searchShortcutLabel } from '../note-search-dialog';
 
 interface NavContentProps {
   onNavigate?: () => void;
@@ -26,6 +29,7 @@ function NavContentInner({ onNavigate }: NavContentProps) {
   const authService = useService(AuthService);
   const themeService = useService(ThemeService);
   const noteService = useService(NoteService);
+  const noteSearch = useService(NoteSearchService);
   const toastService = useService(ToastService);
 
   const handleThemeToggle = () => {
@@ -126,59 +130,82 @@ function NavContentInner({ onNavigate }: NavContentProps) {
         </button>
 
         {/* Note list - Scrollable only this part */}
-        {noteService.noteListExpanded && (
-          <div
-            className="overflow-y-auto min-h-0 flex-1"
-            style={{
-              paddingLeft: '24px',
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'var(--text-muted) transparent',
-            }}
+        <button
+          type="button"
+          onClick={() => {
+            noteSearch.openPalette();
+            onNavigate?.();
+          }}
+          className="group mt-1.5 mb-2 flex h-8 w-full shrink-0 items-center gap-2 rounded-lg bg-[var(--bg-surface)] px-2.5 text-[13px] text-[var(--text-muted)] transition-colors hover:text-[var(--text-secondary)]"
+          style={{ outline: 'none' }}
+        >
+          <Search size={13} className="shrink-0" />
+          <span className="flex-1 truncate text-left">搜索笔记</span>
+          <kbd
+            className="inline-flex h-[18px] items-center rounded-[4px] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-1 text-[10px] font-medium leading-none text-[var(--text-muted)]"
+            style={{ fontFamily: 'inherit' }}
           >
-            {noteService.notes.length === 0 && (
-              <div className="px-3 py-2 text-sm" style={{ color: 'var(--text-muted)' }}>
-                还没有笔记，点击 + 创建
-              </div>
-            )}
-            {noteService.notes.map((note) => (
-              <div
-                key={note.id}
-                onClick={() => {
-                  navigate(`/notes/${note.id}`);
-                  onNavigate?.();
-                }}
-                className="flex items-center justify-between px-3 py-1.5 cursor-pointer group rounded-lg hover:bg-[var(--bg-surface)] transition-colors"
-                style={{
-                  color:
-                    location.pathname === `/notes/${note.id}`
-                      ? 'var(--accent)'
-                      : 'var(--text-secondary)',
-                }}
-              >
-                <span
-                  className="truncate text-sm"
-                  style={{ fontWeight: location.pathname === `/notes/${note.id}` ? 500 : 400 }}
-                >
-                  {note.title}
-                </span>
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    const confirmed = await toastService.confirm('确定删除该笔记？');
-                    if (confirmed) {
-                      await noteService.deleteNote(note.id);
-                      if (location.pathname === `/notes/${note.id}`) {
-                        navigate('/notes');
-                      }
-                    }
+            {searchShortcutLabel()}
+          </kbd>
+        </button>
+
+        {noteService.noteListExpanded && (
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div
+              className="overflow-y-auto min-h-0 flex-1"
+              style={{
+                paddingLeft: '24px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'var(--text-muted) transparent',
+              }}
+            >
+              {noteService.notes.length === 0 && (
+                <div className="px-3 py-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                  还没有笔记，点击 + 创建
+                </div>
+              )}
+              {noteService.notes.map((note) => (
+                <div
+                  key={note.id}
+                  onClick={() => {
+                    navigate(`/notes/${note.id}`);
+                    onNavigate?.();
                   }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center w-6 h-6 -mr-1 rounded hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)]"
-                  style={{ color: 'var(--text-muted)' }}
+                  className="flex items-center justify-between px-3 py-1.5 cursor-pointer group rounded-lg hover:bg-[var(--bg-surface)] transition-colors"
+                  style={{
+                    color:
+                      location.pathname === `/notes/${note.id}`
+                        ? 'var(--accent)'
+                        : 'var(--text-secondary)',
+                  }}
                 >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
+                  <span
+                    className="truncate text-sm"
+                    style={{
+                      fontWeight: location.pathname === `/notes/${note.id}` ? 500 : 400,
+                    }}
+                  >
+                    {note.title}
+                  </span>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const confirmed = await toastService.confirm('确定删除该笔记？');
+                      if (confirmed) {
+                        await noteService.deleteNote(note.id);
+                        if (location.pathname === `/notes/${note.id}`) {
+                          navigate('/notes');
+                        }
+                      }
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center w-6 h-6 -mr-1 rounded hover:bg-[var(--border-subtle)] hover:text-[var(--text-primary)]"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

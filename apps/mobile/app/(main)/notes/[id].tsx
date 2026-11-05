@@ -1,4 +1,11 @@
-import { View, StyleSheet, Platform, TouchableOpacity, Text, KeyboardAvoidingView } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+  Text,
+  KeyboardAvoidingView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useEffect } from 'react';
@@ -9,7 +16,12 @@ import { AuthService } from '../../../src/services/auth.service';
 import { ThemeService } from '../../../src/services/theme.service';
 
 function NoteEditorScreenInner() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, q, start, end } = useLocalSearchParams<{
+    id: string;
+    q?: string;
+    start?: string;
+    end?: string;
+  }>();
   const router = useRouter();
   const authService = useService(AuthService);
   const themeService = useService(ThemeService);
@@ -33,11 +45,25 @@ function NoteEditorScreenInner() {
 
   // In production the web app is served from the same server.
   // In dev, point serverUrl to the web dev server (port 5274) or build web first.
-  const embedUrl = `${authService.serverUrl}/#/notes/embed/${id}?access_token=${token}&user_id=${userId}&user_name=${displayName}`;
+  const query = typeof q === 'string' ? q : '';
+  const matchStart = typeof start === 'string' ? start : '';
+  const matchEnd = typeof end === 'string' ? end : '';
+  let embedUrl = `${authService.serverUrl}/#/notes/embed/${id}?access_token=${token}&user_id=${userId}&user_name=${displayName}`;
+  if (query) {
+    embedUrl += `&q=${encodeURIComponent(query)}`;
+    if (matchStart && matchEnd) {
+      embedUrl += `&start=${encodeURIComponent(matchStart)}&end=${encodeURIComponent(matchEnd)}`;
+    }
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
-      <View style={[styles.header, { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderSubtle }]}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.bgSurface, borderBottomColor: colors.borderSubtle },
+        ]}
+      >
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>

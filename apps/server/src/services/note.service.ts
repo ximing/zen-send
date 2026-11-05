@@ -1,10 +1,11 @@
 import { randomBytes } from 'crypto';
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, or, sql } from 'drizzle-orm';
 import { Service } from 'typedi';
 import { DbService } from './db.service.js';
 import { notes } from '../db/schema.js';
 import { generateNoteId } from '../utils/id.js';
-import type { NoteDetail, NoteListItem, SharedNoteDetail } from '@zen-send/dto';
+import { likeContainsPattern, rankNoteHits } from './note-search.js';
+import type { NoteDetail, NoteListItem, NoteSearchHit, SharedNoteDetail } from '@zen-send/dto';
 
 @Service()
 export class NoteService {
@@ -159,6 +160,30 @@ export class NoteService {
 
     await this.db.delete(notes).where(and(eq(notes.id, id), eq(notes.userId, userId)));
     return true;
+  }
+
+  async searchNotes(userId: string, query: string): Promise<NoteSearchHit[]> {
+    const trimmed = query.trim();
+    if (!trimmed || trimmed.length > 100) return [];
+    const pattern = likeContainsPattern(trimmed);
+    const rows = await this.db
+      .select({
+        id: notes.id,
+        title: notes.title,
+        content: notes.content,
+        updatedAt: notes.updatedAt,
+      })
+      .from(notes)
+      .where(
+        and(
+          eq(notes.userId, userId),
+          or(
+            sql`LOWER(${notes.title}) LIKE ${pattern}`,
+            sql`LOWER(${notes.content}) LIKE ${pattern}`
+          )
+        )
+      );
+    return rankNoteHits(rows, trimmed);
   }
 
   async reorderNotes(

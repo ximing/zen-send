@@ -55,8 +55,8 @@ export class ApiService extends Service {
     return result.data;
   }
 
-  async get<T>(path: string): Promise<T> {
-    return this.request<T>(path, { method: 'GET' });
+  async get<T>(path: string, init?: { signal?: AbortSignal }): Promise<T> {
+    return this.request<T>(path, { method: 'GET', signal: init?.signal });
   }
 
   async post<T>(path: string, body?: unknown): Promise<T> {

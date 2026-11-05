@@ -10,6 +10,7 @@ import { HomeService } from '../src/services/home.service';
 import { NotificationService } from '../src/services/notification.service';
 import { UserService } from '../src/services/user.service';
 import { NoteService } from '../src/services/note.service';
+import { NoteSearchService } from '../src/services/note-search.service';
 import ToastInner from '../src/components/toast';
 
 // Register services
@@ -21,6 +22,7 @@ register(HomeService);
 register(NotificationService);
 register(UserService);
 register(NoteService);
+register(NoteSearchService);
 
 function RootLayoutInner() {
   const themeService = useService(ThemeService);

@@ -93,6 +93,21 @@ export interface NoteListItem {
   updatedAt: number;
 }
 
+/** A body hit. `start` / `end` are UTF-16 offsets into `notes.content`. */
+export interface NoteSearchMatch {
+  start: number;
+  end: number;
+  snippet: string;
+}
+
+export interface NoteSearchHit {
+  id: string;
+  title: string;
+  updatedAt: number;
+  titleMatch: boolean;
+  matches: NoteSearchMatch[];
+}
+
 export interface NoteDetail {
   id: string;
   userId: string;

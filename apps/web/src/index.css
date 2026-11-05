@@ -157,6 +157,27 @@ input,
   background: var(--accent-soft);
 }
 
+/* Note search palette — 打开动画 */
+@keyframes note-palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes note-palette-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* ============================================
    Yjs Collab — 远端光标 & 选区样式
    ============================================ */

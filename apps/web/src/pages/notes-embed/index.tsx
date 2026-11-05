@@ -3,13 +3,21 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { observer, useService } from '@rabjs/react';
 import { EmbedAuthService } from './embed-auth.service';
 import { NoteService } from '../../services/note.service';
+import { NoteSearchService } from '../../services/note-search.service';
 import NoteEditor from '../notes/components/note-editor';
+
+function numberOrNull(value: string | null): number | null {
+  if (value == null || value === '') return null;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+}
 
 function NoteEmbedPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const embedAuthService = useService(EmbedAuthService);
   const noteService = useService(NoteService);
+  const noteSearch = useService(NoteSearchService);
 
   // Auth init — runs once on mount; token params are static for this WebView's lifetime
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -25,6 +33,15 @@ function NoteEmbedPage() {
   // Load note when id is available and auth is ready
   useEffect(() => {
     if (!id || !embedAuthService.ready) return;
+    const q = (searchParams.get('q') ?? '').trim();
+    if (q) {
+      noteSearch.arm(
+        id,
+        q,
+        numberOrNull(searchParams.get('start')),
+        numberOrNull(searchParams.get('end'))
+      );
+    }
     noteService.loadNote(id);
   }, [id, embedAuthService.ready]);
 

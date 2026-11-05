@@ -15,6 +15,7 @@ import { ToastService } from './components/toast/toast.service';
 import { HomeService } from './pages/home/home.service';
 import { UserService } from './services/user.service';
 import { NoteService } from './services/note.service';
+import { NoteSearchService } from './services/note-search.service';
 import { NoteCollabService } from './services/note-collab.service';
 import { EmbedAuthService } from './pages/notes-embed/embed-auth.service';
 
@@ -29,6 +30,7 @@ register(ToastService);
 register(HomeService);
 register(UserService);
 register(NoteService);
+register(NoteSearchService);
 register(NoteCollabService);
 register(EmbedAuthService);
 
