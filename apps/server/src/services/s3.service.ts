@@ -37,6 +37,11 @@ export class S3Service {
         secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
       },
       forcePathStyle: !!process.env.S3_ENDPOINT,
+      // SDK >= 3.729 默认 WHEN_SUPPORTED,presign 时会把"空 body 的 CRC32"写进
+      // 预签名 URL 的 query(AAAAAA==)。RustFS 会校验该值,分片 PUT 直接 400
+      // BadDigest。presign 场景必须回退为 WHEN_REQUIRED。
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     });
 
     logger.info('S3 client initialized');
