@@ -11,7 +11,6 @@ export class NoteService extends Service {
   noteListExpanded: boolean = true;
   saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
   _saveNowFn: (() => void) | null = null;
-  private _inflightSave: Promise<void> | null = null;
   private _manualTitleEdited: Set<string> = new Set(
     JSON.parse(localStorage.getItem('zen_send_manual_title_edited') || '[]')
   );
@@ -37,14 +36,27 @@ export class NoteService extends Service {
   }
 
   async loadNote(id: string): Promise<void> {
-    if (this._inflightSave) {
-      await this._inflightSave;
-    }
     const listItem = this.notes.find((n) => n.id === id);
     if (listItem) {
-      this.currentNote = { id: listItem.id, userId: '', title: listItem.title, content: '', sortOrder: listItem.sortOrder, createdAt: 0, updatedAt: listItem.updatedAt };
+      this.currentNote = {
+        id: listItem.id,
+        userId: '',
+        title: listItem.title,
+        content: '',
+        sortOrder: listItem.sortOrder,
+        createdAt: 0,
+        updatedAt: listItem.updatedAt,
+      };
     } else {
-      this.currentNote = { id, userId: '', title: '...', content: '', sortOrder: 0, createdAt: 0, updatedAt: 0 };
+      this.currentNote = {
+        id,
+        userId: '',
+        title: '...',
+        content: '',
+        sortOrder: 0,
+        createdAt: 0,
+        updatedAt: 0,
+      };
     }
     this.currentNoteId = id;
     try {
@@ -53,7 +65,12 @@ export class NoteService extends Service {
         this.currentNote = note;
         const listNote = this.notes.find((n) => n.id === id);
         if (!listNote) {
-          this.notes.push({ id: note.id, title: note.title, sortOrder: note.sortOrder, updatedAt: note.updatedAt });
+          this.notes.push({
+            id: note.id,
+            title: note.title,
+            sortOrder: note.sortOrder,
+            updatedAt: note.updatedAt,
+          });
         }
       }
       this.noteListExpanded = true;
@@ -78,29 +95,25 @@ export class NoteService extends Service {
     }
   }
 
-  async saveNote(id: string, content: string, title?: string): Promise<void> {
+  async saveTitle(id: string, title: string): Promise<void> {
     this.saveStatus = 'saving';
-    this._inflightSave = (async () => {
-      try {
-        await this.apiService.patch(`/api/notes/${id}`, { content, title });
-        this.saveStatus = 'saved';
-        const listItem = this.notes.find((n) => n.id === id);
-        if (listItem && title) {
-          listItem.title = title;
-        }
-        if (this.currentNote && this.currentNote.id === id) {
-          this.currentNote.content = content;
-          if (title) this.currentNote.title = title;
-          this.currentNote.updatedAt = Math.floor(Date.now() / 1000);
-        }
-      } catch {
-        this.saveStatus = 'error';
-        this.toastService.show('保存笔记失败', 'error');
-      } finally {
-        this._inflightSave = null;
+    try {
+      // Content is persisted by Yjs. Title saves must never write a stale or
+      // not-yet-synchronized CodeMirror document back to the notes table.
+      await this.apiService.patch(`/api/notes/${id}`, { title });
+      this.saveStatus = 'saved';
+      const listItem = this.notes.find((n) => n.id === id);
+      if (listItem) {
+        listItem.title = title;
       }
-    })();
-    return this._inflightSave;
+      if (this.currentNote && this.currentNote.id === id) {
+        this.currentNote.title = title;
+        this.currentNote.updatedAt = Math.floor(Date.now() / 1000);
+      }
+    } catch {
+      this.saveStatus = 'error';
+      this.toastService.show('保存笔记失败', 'error');
+    }
   }
 
   async deleteNote(id: string): Promise<void> {

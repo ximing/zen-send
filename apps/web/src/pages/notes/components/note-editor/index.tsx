@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { observer, useService } from '@rabjs/react';
 import { EditorView, keymap } from '@codemirror/view';
-import { EditorState, Prec, StateEffect } from '@codemirror/state';
+import { EditorState, Prec } from '@codemirror/state';
 import { ChevronLeft, ChevronDown, Share2 } from 'lucide-react';
 import ShareDialog from '../share-dialog/share-dialog';
 import { NoteService } from '../../../../services/note.service';
 import { NoteSearchService } from '../../../../services/note-search.service';
 import { NoteCollabService } from '../../../../services/note-collab.service';
 import { revealMatch } from './jump-to-match';
+import { hasLocalContentEdit } from './title-save';
 import { AuthService } from '../../../../services/auth.service';
 import { ToastService } from '../../../../components/toast/toast.service';
 import { useTheme } from '../../../../theme/theme-provider';
@@ -46,7 +47,6 @@ import { useNavigate } from 'react-router-dom';
 function NoteEditorInner() {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const noteService = useService(NoteService);
   const noteSearch = useService(NoteSearchService);
   const noteCollabService = useService(NoteCollabService);
@@ -64,25 +64,12 @@ function NoteEditorInner() {
   const prevActiveBlockRef = useRef<{ language: string } | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSaveNow = useCallback(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-    if (viewRef.current && noteService.currentNote) {
-      const doc = viewRef.current.state.doc.toString();
-      const title = noteService.shouldAutoExtractTitle(noteService.currentNote.id)
-        ? noteService.extractTitleFromContent(doc)
-        : noteService.currentNote.title;
-      noteService.saveNote(noteService.currentNote.id, doc, title);
-    }
-  }, [noteService]);
-
   useEffect(() => {
     if (!editorRef.current || !noteService.currentNote) return;
 
     const noteId = noteService.currentNote.id;
-    const currentSaveTimeoutRef = saveTimeoutRef;
+    let titleSaveTimeout: ReturnType<typeof setTimeout> | null = null;
+    let sessionSynced = false;
     const userName = authService.user?.nickname ?? authService.user?.email ?? 'Anonymous';
     const userColor = hashToColor(authService.user?.id ?? '');
     const { ytext, awareness, waitForSync } = noteCollabService.joinNote(
@@ -90,6 +77,26 @@ function NoteEditorInner() {
       userName,
       userColor
     );
+
+    let titleSaveView: EditorView | null = null;
+    const flushTitleSave = () => {
+      if (!titleSaveTimeout) return;
+      clearTimeout(titleSaveTimeout);
+      titleSaveTimeout = null;
+
+      // A local edit made before the initial sync is already persisted by Yjs.
+      // Do not derive a title from a partially initialized document.
+      if (!sessionSynced || !titleSaveView || !noteService.shouldAutoExtractTitle(noteId)) return;
+      const docText = titleSaveView.state.doc.toString();
+      const title = noteService.extractTitleFromContent(docText);
+      const currentTitle =
+        noteService.currentNote?.id === noteId
+          ? noteService.currentNote.title
+          : noteService.notes.find((note) => note.id === noteId)?.title;
+      if (currentTitle == null || title === currentTitle) return;
+      noteService.saveTitle(noteId, title);
+    };
+    noteService._saveNowFn = flushTitleSave;
 
     // Yjs 同步可能晚于 waitForSync，空文档上取走 pending 会把跳转丢掉。
     let jumped = false;
@@ -166,19 +173,14 @@ function NoteEditorInner() {
               }
             }
           }
-          // Yjs 负责内容持久化；这里只在 title 自动提取时保存 title
+          // Yjs 负责内容持久化；只有真实本地编辑才需要重新提取标题。
+          // 初始化或远端 sync 也会 docChanged，但不能因此保存标题。
           if (update.docChanged) {
             maybeReveal(update.view);
-            if (currentSaveTimeoutRef.current) clearTimeout(currentSaveTimeoutRef.current);
-            currentSaveTimeoutRef.current = setTimeout(() => {
-              if (!viewRef.current || !noteService.currentNote) return;
-              if (!noteService.shouldAutoExtractTitle(noteService.currentNote.id)) return;
-              const docText = viewRef.current.state.doc.toString();
-              const title = noteService.extractTitleFromContent(docText);
-              if (title !== noteService.currentNote.title) {
-                noteService.saveNote(noteService.currentNote.id, docText, title);
-              }
-            }, 2000);
+            if (!hasLocalContentEdit(update.transactions)) return;
+            titleSaveView = update.view;
+            if (titleSaveTimeout) clearTimeout(titleSaveTimeout);
+            titleSaveTimeout = setTimeout(() => flushTitleSave(), 2000);
           }
         }),
       ],
@@ -191,6 +193,7 @@ function NoteEditorInner() {
     // 原因：React StrictMode 会先 unmount 再 remount，旧 waitForSync 可能在 remount
     // 后才 resolve，导致 view 实例不匹配而跳过滚动。改用 view 引用对比更可靠。
     waitForSync.then(() => {
+      sessionSynced = true;
       if (viewRef.current !== view) return;
       // 等待 doc 有内容后再决定滚到搜索命中还是文末。
       // CM 惰性渲染可能让 scrollHeight 逐帧增大，滚到文末时多帧滚动才能到底。
@@ -217,18 +220,13 @@ function NoteEditorInner() {
     });
 
     return () => {
-      noteCollabService.leaveNote();
-      // 如果有待定的自动保存，立即执行
-      if (currentSaveTimeoutRef.current) {
-        clearTimeout(currentSaveTimeoutRef.current);
-        currentSaveTimeoutRef.current = null;
-        // 立即执行最后一次保存（标题自动提取）
-        if (noteService.shouldAutoExtractTitle(noteId)) {
-          const docText = view.state.doc.toString();
-          const title = noteService.extractTitleFromContent(docText);
-          noteService.saveNote(noteId, docText, title);
-        }
+      // Flush only a pending title change caused by a local edit. Switching
+      // without edits is a no-op, including while the initial sync is pending.
+      flushTitleSave();
+      if (noteService._saveNowFn === flushTitleSave) {
+        noteService._saveNowFn = null;
       }
+      noteCollabService.leaveNote();
       view.destroy();
       viewRef.current = null;
     };
@@ -257,13 +255,6 @@ function NoteEditorInner() {
       ],
     });
   }, [resolvedTheme]);
-
-  useEffect(() => {
-    noteService._saveNowFn = handleSaveNow;
-    return () => {
-      noteService._saveNowFn = null;
-    };
-  }, [handleSaveNow, noteService]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -341,13 +332,7 @@ function NoteEditorInner() {
       noteId === noteService.currentNoteId ? noteService.currentNote?.title : note?.title;
     if (!currentTitle || trimmed === currentTitle) return;
     noteService.markTitleManuallyEdited(noteId);
-    const content =
-      noteId === noteService.currentNoteId
-        ? (viewRef.current?.state.doc.toString() ?? noteService.currentNote?.content ?? '')
-        : note
-          ? ''
-          : '';
-    noteService.saveNote(noteId, content, trimmed);
+    noteService.saveTitle(noteId, trimmed);
   };
 
   const connectionStatus = noteCollabService.connectionStatus;
@@ -404,7 +389,8 @@ function NoteEditorInner() {
               />
             ) : (
               <span
-                onClick={startEditingTitle}
+                onDoubleClick={startEditingTitle}
+                title="双击重命名"
                 className="cursor-pointer hover:underline underline-offset-2 decoration-[var(--border-subtle)]"
               >
                 {noteService.currentNote?.title}
